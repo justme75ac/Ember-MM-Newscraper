@@ -47,25 +47,25 @@ Public Class frmSettingsHolder_MovieSet
         SetUp()
     End Sub
 
-    Private Sub pbTMDBApiKeyInfo_Click(sender As Object, e As EventArgs) Handles pbTMDBApiKeyInfo.Click
+    Private Sub pbAEBNApiKeyInfo_Click(sender As Object, e As EventArgs) Handles pbAEBNApiKeyInfo.Click
         Functions.Launch(My.Resources.urlAPIKey)
     End Sub
 
     Private Sub btnDown_Click(ByVal sender As Object, ByVal e As EventArgs) Handles btnDown.Click
-        Dim order As Integer = ModulesManager.Instance.externalScrapersModules_Data_MovieSet.FirstOrDefault(Function(p) p.AssemblyName = TMDB_Data._AssemblyName).ModuleOrder
+        Dim order As Integer = ModulesManager.Instance.externalScrapersModules_Data_MovieSet.FirstOrDefault(Function(p) p.AssemblyName = AEBN_Data._AssemblyName).ModuleOrder
         If order < ModulesManager.Instance.externalScrapersModules_Data_MovieSet.Count - 1 Then
             ModulesManager.Instance.externalScrapersModules_Data_MovieSet.FirstOrDefault(Function(p) p.ModuleOrder = order + 1).ModuleOrder = order
-            ModulesManager.Instance.externalScrapersModules_Data_MovieSet.FirstOrDefault(Function(p) p.AssemblyName = TMDB_Data._AssemblyName).ModuleOrder = order + 1
+            ModulesManager.Instance.externalScrapersModules_Data_MovieSet.FirstOrDefault(Function(p) p.AssemblyName = AEBN_Data._AssemblyName).ModuleOrder = order + 1
             RaiseEvent SetupScraperChanged(chkEnabled.Checked, 1)
             orderChanged()
         End If
     End Sub
 
     Private Sub btnUp_Click(ByVal sender As Object, ByVal e As EventArgs) Handles btnUp.Click
-        Dim order As Integer = ModulesManager.Instance.externalScrapersModules_Data_MovieSet.FirstOrDefault(Function(p) p.AssemblyName = TMDB_Data._AssemblyName).ModuleOrder
+        Dim order As Integer = ModulesManager.Instance.externalScrapersModules_Data_MovieSet.FirstOrDefault(Function(p) p.AssemblyName = AEBN_Data._AssemblyName).ModuleOrder
         If order > 0 Then
             ModulesManager.Instance.externalScrapersModules_Data_MovieSet.FirstOrDefault(Function(p) p.ModuleOrder = order - 1).ModuleOrder = order
-            ModulesManager.Instance.externalScrapersModules_Data_MovieSet.FirstOrDefault(Function(p) p.AssemblyName = TMDB_Data._AssemblyName).ModuleOrder = order - 1
+            ModulesManager.Instance.externalScrapersModules_Data_MovieSet.FirstOrDefault(Function(p) p.AssemblyName = AEBN_Data._AssemblyName).ModuleOrder = order - 1
             RaiseEvent SetupScraperChanged(chkEnabled.Checked, -1)
             orderChanged()
         End If
@@ -104,12 +104,12 @@ Public Class frmSettingsHolder_MovieSet
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
-    Private Sub txtTMDBApiKey_TextChanged(ByVal sender As Object, ByVal e As EventArgs) Handles txtApiKey.TextChanged
+    Private Sub txtAEBNApiKey_TextChanged(ByVal sender As Object, ByVal e As EventArgs) Handles txtApiKey.TextChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
     Sub orderChanged()
-        Dim order As Integer = ModulesManager.Instance.externalScrapersModules_Data_MovieSet.FirstOrDefault(Function(p) p.AssemblyName = TMDB_Data._AssemblyName).ModuleOrder
+        Dim order As Integer = ModulesManager.Instance.externalScrapersModules_Data_MovieSet.FirstOrDefault(Function(p) p.AssemblyName = AEBN_Data._AssemblyName).ModuleOrder
         If ModulesManager.Instance.externalScrapersModules_Data_MovieSet.Count > 1 Then
             btnDown.Enabled = (order < ModulesManager.Instance.externalScrapersModules_Data_MovieSet.Count - 1)
             btnUp.Enabled = (order > 0)
@@ -128,7 +128,7 @@ Public Class frmSettingsHolder_MovieSet
         chkTitle.Text = Master.eLang.GetString(21, "Title")
         gbScraperFieldsOpts.Text = Master.eLang.GetString(791, "Scraper Fields - Scraper specific")
         gbScraperOpts.Text = Master.eLang.GetString(1186, "Scraper Options")
-        lblApiKey.Text = Master.eLang.GetString(870, "TMDB API Key")
+        lblApiKey.Text = Master.eLang.GetString(870, "AEBN API Key")
         lblEMMAPI.Text = Master.eLang.GetString(1189, "Ember Media Manager Embedded API Key")
         lblInfoBottom.Text = String.Format(Master.eLang.GetString(790, "These settings are specific to this module.{0}Please refer to the global settings for more options."), Environment.NewLine)
         lblScraperOrder.Text = Master.eLang.GetString(168, "Scrape Order")

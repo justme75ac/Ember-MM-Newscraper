@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{A9188CF1-BD07-4D24-BC4A-906A43012F37}</ProjectGuid>
+    <ProjectGuid>{2DA47C22-72DD-445A-818A-78B11EA55702}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>ScraperModule</RootNamespace>
     <AssemblyName>scraper.Data.AEBN</AssemblyName>
@@ -209,24 +209,24 @@
     <Compile Include="frmSettingsHolder_MovieSet.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Scraper\dlgTMDBSearchResults_TV.Designer.vb">
-      <DependentUpon>dlgTMDBSearchResults_TV.vb</DependentUpon>
+    <Compile Include="Scraper\dlgAEBNSearchResults_TV.Designer.vb">
+      <DependentUpon>dlgAEBNSearchResults_TV.vb</DependentUpon>
     </Compile>
-    <Compile Include="Scraper\dlgTMDBSearchResults_TV.vb">
+    <Compile Include="Scraper\dlgAEBNSearchResults_TV.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Scraper\dlgTMDBSearchResults_MovieSet.Designer.vb">
-      <DependentUpon>dlgTMDBSearchResults_MovieSet.vb</DependentUpon>
+    <Compile Include="Scraper\dlgAEBNSearchResults_MovieSet.Designer.vb">
+      <DependentUpon>dlgAEBNSearchResults_MovieSet.vb</DependentUpon>
     </Compile>
-    <Compile Include="Scraper\dlgTMDBSearchResults_MovieSet.vb">
+    <Compile Include="Scraper\dlgAEBNSearchResults_MovieSet.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="TMDB_Data.vb" />
-    <Compile Include="Scraper\clsScrapeTMDB.vb" />
-    <Compile Include="Scraper\dlgTMDBSearchResults_Movie.Designer.vb">
-      <DependentUpon>dlgTMDBSearchResults_Movie.vb</DependentUpon>
+    <Compile Include="AEBN_Data.vb" />
+    <Compile Include="Scraper\clsScrapeAEBN.vb" />
+    <Compile Include="Scraper\dlgAEBNSearchResults_Movie.Designer.vb">
+      <DependentUpon>dlgAEBNSearchResults_Movie.vb</DependentUpon>
     </Compile>
-    <Compile Include="Scraper\dlgTMDBSearchResults_Movie.vb">
+    <Compile Include="Scraper\dlgAEBNSearchResults_Movie.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="My Project\AssemblyInfo.vb" />
@@ -260,16 +260,16 @@
       <DependentUpon>frmSettingsHolder_MovieSet.vb</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Scraper\dlgTMDBSearchResults_TV.resx">
-      <DependentUpon>dlgTMDBSearchResults_TV.vb</DependentUpon>
+    <EmbeddedResource Include="Scraper\dlgAEBNSearchResults_TV.resx">
+      <DependentUpon>dlgAEBNSearchResults_TV.vb</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Scraper\dlgTMDBSearchResults_MovieSet.resx">
-      <DependentUpon>dlgTMDBSearchResults_MovieSet.vb</DependentUpon>
+    <EmbeddedResource Include="Scraper\dlgAEBNSearchResults_MovieSet.resx">
+      <DependentUpon>dlgAEBNSearchResults_MovieSet.vb</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Scraper\dlgTMDBSearchResults_Movie.resx">
-      <DependentUpon>dlgTMDBSearchResults_Movie.vb</DependentUpon>
+    <EmbeddedResource Include="Scraper\dlgAEBNSearchResults_Movie.resx">
+      <DependentUpon>dlgAEBNSearchResults_Movie.vb</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="frmSettingsHolder_Movie.resx">

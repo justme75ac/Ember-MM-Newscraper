@@ -97,18 +97,18 @@ Public Class Scraper
 
     Shared _Logger As Logger = LogManager.GetCurrentClassLogger()
 
-    Private _client As TMDbLib.Client.TMDbClient  'preferred language
-    Private _clientE As TMDbLib.Client.TMDbClient 'english language
-    Private _addonSettings As TMDB_Data.SpecialSettings
+    Private _client As AEbnLib.Client.AEbnClient  'preferred language
+    Private _clientE As AEbnLib.Client.AEbnClient 'english language
+    Private _addonSettings As AEBN_Data.SpecialSettings
     Private _sPoster As String = String.Empty
 
-    Private _Fallback_Movie As TMDbLib.Objects.Movies.Movie = Nothing
-    Private _Fallback_Movieset As TMDbLib.Objects.Collections.Collection = Nothing
-    Private _Fallback_TVEpisode As TMDbLib.Objects.TvShows.TvEpisode = Nothing
-    Private _Fallback_TVSeason As TMDbLib.Objects.TvShows.TvSeason = Nothing
-    Private _Fallback_TVShow As TMDbLib.Objects.TvShows.TvShow = Nothing
+    Private _Fallback_Movie As AEbnLib.Objects.Movies.Movie = Nothing
+    Private _Fallback_Movieset As AEbnLib.Objects.Collections.Collection = Nothing
+    Private _Fallback_TVEpisode As AEbnLib.Objects.TvShows.TvEpisode = Nothing
+    Private _Fallback_TVSeason As AEbnLib.Objects.TvShows.TvSeason = Nothing
+    Private _Fallback_TVShow As AEbnLib.Objects.TvShows.TvShow = Nothing
 
-    Friend WithEvents bwTMDB As New ComponentModel.BackgroundWorker
+    Friend WithEvents bwAEBN As New ComponentModel.BackgroundWorker
 
 #End Region 'Fields
 
@@ -159,33 +159,33 @@ Public Class Scraper
 
 #Region "Methods"
 
-    Public Async Function CreateAPI(ByVal addonSettings As TMDB_Data.SpecialSettings) As Task
+    Public Async Function CreateAPI(ByVal addonSettings As AEBN_Data.SpecialSettings) As Task
         Try
             _addonSettings = addonSettings
 
-            _client = New TMDbLib.Client.TMDbClient(_addonSettings.APIKey)
+            _client = New AEbnLib.Client.AEbnClient(_addonSettings.APIKey)
             Await _client.GetConfigAsync()
             _client.MaxRetryCount = 2
-            _Logger.Trace("[TMDB_Data] [CreateAPI] Client created")
+            _Logger.Trace("[AEBN_Data] [CreateAPI] Client created")
 
             If _addonSettings.FallBackEng Then
-                _clientE = New TMDbLib.Client.TMDbClient(_addonSettings.APIKey)
+                _clientE = New AEbnLib.Client.AEbnClient(_addonSettings.APIKey)
                 Await _clientE.GetConfigAsync()
                 _clientE.DefaultLanguage = "en-US"
                 _clientE.MaxRetryCount = 2
-                _Logger.Trace("[TMDB_Data] [CreateAPI] Client-EN created")
+                _Logger.Trace("[AEBN_Data] [CreateAPI] Client-EN created")
             Else
                 _clientE = _client
-                _Logger.Trace("[TMDB_Data] [CreateAPI] Client-EN = Client")
+                _Logger.Trace("[AEBN_Data] [CreateAPI] Client-EN = Client")
             End If
         Catch ex As Exception
-            _Logger.Error(String.Format("[TMDB_Data] [CreateAPI] [Error] {0}", ex.Message))
+            _Logger.Error(String.Format("[AEBN_Data] [CreateAPI] [Error] {0}", ex.Message))
         End Try
     End Function
 
-    Private Sub bwTMDB_DoWork(ByVal sender As Object, ByVal e As System.ComponentModel.DoWorkEventArgs) Handles bwTMDB.DoWork
+    Private Sub bwAEBN_DoWork(ByVal sender As Object, ByVal e As System.ComponentModel.DoWorkEventArgs) Handles bwAEBN.DoWork
         Dim Args As Arguments = DirectCast(e.Argument, Arguments)
-        '' The rule is that if there is a tt is an IMDB otherwise is a TMDB
+        '' The rule is that if there is a tt is an IMDB otherwise is a AEBN
 
         Select Case Args.Search
             Case SearchType.Movies
@@ -224,7 +224,7 @@ Public Class Scraper
         End Select
     End Sub
 
-    Private Sub bwTMDB_RunWorkerCompleted(ByVal sender As Object, ByVal e As System.ComponentModel.RunWorkerCompletedEventArgs) Handles bwTMDB.RunWorkerCompleted
+    Private Sub bwAEBN_RunWorkerCompleted(ByVal sender As Object, ByVal e As System.ComponentModel.RunWorkerCompletedEventArgs) Handles bwAEBN.RunWorkerCompleted
         Dim Res As Results = DirectCast(e.Result, Results)
 
         Select Case Res.ResultType
@@ -252,9 +252,9 @@ Public Class Scraper
     End Sub
 
     Public Sub CancelAsync()
-        If bwTMDB.IsBusy Then bwTMDB.CancelAsync()
+        If bwAEBN.IsBusy Then bwAEBN.CancelAsync()
 
-        While bwTMDB.IsBusy
+        While bwAEBN.IsBusy
             Application.DoEvents()
             Threading.Thread.Sleep(50)
         End While
@@ -262,28 +262,28 @@ Public Class Scraper
 
     Public Sub GetMovieID(ByVal DBMovie As Database.DBElement)
         Dim strUniqueID As String = String.Empty
-        If DBMovie.Movie.UniqueIDs.TMDbIdSpecified Then
-            strUniqueID = DBMovie.Movie.UniqueIDs.TMDbId.ToString
+        If DBMovie.Movie.UniqueIDs.AEbnIdSpecified Then
+            strUniqueID = DBMovie.Movie.UniqueIDs.AEbnId.ToString
         ElseIf DBMovie.Movie.UniqueIDs.IMDbIdSpecified Then
             strUniqueID = DBMovie.Movie.UniqueIDs.IMDbId
         End If
 
         If Not String.IsNullOrEmpty(strUniqueID) Then
-            Dim Movie As TMDbLib.Objects.Movies.Movie
-            Dim APIResult As Task(Of TMDbLib.Objects.Movies.Movie)
+            Dim Movie As AEbnLib.Objects.Movies.Movie
+            Dim APIResult As Task(Of AEbnLib.Objects.Movies.Movie)
             APIResult = Task.Run(Function() _client.GetMovieAsync(strUniqueID))
 
             Movie = APIResult.Result
             If Movie Is Nothing OrElse Movie.Id = 0 Then Return
 
-            DBMovie.Movie.UniqueIDs.TMDbId = Movie.Id
+            DBMovie.Movie.UniqueIDs.AEbnId = Movie.Id
         End If
     End Sub
 
     Public Function GetMovieID(ByVal imdbId As String) As Integer
-        Dim Movie As TMDbLib.Objects.Movies.Movie
+        Dim Movie As AEbnLib.Objects.Movies.Movie
 
-        Dim APIResult As Task(Of TMDbLib.Objects.Movies.Movie)
+        Dim APIResult As Task(Of AEbnLib.Objects.Movies.Movie)
         APIResult = Task.Run(Function() _client.GetMovieAsync(imdbId))
 
         Movie = APIResult.Result
@@ -293,9 +293,9 @@ Public Class Scraper
     End Function
 
     Public Function GetMovieCollectionID(ByVal imdbId As String) As Integer
-        Dim Movie As TMDbLib.Objects.Movies.Movie
+        Dim Movie As AEbnLib.Objects.Movies.Movie
 
-        Dim APIResult As Task(Of TMDbLib.Objects.Movies.Movie)
+        Dim APIResult As Task(Of AEbnLib.Objects.Movies.Movie)
         APIResult = Task.Run(Function() _client.GetMovieAsync(imdbId))
 
         Movie = APIResult.Result
@@ -308,24 +308,24 @@ Public Class Scraper
         End If
     End Function
     ''' <summary>
-    '''  Scrape MovieDetails from TMDB
+    '''  Scrape MovieDetails from AEBN
     ''' </summary>
-    ''' <param name="tmdbIdOrImdbId">TMDBID or ID (IMDB ID starts with "tt") of movie to be scraped</param>
+    ''' <param name="tmdbIdOrImdbId">AEBNID or ID (IMDB ID starts with "tt") of movie to be scraped</param>
     ''' <param name="GetPoster">Scrape posters for the movie?</param>
     ''' <returns>True: success, false: no success</returns>
     Public Function GetInfo_Movie(ByVal tmdbIdOrImdbId As String, ByVal FilteredOptions As Structures.ScrapeOptions, ByVal GetPoster As Boolean) As MediaContainers.Movie
         _Fallback_Movie = Nothing
         If String.IsNullOrEmpty(tmdbIdOrImdbId) Then Return Nothing
 
-        Dim APIResult As Task(Of TMDbLib.Objects.Movies.Movie)
-        Dim intTMDBID As Integer = -1
+        Dim APIResult As Task(Of AEbnLib.Objects.Movies.Movie)
+        Dim intAEBNID As Integer = -1
 
         If tmdbIdOrImdbId.ToLower.StartsWith("tt") Then
             'search movie by IMDB ID
-            APIResult = Task.Run(Function() _client.GetMovieAsync(tmdbIdOrImdbId, TMDbLib.Objects.Movies.MovieMethods.Credits Or TMDbLib.Objects.Movies.MovieMethods.Releases Or TMDbLib.Objects.Movies.MovieMethods.Videos))
-        ElseIf Integer.TryParse(tmdbIdOrImdbId, intTMDBID) Then
-            'search movie by TMDB ID
-            APIResult = Task.Run(Function() _client.GetMovieAsync(intTMDBID, TMDbLib.Objects.Movies.MovieMethods.Credits Or TMDbLib.Objects.Movies.MovieMethods.Releases Or TMDbLib.Objects.Movies.MovieMethods.Videos))
+            APIResult = Task.Run(Function() _client.GetMovieAsync(tmdbIdOrImdbId, AEbnLib.Objects.Movies.MovieMethods.Credits Or AEbnLib.Objects.Movies.MovieMethods.Releases Or AEbnLib.Objects.Movies.MovieMethods.Videos))
+        ElseIf Integer.TryParse(tmdbIdOrImdbId, intAEBNID) Then
+            'search movie by AEBN ID
+            APIResult = Task.Run(Function() _client.GetMovieAsync(intAEBNID, AEbnLib.Objects.Movies.MovieMethods.Credits Or AEbnLib.Objects.Movies.MovieMethods.Releases Or AEbnLib.Objects.Movies.MovieMethods.Videos))
         Else
             _Logger.Error(String.Format("Can't scrape or movie not found: [0]", tmdbIdOrImdbId))
             Return Nothing
@@ -336,30 +336,30 @@ Public Class Scraper
             Return Nothing
         End If
 
-        Dim Result As TMDbLib.Objects.Movies.Movie = APIResult.Result
-        Dim nMovie As New MediaContainers.Movie With {.Scrapersource = "TMDB"}
+        Dim Result As AEbnLib.Objects.Movies.Movie = APIResult.Result
+        Dim nMovie As New MediaContainers.Movie With {.Scrapersource = "AEBN"}
 
         'IDs
-        nMovie.UniqueIDs.TMDbId = Result.Id
+        nMovie.UniqueIDs.AEbnId = Result.Id
         If Result.ImdbId IsNot Nothing Then nMovie.UniqueIDs.IMDbId = Result.ImdbId
 
-        If bwTMDB.CancellationPending Or Result Is Nothing Then Return Nothing
+        If bwAEBN.CancellationPending Or Result Is Nothing Then Return Nothing
 
         'Cast (Actors)
         If FilteredOptions.bMainActors Then
             If Result.Credits IsNot Nothing AndAlso Result.Credits.Cast IsNot Nothing Then
-                For Each aCast As TMDbLib.Objects.Movies.Cast In Result.Credits.Cast
+                For Each aCast As AEbnLib.Objects.Movies.Cast In Result.Credits.Cast
                     nMovie.Actors.Add(New MediaContainers.Person With {
                                       .Name = aCast.Name,
                                       .Role = aCast.Character,
                                       .URLOriginal = If(Not String.IsNullOrEmpty(aCast.ProfilePath), String.Concat(_client.Config.Images.BaseUrl, "original", aCast.ProfilePath), String.Empty),
-                                      .TMDbId = CStr(aCast.Id)
+                                      .AEbnId = CStr(aCast.Id)
                                       })
                 Next
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Certifications
         If FilteredOptions.bMainCertifications Then
@@ -377,7 +377,7 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Collection ID
         If FilteredOptions.bMainCollectionID Then
@@ -391,28 +391,28 @@ Public Class Scraper
                                     .Title = nFullMovieSetInfo.Title,
                                     .UniqueIDs = nFullMovieSetInfo.UniqueIDs
                                     })
-                    nMovie.UniqueIDs.TMDbCollectionId = nFullMovieSetInfo.UniqueIDs.TMDbId
+                    nMovie.UniqueIDs.AEbnCollectionId = nFullMovieSetInfo.UniqueIDs.AEbnId
                 End If
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Countries
         If FilteredOptions.bMainCountries Then
             If Result.ProductionCountries IsNot Nothing AndAlso Result.ProductionCountries.Count > 0 Then
-                For Each aContry As TMDbLib.Objects.General.ProductionCountry In Result.ProductionCountries
+                For Each aContry As AEbnLib.Objects.General.ProductionCountry In Result.ProductionCountries
                     nMovie.Countries.Add(aContry.Name)
                 Next
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Director / Writer
         If FilteredOptions.bMainDirectors OrElse FilteredOptions.bMainWriters Then
             If Result.Credits IsNot Nothing AndAlso Result.Credits.Crew IsNot Nothing Then
-                For Each aCrew As TMDbLib.Objects.General.Crew In Result.Credits.Crew
+                For Each aCrew As AEbnLib.Objects.General.Crew In Result.Credits.Crew
                     If FilteredOptions.bMainDirectors AndAlso aCrew.Department = "Directing" AndAlso aCrew.Job = "Director" Then
                         nMovie.Directors.Add(aCrew.Name)
                     End If
@@ -423,7 +423,7 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Genres
         If FilteredOptions.bMainGenres Then
@@ -434,14 +434,14 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'OriginalTitle
         If FilteredOptions.bMainOriginalTitle Then
             nMovie.OriginalTitle = Result.OriginalTitle
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Plot
         If FilteredOptions.bMainPlot Then
@@ -452,9 +452,9 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
-        'Posters (only for SearchResult dialog, auto fallback to "en" by TMDB)
+        'Posters (only for SearchResult dialog, auto fallback to "en" by AEBN)
         If GetPoster Then
             If Result.PosterPath IsNot Nothing AndAlso Not String.IsNullOrEmpty(Result.PosterPath) Then
                 _sPoster = String.Concat(_client.Config.Images.BaseUrl, "w92", Result.PosterPath)
@@ -463,7 +463,7 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Premiered
         If FilteredOptions.bMainPremiered Then
@@ -479,7 +479,7 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Rating
         If FilteredOptions.bMainRating Then
@@ -491,7 +491,7 @@ Public Class Scraper
                                })
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Runtime
         If FilteredOptions.bMainRuntime Then
@@ -502,7 +502,7 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Studios
         If FilteredOptions.bMainStudios Then
@@ -511,7 +511,7 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Tagline
         If FilteredOptions.bMainTagline Then
@@ -522,7 +522,7 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Title
         If FilteredOptions.bMainTitle Then
@@ -533,11 +533,11 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Trailer
         If FilteredOptions.bMainTrailer Then
-            Dim nTrailers As New List(Of TMDbLib.Objects.General.Video)
+            Dim nTrailers As New List(Of AEbnLib.Objects.General.Video)
             If Result.Videos IsNot Nothing AndAlso Result.Videos.Results.Count > 0 Then
                 nTrailers = Result.Videos.Results
             ElseIf RunFallback_Movie(Result.Id) AndAlso _Fallback_Movie.Videos Is Nothing AndAlso _Fallback_Movie.Videos.Results.Count > 0 Then
@@ -553,7 +553,7 @@ Public Class Scraper
             Next
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         _Fallback_Movie = Nothing
         Return nMovie
@@ -562,19 +562,19 @@ Public Class Scraper
     Public Function GetInfo_Movieset(ByVal tmdbId As Integer, ByVal filteredOptions As Structures.ScrapeOptions, ByVal getPoster As Boolean) As MediaContainers.Movieset
         _Fallback_Movieset = Nothing
         If tmdbId = -1 Then Return Nothing
-        Dim APIResult As Task(Of TMDbLib.Objects.Collections.Collection) = Task.Run(Function() _client.GetCollectionAsync(tmdbId))
+        Dim APIResult As Task(Of AEbnLib.Objects.Collections.Collection) = Task.Run(Function() _client.GetCollectionAsync(tmdbId))
 
         If APIResult Is Nothing OrElse APIResult.Result Is Nothing OrElse Not APIResult.Result.Id > 0 OrElse APIResult.Exception IsNot Nothing Then
-            _Logger.Warn(String.Format("[TMDB_Data] [Abort] No API result for TMDB Collection ID [{0}]", tmdbId))
+            _Logger.Warn(String.Format("[AEBN_Data] [Abort] No API result for AEBN Collection ID [{0}]", tmdbId))
             Return Nothing
         End If
 
-        Dim Result As TMDbLib.Objects.Collections.Collection = APIResult.Result
+        Dim Result As AEbnLib.Objects.Collections.Collection = APIResult.Result
         Dim nMovieSet As New MediaContainers.Movieset With {
-                .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.MovieSet) With {.TMDbId = Result.Id}
+                .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.MovieSet) With {.AEbnId = Result.Id}
             }
 
-        If bwTMDB.CancellationPending Or Result Is Nothing Then Return Nothing
+        If bwAEBN.CancellationPending Or Result Is Nothing Then Return Nothing
 
         'Plot
         If filteredOptions.bMainPlot Then
@@ -585,9 +585,9 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
-        'Posters (only for SearchResult dialog, auto fallback to "en" by TMDB)
+        'Posters (only for SearchResult dialog, auto fallback to "en" by AEBN)
         If getPoster Then
             If Result.PosterPath IsNot Nothing AndAlso Not String.IsNullOrEmpty(Result.PosterPath) Then
                 _sPoster = String.Concat(_client.Config.Images.BaseUrl, "w92", Result.PosterPath)
@@ -614,18 +614,18 @@ Public Class Scraper
 
     Public Function GetInfo_TVEpisode(ByVal showId As Integer, ByVal aired As String, ByRef filteredOptions As Structures.ScrapeOptions) As MediaContainers.EpisodeDetails
         Dim nTVEpisode As New MediaContainers.EpisodeDetails
-        Dim ShowInfo As TMDbLib.Objects.TvShows.TvShow
+        Dim ShowInfo As AEbnLib.Objects.TvShows.TvShow
 
-        Dim showAPIResult As Task(Of TMDbLib.Objects.TvShows.TvShow) = Task.Run(Function() _client.GetTvShowAsync(showId))
+        Dim showAPIResult As Task(Of AEbnLib.Objects.TvShows.TvShow) = Task.Run(Function() _client.GetTvShowAsync(showId))
 
         ShowInfo = showAPIResult.Result
 
-        For Each aSeason As TMDbLib.Objects.Search.SearchTvSeason In ShowInfo.Seasons
-            Dim seasonAPIResult As Task(Of TMDbLib.Objects.TvShows.TvSeason)
-            seasonAPIResult = Task.Run(Function() _client.GetTvSeasonAsync(showId, aSeason.SeasonNumber, TMDbLib.Objects.TvShows.TvSeasonMethods.Credits Or TMDbLib.Objects.TvShows.TvSeasonMethods.ExternalIds))
+        For Each aSeason As AEbnLib.Objects.Search.SearchTvSeason In ShowInfo.Seasons
+            Dim seasonAPIResult As Task(Of AEbnLib.Objects.TvShows.TvSeason)
+            seasonAPIResult = Task.Run(Function() _client.GetTvSeasonAsync(showId, aSeason.SeasonNumber, AEbnLib.Objects.TvShows.TvSeasonMethods.Credits Or AEbnLib.Objects.TvShows.TvSeasonMethods.ExternalIds))
 
-            Dim SeasonInfo As TMDbLib.Objects.TvShows.TvSeason = seasonAPIResult.Result
-            Dim EpisodeList As IEnumerable(Of TMDbLib.Objects.Search.TvSeasonEpisode) = SeasonInfo.Episodes.Where(Function(f) CBool(f.AirDate = CDate(aired)))
+            Dim SeasonInfo As AEbnLib.Objects.TvShows.TvSeason = seasonAPIResult.Result
+            Dim EpisodeList As IEnumerable(Of AEbnLib.Objects.Search.TvSeasonEpisode) = SeasonInfo.Episodes.Where(Function(f) CBool(f.AirDate = CDate(aired)))
             If EpisodeList IsNot Nothing AndAlso EpisodeList.Count = 1 Then
                 Return GetInfo_TVEpisode(showId, EpisodeList(0).SeasonNumber, EpisodeList(0).EpisodeNumber, filteredOptions)
             ElseIf EpisodeList.Count > 0 Then
@@ -638,18 +638,18 @@ Public Class Scraper
 
     Public Function GetInfo_TVEpisode(ByVal showId As Integer, ByVal seasonNumber As Integer, ByVal episodeNumber As Integer, ByRef filteredOptions As Structures.ScrapeOptions) As MediaContainers.EpisodeDetails
         _Fallback_TVEpisode = Nothing
-        Dim APIResult As Task(Of TMDbLib.Objects.TvShows.TvEpisode) = Task.Run(Function() _client.GetTvEpisodeAsync(showId, seasonNumber, episodeNumber, TMDbLib.Objects.TvShows.TvEpisodeMethods.Credits Or TMDbLib.Objects.TvShows.TvEpisodeMethods.ExternalIds))
+        Dim APIResult As Task(Of AEbnLib.Objects.TvShows.TvEpisode) = Task.Run(Function() _client.GetTvEpisodeAsync(showId, seasonNumber, episodeNumber, AEbnLib.Objects.TvShows.TvEpisodeMethods.Credits Or AEbnLib.Objects.TvShows.TvEpisodeMethods.ExternalIds))
 
         If APIResult Is Nothing OrElse APIResult.Result Is Nothing OrElse APIResult.Result.Id Is Nothing OrElse APIResult.Exception IsNot Nothing Then
             _Logger.Error(String.Format("Can't scrape or episode not found: tmdbID={0}, Season{1}, Episode{2}", showId, seasonNumber, episodeNumber))
             Return Nothing
         End If
 
-        Dim Result As TMDbLib.Objects.TvShows.TvEpisode = APIResult.Result
-        Dim nTVEpisode As New MediaContainers.EpisodeDetails With {.Scrapersource = "TMDB"}
+        Dim Result As AEbnLib.Objects.TvShows.TvEpisode = APIResult.Result
+        Dim nTVEpisode As New MediaContainers.EpisodeDetails With {.Scrapersource = "AEBN"}
 
         'IDs
-        nTVEpisode.UniqueIDs.TMDbId = CInt(Result.Id)
+        nTVEpisode.UniqueIDs.AEbnId = CInt(Result.Id)
         If Result.ExternalIds IsNot Nothing AndAlso Result.ExternalIds.TvdbId IsNot Nothing Then nTVEpisode.UniqueIDs.TVDbId = CInt(Result.ExternalIds.TvdbId)
         If Result.ExternalIds IsNot Nothing AndAlso Result.ExternalIds.ImdbId IsNot Nothing Then nTVEpisode.UniqueIDs.IMDbId = Result.ExternalIds.ImdbId
 
@@ -666,12 +666,12 @@ Public Class Scraper
         'Cast (Actors)
         If filteredOptions.bEpisodeActors Then
             If Result.Credits IsNot Nothing AndAlso Result.Credits.Cast IsNot Nothing Then
-                For Each aCast As TMDbLib.Objects.TvShows.Cast In Result.Credits.Cast
+                For Each aCast As AEbnLib.Objects.TvShows.Cast In Result.Credits.Cast
                     nTVEpisode.Actors.Add(New MediaContainers.Person With {
                                           .Name = aCast.Name,
                                           .Role = aCast.Character,
                                           .URLOriginal = If(Not String.IsNullOrEmpty(aCast.ProfilePath), String.Concat(_client.Config.Images.BaseUrl, "original", aCast.ProfilePath), String.Empty),
-                                          .TMDbId = CStr(aCast.Id)})
+                                          .AEbnId = CStr(aCast.Id)})
                 Next
             End If
         End If
@@ -691,7 +691,7 @@ Public Class Scraper
         'Director / Writer
         If filteredOptions.bEpisodeCredits OrElse filteredOptions.bEpisodeDirectors Then
             If Result.Credits IsNot Nothing AndAlso Result.Credits.Crew IsNot Nothing Then
-                For Each aCrew As TMDbLib.Objects.General.Crew In Result.Credits.Crew
+                For Each aCrew As AEbnLib.Objects.General.Crew In Result.Credits.Crew
                     If filteredOptions.bEpisodeCredits AndAlso aCrew.Department = "Writing" AndAlso (aCrew.Job = "Author" OrElse aCrew.Job = "Screenplay" OrElse aCrew.Job = "Writer") Then
                         nTVEpisode.Credits.Add(aCrew.Name)
                     End If
@@ -705,12 +705,12 @@ Public Class Scraper
         'Guest Stars
         If filteredOptions.bEpisodeGuestStars Then
             If Result.GuestStars IsNot Nothing Then
-                For Each aCast As TMDbLib.Objects.TvShows.Cast In Result.GuestStars
+                For Each aCast As AEbnLib.Objects.TvShows.Cast In Result.GuestStars
                     nTVEpisode.GuestStars.Add(New MediaContainers.Person With {
                                               .Name = aCast.Name,
                                               .Role = aCast.Character,
                                               .URLOriginal = If(Not String.IsNullOrEmpty(aCast.ProfilePath), String.Concat(_client.Config.Images.BaseUrl, "original", aCast.ProfilePath), String.Empty),
-                                              .TMDbId = CStr(aCast.Id)
+                                              .AEbnId = CStr(aCast.Id)
                                               })
                 Next
             End If
@@ -757,20 +757,20 @@ Public Class Scraper
 
     Public Sub GetInfo_TVSeason(ByRef tvShow As MediaContainers.TVShow, ByVal showId As Integer, ByVal seasonNumber As Integer, ByRef scrapeModifiers As Structures.ScrapeModifiers, ByRef filteredOptions As Structures.ScrapeOptions)
         _Fallback_TVSeason = Nothing
-        Dim APIResult As Task(Of TMDbLib.Objects.TvShows.TvSeason) = Task.Run(Function() _client.GetTvSeasonAsync(showId, seasonNumber, TMDbLib.Objects.TvShows.TvSeasonMethods.Credits Or TMDbLib.Objects.TvShows.TvSeasonMethods.ExternalIds))
+        Dim APIResult As Task(Of AEbnLib.Objects.TvShows.TvSeason) = Task.Run(Function() _client.GetTvSeasonAsync(showId, seasonNumber, AEbnLib.Objects.TvShows.TvSeasonMethods.Credits Or AEbnLib.Objects.TvShows.TvSeasonMethods.ExternalIds))
 
         If APIResult Is Nothing OrElse APIResult.Result Is Nothing OrElse APIResult.Result.Id Is Nothing OrElse APIResult.Exception IsNot Nothing Then
             _Logger.Error(String.Format("Can't scrape or season not found: ShowID={0}, Season={1}", showId, seasonNumber))
             Return
         End If
 
-        Dim Result As TMDbLib.Objects.TvShows.TvSeason = APIResult.Result
+        Dim Result As AEbnLib.Objects.TvShows.TvSeason = APIResult.Result
 
         If scrapeModifiers.withSeasons Then
-            Dim nTVSeason As New MediaContainers.SeasonDetails With {.Scrapersource = "TMDB"}
+            Dim nTVSeason As New MediaContainers.SeasonDetails With {.Scrapersource = "AEBN"}
 
             'IDs
-            nTVSeason.UniqueIDs.TMDbId = CInt(Result.Id)
+            nTVSeason.UniqueIDs.AEbnId = CInt(Result.Id)
             If Result.ExternalIds IsNot Nothing AndAlso Result.ExternalIds.TvdbId IsNot Nothing Then nTVSeason.UniqueIDs.TVDbId = CInt(Result.ExternalIds.TvdbId)
 
             'Season #
@@ -812,7 +812,7 @@ Public Class Scraper
         End If
 
         If scrapeModifiers.withEpisodes AndAlso Result.Episodes IsNot Nothing Then
-            For Each aEpisode As TMDbLib.Objects.Search.TvSeasonEpisode In Result.Episodes
+            For Each aEpisode As AEbnLib.Objects.Search.TvSeasonEpisode In Result.Episodes
                 tvShow.KnownEpisodes.Add(GetInfo_TVEpisode(showId, aEpisode.SeasonNumber, aEpisode.EpisodeNumber, filteredOptions))
             Next
         End If
@@ -822,18 +822,18 @@ Public Class Scraper
 
     Public Function GetInfo_TVSeason(ByVal showId As Integer, ByVal seasonNumber As Integer, ByRef filteredOptions As Structures.ScrapeOptions) As MediaContainers.SeasonDetails
         _Fallback_TVSeason = Nothing
-        Dim APIResult As Task(Of TMDbLib.Objects.TvShows.TvSeason) = Task.Run(Function() _client.GetTvSeasonAsync(showId, seasonNumber, TMDbLib.Objects.TvShows.TvSeasonMethods.Credits Or TMDbLib.Objects.TvShows.TvSeasonMethods.ExternalIds))
+        Dim APIResult As Task(Of AEbnLib.Objects.TvShows.TvSeason) = Task.Run(Function() _client.GetTvSeasonAsync(showId, seasonNumber, AEbnLib.Objects.TvShows.TvSeasonMethods.Credits Or AEbnLib.Objects.TvShows.TvSeasonMethods.ExternalIds))
 
         If APIResult Is Nothing OrElse APIResult.Result Is Nothing OrElse APIResult.Result.Id Is Nothing OrElse APIResult.Exception IsNot Nothing Then
             _Logger.Error(String.Format("Can't scrape or season not found: tmdbID={0}, Season={1}", showId, seasonNumber))
             Return Nothing
         End If
 
-        Dim Result As TMDbLib.Objects.TvShows.TvSeason = APIResult.Result
-        Dim nTVSeason As New MediaContainers.SeasonDetails With {.Scrapersource = "TMDB"}
+        Dim Result As AEbnLib.Objects.TvShows.TvSeason = APIResult.Result
+        Dim nTVSeason As New MediaContainers.SeasonDetails With {.Scrapersource = "AEBN"}
 
         'IDs
-        nTVSeason.UniqueIDs.TMDbId = CInt(Result.Id)
+        nTVSeason.UniqueIDs.AEbnId = CInt(Result.Id)
         If Result.ExternalIds IsNot Nothing AndAlso Result.ExternalIds.TvdbId IsNot Nothing Then nTVSeason.UniqueIDs.TVDbId = CInt(Result.ExternalIds.TvdbId)
 
         'Season #
@@ -875,49 +875,49 @@ Public Class Scraper
         Return nTVSeason
     End Function
     ''' <summary>
-    '''  Scrape TV Show details from TMDB
+    '''  Scrape TV Show details from AEBN
     ''' </summary>
-    ''' <param name="showId">TMDB ID of tv show to be scraped</param>
+    ''' <param name="showId">AEBN ID of tv show to be scraped</param>
     ''' <param name="getPoster">Scrape posters for the movie?</param>
     ''' <returns>True: success, false: no success</returns>
     Public Function GetInfo_TVShow(ByVal showId As Integer, ByRef scrapeModifiers As Structures.ScrapeModifiers, ByRef filteredOptions As Structures.ScrapeOptions, ByVal getPoster As Boolean) As MediaContainers.TVShow
         If showId = -1 Then Return Nothing
         _Fallback_TVShow = Nothing
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
-        Dim APIResult As Task(Of TMDbLib.Objects.TvShows.TvShow) = Task.Run(Function() _client.GetTvShowAsync(showId, TMDbLib.Objects.TvShows.TvShowMethods.ContentRatings Or TMDbLib.Objects.TvShows.TvShowMethods.Credits Or TMDbLib.Objects.TvShows.TvShowMethods.ExternalIds))
+        Dim APIResult As Task(Of AEbnLib.Objects.TvShows.TvShow) = Task.Run(Function() _client.GetTvShowAsync(showId, AEbnLib.Objects.TvShows.TvShowMethods.ContentRatings Or AEbnLib.Objects.TvShows.TvShowMethods.Credits Or AEbnLib.Objects.TvShows.TvShowMethods.ExternalIds))
 
         If APIResult Is Nothing OrElse APIResult.Result Is Nothing OrElse Not APIResult.Result.Id > 0 OrElse APIResult.Exception IsNot Nothing Then
             _Logger.Error(String.Format("Can't scrape or tv show not found: [{0}]", showId))
             Return Nothing
         End If
 
-        Dim Result As TMDbLib.Objects.TvShows.TvShow = APIResult.Result
-        Dim nTVShow As New MediaContainers.TVShow With {.Scrapersource = "TMDB"}
+        Dim Result As AEbnLib.Objects.TvShows.TvShow = APIResult.Result
+        Dim nTVShow As New MediaContainers.TVShow With {.Scrapersource = "AEBN"}
 
         'IDs
-        nTVShow.UniqueIDs.TMDbId = Result.Id
+        nTVShow.UniqueIDs.AEbnId = Result.Id
         If Result.ExternalIds.TvdbId IsNot Nothing AndAlso Integer.TryParse(Result.ExternalIds.TvdbId, 0) Then nTVShow.UniqueIDs.TVDbId = CInt(Result.ExternalIds.TvdbId)
         If Result.ExternalIds.ImdbId IsNot Nothing Then nTVShow.UniqueIDs.IMDbId = Result.ExternalIds.ImdbId
 
-        If bwTMDB.CancellationPending Or Result Is Nothing Then Return Nothing
+        If bwAEBN.CancellationPending Or Result Is Nothing Then Return Nothing
 
         'Actors
         If filteredOptions.bMainActors Then
             If Result.Credits IsNot Nothing AndAlso Result.Credits.Cast IsNot Nothing Then
-                For Each aCast As TMDbLib.Objects.TvShows.Cast In Result.Credits.Cast
+                For Each aCast As AEbnLib.Objects.TvShows.Cast In Result.Credits.Cast
                     nTVShow.Actors.Add(New MediaContainers.Person With {
                                            .Name = aCast.Name,
                                            .Role = aCast.Character,
                                            .URLOriginal = If(Not String.IsNullOrEmpty(aCast.ProfilePath), String.Concat(_client.Config.Images.BaseUrl, "original", aCast.ProfilePath), String.Empty),
-                                           .TMDbId = CStr(aCast.Id)
+                                           .AEbnId = CStr(aCast.Id)
                                            })
                 Next
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Certifications
         If filteredOptions.bMainCertifications Then
@@ -935,7 +935,7 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Countries 
         If filteredOptions.bMainCountries Then
@@ -946,14 +946,14 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Creators
         If filteredOptions.bMainCreators Then
             nTVShow.Creators.AddRange(Result.CreatedBy.Select(Function(f) f.Name))
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Genres
         If filteredOptions.bMainGenres Then
@@ -964,14 +964,14 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'OriginalTitle
         If filteredOptions.bMainOriginalTitle Then
             nTVShow.OriginalTitle = Result.OriginalName
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Plot
         If filteredOptions.bMainPlot Then
@@ -982,9 +982,9 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
-        'Posters (only for SearchResult dialog, auto fallback to "en" by TMDB)
+        'Posters (only for SearchResult dialog, auto fallback to "en" by AEBN)
         If getPoster Then
             If Result.PosterPath IsNot Nothing AndAlso Not String.IsNullOrEmpty(Result.PosterPath) Then
                 _sPoster = String.Concat(_client.Config.Images.BaseUrl, "w92", Result.PosterPath)
@@ -993,7 +993,7 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Premiered
         If filteredOptions.bMainPremiered Then
@@ -1009,7 +1009,7 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Rating
         If filteredOptions.bMainRating Then
@@ -1021,7 +1021,7 @@ Public Class Scraper
                                     })
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Runtime
         If filteredOptions.bMainRuntime Then
@@ -1032,7 +1032,7 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Status
         If filteredOptions.bMainStatus Then
@@ -1043,7 +1043,7 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Studios
         If filteredOptions.bMainStudios Then
@@ -1052,7 +1052,7 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Tagline
         If filteredOptions.bMainTagline Then
@@ -1063,7 +1063,7 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Title
         If filteredOptions.bMainTitle Then
@@ -1074,11 +1074,11 @@ Public Class Scraper
             End If
         End If
 
-        If bwTMDB.CancellationPending Then Return Nothing
+        If bwAEBN.CancellationPending Then Return Nothing
 
         'Seasons and Episodes
         If scrapeModifiers.withEpisodes OrElse scrapeModifiers.withSeasons Then
-            For Each aSeason As TMDbLib.Objects.Search.SearchTvSeason In Result.Seasons
+            For Each aSeason As AEbnLib.Objects.Search.SearchTvSeason In Result.Seasons
                 GetInfo_TVSeason(nTVShow, Result.Id, aSeason.SeasonNumber, scrapeModifiers, filteredOptions)
             Next
         End If
@@ -1086,10 +1086,10 @@ Public Class Scraper
         Return nTVShow
     End Function
 
-    Public Function GetTMDBbyIMDB(ByVal imdbId As String) As Integer
+    Public Function GetAEBNbyIMDB(ByVal imdbId As String) As Integer
         Try
-            Dim APIResult As Task(Of TMDbLib.Objects.Find.FindContainer)
-            APIResult = Task.Run(Function() _client.FindAsync(TMDbLib.Objects.Find.FindExternalSource.Imdb, imdbId))
+            Dim APIResult As Task(Of AEbnLib.Objects.Find.FindContainer)
+            APIResult = Task.Run(Function() _client.FindAsync(AEbnLib.Objects.Find.FindExternalSource.Imdb, imdbId))
 
             If APIResult IsNot Nothing AndAlso APIResult.Exception Is Nothing AndAlso APIResult.Result IsNot Nothing AndAlso
                     APIResult.Result.TvResults IsNot Nothing AndAlso APIResult.Result.TvResults.Count > 0 Then
@@ -1103,10 +1103,10 @@ Public Class Scraper
         Return -1
     End Function
 
-    Public Function GetTMDBbyTVDB(ByVal tvdbId As Integer) As Integer
+    Public Function GetAEBNbyTVDB(ByVal tvdbId As Integer) As Integer
         Try
-            Dim APIResult As Task(Of TMDbLib.Objects.Find.FindContainer)
-            APIResult = Task.Run(Function() _client.FindAsync(TMDbLib.Objects.Find.FindExternalSource.TvDb, tvdbId.ToString))
+            Dim APIResult As Task(Of AEbnLib.Objects.Find.FindContainer)
+            APIResult = Task.Run(Function() _client.FindAsync(AEbnLib.Objects.Find.FindExternalSource.TvDb, tvdbId.ToString))
 
             If APIResult IsNot Nothing AndAlso APIResult.Exception Is Nothing AndAlso APIResult.Result IsNot Nothing AndAlso
                     APIResult.Result.TvResults IsNot Nothing AndAlso APIResult.Result.TvResults.Count > 0 Then
@@ -1124,9 +1124,9 @@ Public Class Scraper
         If String.IsNullOrEmpty(imdbIdOrTmdbId) Then Return New List(Of String)
 
         Dim alStudio As New List(Of String)
-        Dim Movie As TMDbLib.Objects.Movies.Movie = Nothing
+        Dim Movie As AEbnLib.Objects.Movies.Movie = Nothing
 
-        Dim APIResult As Task(Of TMDbLib.Objects.Movies.Movie) = Nothing
+        Dim APIResult As Task(Of AEbnLib.Objects.Movies.Movie) = Nothing
 
         If imdbIdOrTmdbId.ToLower.StartsWith("tt") Then
             APIResult = Task.Run(Function() _client.GetMovieAsync(imdbIdOrTmdbId))
@@ -1153,12 +1153,12 @@ Public Class Scraper
         Select Case eType
             Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
                 If r.Matches.Count = 1 Then
-                    Return GetInfo_Movie(r.Matches.Item(0).UniqueIDs.TMDbId.ToString, FilteredOptions, False)
+                    Return GetInfo_Movie(r.Matches.Item(0).UniqueIDs.AEbnId.ToString, FilteredOptions, False)
                 Else
-                    Using dlgSearch As New dlgTMDBSearchResults_Movie(_addonSettings, Me)
+                    Using dlgSearch As New dlgAEBNSearchResults_Movie(_addonSettings, Me)
                         If dlgSearch.ShowDialog(r, strMovieName, oDBMovie.Filename) = DialogResult.OK Then
-                            If dlgSearch.Result.UniqueIDs.TMDbIdSpecified Then
-                                Return GetInfo_Movie(dlgSearch.Result.UniqueIDs.TMDbId.ToString, FilteredOptions, False)
+                            If dlgSearch.Result.UniqueIDs.AEbnIdSpecified Then
+                                Return GetInfo_Movie(dlgSearch.Result.UniqueIDs.AEbnId.ToString, FilteredOptions, False)
                             End If
                         End If
                     End Using
@@ -1166,12 +1166,12 @@ Public Class Scraper
 
             Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
                 If r.Matches.Count = 1 Then
-                    Return GetInfo_Movie(r.Matches.Item(0).UniqueIDs.TMDbId.ToString, FilteredOptions, False)
+                    Return GetInfo_Movie(r.Matches.Item(0).UniqueIDs.AEbnId.ToString, FilteredOptions, False)
                 End If
 
             Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
                 If r.Matches.Count > 0 Then
-                    Return GetInfo_Movie(r.Matches.Item(0).UniqueIDs.TMDbId.ToString, FilteredOptions, False)
+                    Return GetInfo_Movie(r.Matches.Item(0).UniqueIDs.AEbnId.ToString, FilteredOptions, False)
                 End If
         End Select
 
@@ -1184,12 +1184,12 @@ Public Class Scraper
         Select Case eType
             Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
                 If r.Matches.Count = 1 Then
-                    Return GetInfo_Movieset(r.Matches.Item(0).UniqueIDs.TMDbId, FilteredOptions, False)
+                    Return GetInfo_Movieset(r.Matches.Item(0).UniqueIDs.AEbnId, FilteredOptions, False)
                 Else
-                    Using dlgSearch As New dlgTMDBSearchResults_MovieSet(_addonSettings, Me)
+                    Using dlgSearch As New dlgAEBNSearchResults_MovieSet(_addonSettings, Me)
                         If dlgSearch.ShowDialog(r, title) = DialogResult.OK Then
-                            If dlgSearch.Result.UniqueIDs.TMDbIdSpecified Then
-                                Return GetInfo_Movieset(dlgSearch.Result.UniqueIDs.TMDbId, FilteredOptions, False)
+                            If dlgSearch.Result.UniqueIDs.AEbnIdSpecified Then
+                                Return GetInfo_Movieset(dlgSearch.Result.UniqueIDs.AEbnId, FilteredOptions, False)
                             End If
                         End If
                     End Using
@@ -1197,12 +1197,12 @@ Public Class Scraper
 
             Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
                 If r.Matches.Count = 1 Then
-                    Return GetInfo_Movieset(r.Matches.Item(0).UniqueIDs.TMDbId, FilteredOptions, False)
+                    Return GetInfo_Movieset(r.Matches.Item(0).UniqueIDs.AEbnId, FilteredOptions, False)
                 End If
 
             Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
                 If r.Matches.Count > 0 Then
-                    Return GetInfo_Movieset(r.Matches.Item(0).UniqueIDs.TMDbId, FilteredOptions, False)
+                    Return GetInfo_Movieset(r.Matches.Item(0).UniqueIDs.AEbnId, FilteredOptions, False)
                 End If
         End Select
 
@@ -1215,12 +1215,12 @@ Public Class Scraper
         Select Case eType
             Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
                 If r.Matches.Count = 1 Then
-                    Return GetInfo_TVShow(r.Matches.Item(0).UniqueIDs.TMDbId, ScrapeModifiers, FilteredOptions, False)
+                    Return GetInfo_TVShow(r.Matches.Item(0).UniqueIDs.AEbnId, ScrapeModifiers, FilteredOptions, False)
                 Else
-                    Using dlgSearch As New dlgTMDBSearchResults_TV(_addonSettings, Me)
+                    Using dlgSearch As New dlgAEBNSearchResults_TV(_addonSettings, Me)
                         If dlgSearch.ShowDialog(r, strShowName, oDBTV.ShowPath) = DialogResult.OK Then
-                            If dlgSearch.Result.UniqueIDs.TMDbIdSpecified Then
-                                Return GetInfo_TVShow(dlgSearch.Result.UniqueIDs.TMDbId, ScrapeModifiers, FilteredOptions, False)
+                            If dlgSearch.Result.UniqueIDs.AEbnIdSpecified Then
+                                Return GetInfo_TVShow(dlgSearch.Result.UniqueIDs.AEbnId, ScrapeModifiers, FilteredOptions, False)
                             End If
                         End If
                     End Using
@@ -1228,12 +1228,12 @@ Public Class Scraper
 
             Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
                 If r.Matches.Count = 1 Then
-                    Return GetInfo_TVShow(r.Matches.Item(0).UniqueIDs.TMDbId, ScrapeModifiers, FilteredOptions, False)
+                    Return GetInfo_TVShow(r.Matches.Item(0).UniqueIDs.AEbnId, ScrapeModifiers, FilteredOptions, False)
                 End If
 
             Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
                 If r.Matches.Count > 0 Then
-                    Return GetInfo_TVShow(r.Matches.Item(0).UniqueIDs.TMDbId, ScrapeModifiers, FilteredOptions, False)
+                    Return GetInfo_TVShow(r.Matches.Item(0).UniqueIDs.AEbnId, ScrapeModifiers, FilteredOptions, False)
                 End If
         End Select
 
@@ -1241,31 +1241,31 @@ Public Class Scraper
     End Function
 
     Public Sub GetSearchMovieInfoAsync(ByVal tmdbID As String, ByRef FilteredOptions As Structures.ScrapeOptions)
-        '' The rule is that if there is a tt is an IMDB otherwise is a TMDB
-        If Not bwTMDB.IsBusy Then
-            bwTMDB.WorkerReportsProgress = False
-            bwTMDB.WorkerSupportsCancellation = True
-            bwTMDB.RunWorkerAsync(New Arguments With {.Search = SearchType.SearchDetails_Movie,
+        '' The rule is that if there is a tt is an IMDB otherwise is a AEBN
+        If Not bwAEBN.IsBusy Then
+            bwAEBN.WorkerReportsProgress = False
+            bwAEBN.WorkerSupportsCancellation = True
+            bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.SearchDetails_Movie,
                   .Parameter = tmdbID, .ScrapeOptions = FilteredOptions})
         End If
     End Sub
 
     Public Sub GetSearchMovieSetInfoAsync(ByVal tmdbColID As String, ByRef FilteredOptions As Structures.ScrapeOptions)
-        '' The rule is that if there is a tt is an IMDB otherwise is a TMDB
-        If Not bwTMDB.IsBusy Then
-            bwTMDB.WorkerReportsProgress = False
-            bwTMDB.WorkerSupportsCancellation = True
-            bwTMDB.RunWorkerAsync(New Arguments With {.Search = SearchType.SearchDetails_MovieSet,
+        '' The rule is that if there is a tt is an IMDB otherwise is a AEBN
+        If Not bwAEBN.IsBusy Then
+            bwAEBN.WorkerReportsProgress = False
+            bwAEBN.WorkerSupportsCancellation = True
+            bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.SearchDetails_MovieSet,
                   .Parameter = tmdbColID, .ScrapeOptions = FilteredOptions})
         End If
     End Sub
 
     Public Sub GetSearchTVShowInfoAsync(ByVal tmdbID As String, ByRef FilteredOptions As Structures.ScrapeOptions)
-        '' The rule is that if there is a tt is an IMDB otherwise is a TMDB
-        If Not bwTMDB.IsBusy Then
-            bwTMDB.WorkerReportsProgress = False
-            bwTMDB.WorkerSupportsCancellation = True
-            bwTMDB.RunWorkerAsync(New Arguments With {.Search = SearchType.SearchDetails_TVShow,
+        '' The rule is that if there is a tt is an IMDB otherwise is a AEBN
+        If Not bwAEBN.IsBusy Then
+            bwAEBN.WorkerReportsProgress = False
+            bwAEBN.WorkerSupportsCancellation = True
+            bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.SearchDetails_TVShow,
                   .Parameter = tmdbID, .ScrapeOptions = FilteredOptions})
         End If
     End Sub
@@ -1273,7 +1273,7 @@ Public Class Scraper
     Private Function RunFallback_Movie(ByVal tmdbId As Integer) As Boolean
         If Not _addonSettings.FallBackEng Then Return False
         If _Fallback_Movie Is Nothing Then
-            Dim APIResultE = Task.Run(Function() _clientE.GetMovieAsync(tmdbId, TMDbLib.Objects.Movies.MovieMethods.Credits Or TMDbLib.Objects.Movies.MovieMethods.Releases Or TMDbLib.Objects.Movies.MovieMethods.Videos))
+            Dim APIResultE = Task.Run(Function() _clientE.GetMovieAsync(tmdbId, AEbnLib.Objects.Movies.MovieMethods.Credits Or AEbnLib.Objects.Movies.MovieMethods.Releases Or AEbnLib.Objects.Movies.MovieMethods.Videos))
             _Fallback_Movie = APIResultE.Result
             Return _Fallback_Movie IsNot Nothing
         Else
@@ -1295,7 +1295,7 @@ Public Class Scraper
     Private Function RunFallback_TVEpisode(ByVal showId As Integer, ByVal seasonNumber As Integer, ByVal episodeNumber As Integer) As Boolean
         If Not _addonSettings.FallBackEng Then Return False
         If _Fallback_TVEpisode Is Nothing Then
-            Dim APIResultE = Task.Run(Function() _clientE.GetTvEpisodeAsync(showId, seasonNumber, episodeNumber, TMDbLib.Objects.TvShows.TvEpisodeMethods.Credits Or TMDbLib.Objects.TvShows.TvEpisodeMethods.ExternalIds))
+            Dim APIResultE = Task.Run(Function() _clientE.GetTvEpisodeAsync(showId, seasonNumber, episodeNumber, AEbnLib.Objects.TvShows.TvEpisodeMethods.Credits Or AEbnLib.Objects.TvShows.TvEpisodeMethods.ExternalIds))
             _Fallback_TVEpisode = APIResultE.Result
             Return _Fallback_TVEpisode IsNot Nothing
         Else
@@ -1306,7 +1306,7 @@ Public Class Scraper
     Private Function RunFallback_TVSeason(ByVal showId As Integer, ByVal seasonNumber As Integer) As Boolean
         If Not _addonSettings.FallBackEng Then Return False
         If _Fallback_TVSeason Is Nothing Then
-            Dim APIResultE = Task.Run(Function() _clientE.GetTvSeasonAsync(showId, seasonNumber, TMDbLib.Objects.TvShows.TvSeasonMethods.Credits Or TMDbLib.Objects.TvShows.TvSeasonMethods.ExternalIds))
+            Dim APIResultE = Task.Run(Function() _clientE.GetTvSeasonAsync(showId, seasonNumber, AEbnLib.Objects.TvShows.TvSeasonMethods.Credits Or AEbnLib.Objects.TvShows.TvSeasonMethods.ExternalIds))
             _Fallback_TVSeason = APIResultE.Result
             Return _Fallback_TVSeason IsNot Nothing
         Else
@@ -1317,7 +1317,7 @@ Public Class Scraper
     Private Function RunFallback_TVShow(ByVal showId As Integer) As Boolean
         If Not _addonSettings.FallBackEng Then Return False
         If _Fallback_TVShow Is Nothing Then
-            Dim APIResultE = Task.Run(Function() _clientE.GetTvShowAsync(showId, TMDbLib.Objects.TvShows.TvShowMethods.ContentRatings Or TMDbLib.Objects.TvShows.TvShowMethods.Credits Or TMDbLib.Objects.TvShows.TvShowMethods.ExternalIds))
+            Dim APIResultE = Task.Run(Function() _clientE.GetTvShowAsync(showId, AEbnLib.Objects.TvShows.TvShowMethods.ContentRatings Or AEbnLib.Objects.TvShows.TvShowMethods.Credits Or AEbnLib.Objects.TvShows.TvShowMethods.ExternalIds))
             _Fallback_TVShow = APIResultE.Result
             Return _Fallback_TVShow IsNot Nothing
         Else
@@ -1326,35 +1326,35 @@ Public Class Scraper
     End Function
 
     Public Sub SearchAsync_Movie(ByVal sMovie As String, ByRef filterOptions As Structures.ScrapeOptions, Optional ByVal sYear As String = "")
-        '' The rule is that if there is a tt is an IMDB otherwise is a TMDB
+        '' The rule is that if there is a tt is an IMDB otherwise is a AEBN
         Dim intYear As Integer
 
         Integer.TryParse(sYear, intYear)
 
-        If Not bwTMDB.IsBusy Then
-            bwTMDB.WorkerReportsProgress = False
-            bwTMDB.WorkerSupportsCancellation = True
-            bwTMDB.RunWorkerAsync(New Arguments With {.Search = SearchType.Movies,
+        If Not bwAEBN.IsBusy Then
+            bwAEBN.WorkerReportsProgress = False
+            bwAEBN.WorkerSupportsCancellation = True
+            bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.Movies,
                   .Parameter = sMovie, .ScrapeOptions = filterOptions, .Year = intYear})
         End If
     End Sub
 
     Public Sub SearchAsync_MovieSet(ByVal sMovieSet As String, ByRef filterOptions As Structures.ScrapeOptions)
-        '' The rule is that if there is a tt is an IMDB otherwise is a TMDB
-        If Not bwTMDB.IsBusy Then
-            bwTMDB.WorkerReportsProgress = False
-            bwTMDB.WorkerSupportsCancellation = True
-            bwTMDB.RunWorkerAsync(New Arguments With {.Search = SearchType.MovieSets,
+        '' The rule is that if there is a tt is an IMDB otherwise is a AEBN
+        If Not bwAEBN.IsBusy Then
+            bwAEBN.WorkerReportsProgress = False
+            bwAEBN.WorkerSupportsCancellation = True
+            bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.MovieSets,
                   .Parameter = sMovieSet, .ScrapeOptions = filterOptions})
         End If
     End Sub
 
     Public Sub SearchAsync_TVShow(ByVal sShow As String, ByRef filterOptions As Structures.ScrapeOptions)
 
-        If Not bwTMDB.IsBusy Then
-            bwTMDB.WorkerReportsProgress = False
-            bwTMDB.WorkerSupportsCancellation = True
-            bwTMDB.RunWorkerAsync(New Arguments With {.Search = SearchType.TVShows,
+        If Not bwAEBN.IsBusy Then
+            bwAEBN.WorkerReportsProgress = False
+            bwAEBN.WorkerSupportsCancellation = True
+            bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.TVShows,
                   .Parameter = sShow, .ScrapeOptions = filterOptions})
         End If
     End Sub
@@ -1364,11 +1364,11 @@ Public Class Scraper
 
         Dim R As New SearchResults_Movie
         Dim Page As Integer = 1
-        Dim Movies As TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchMovie)
+        Dim Movies As AEbnLib.Objects.General.SearchContainer(Of AEbnLib.Objects.Search.SearchMovie)
         Dim TotP As Integer
         Dim aE As Boolean
 
-        Dim APIResult As Task(Of TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchMovie))
+        Dim APIResult As Task(Of AEbnLib.Objects.General.SearchContainer(Of AEbnLib.Objects.Search.SearchMovie))
         APIResult = Task.Run(Function() _client.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
 
         Movies = APIResult.Result
@@ -1428,7 +1428,7 @@ Public Class Scraper
                         .Plot = tPlot,
                         .Title = tTitle,
                         .ThumbPoster = tThumbPoster,
-                        .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.TMDbId = aMovie.Id},
+                        .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.AEbnId = aMovie.Id},
                         .Year = tYear
                         }
                         R.Matches.Add(lNewMovie)
@@ -1453,11 +1453,11 @@ Public Class Scraper
 
         Dim R As New SearchResults_MovieSet
         Dim Page As Integer = 1
-        Dim MovieSets As TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchCollection)
+        Dim MovieSets As AEbnLib.Objects.General.SearchContainer(Of AEbnLib.Objects.Search.SearchCollection)
         Dim TotP As Integer
         Dim aE As Boolean
 
-        Dim APIResult As Task(Of TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchCollection))
+        Dim APIResult As Task(Of AEbnLib.Objects.General.SearchContainer(Of AEbnLib.Objects.Search.SearchCollection))
         APIResult = Task.Run(Function() _client.SearchCollectionAsync(strMovieSet, Page))
 
         MovieSets = APIResult.Result
@@ -1483,7 +1483,7 @@ Public Class Scraper
                         'End If
                         R.Matches.Add(New MediaContainers.Movieset With {
                                       .Title = strTitle,
-                                      .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.MovieSet) With {.TMDbId = aMovieSet.Id}
+                                      .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.MovieSet) With {.AEbnId = aMovieSet.Id}
                                       })
                     Next
                 End If
@@ -1506,11 +1506,11 @@ Public Class Scraper
 
         Dim R As New SearchResults_TVShow
         Dim Page As Integer = 1
-        Dim Shows As TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchTv)
+        Dim Shows As AEbnLib.Objects.General.SearchContainer(Of AEbnLib.Objects.Search.SearchTv)
         Dim TotP As Integer
         Dim aE As Boolean
 
-        Dim APIResult As Task(Of TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchTv))
+        Dim APIResult As Task(Of AEbnLib.Objects.General.SearchContainer(Of AEbnLib.Objects.Search.SearchTv))
         APIResult = Task.Run(Function() _client.SearchTvShowAsync(showName, Page))
 
         Shows = APIResult.Result
@@ -1541,7 +1541,7 @@ Public Class Scraper
                         R.Matches.Add(New MediaContainers.TVShow With {
                                       .Premiered = strYear,
                                       .Title = strTitle,
-                                      .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.TVShow) With {.TMDbId = aShow.Id}
+                                      .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.TVShow) With {.AEbnId = aShow.Id}
                                       })
                     Next
                 End If
