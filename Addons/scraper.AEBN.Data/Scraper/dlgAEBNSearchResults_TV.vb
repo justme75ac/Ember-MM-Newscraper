@@ -18,29 +18,30 @@
 ' # along with Ember Media Manager.  If not, see <http://www.gnu.org/licenses/>. #
 ' ################################################################################
 
+Imports System.Text.RegularExpressions
 Imports System.IO
 Imports EmberAPI
 Imports NLog
 
-Public Class dlgTMDBSearchResults_TV
+Public Class dlgAEBNSearchResults_TV
 
 #Region "Fields"
-
     Shared logger As Logger = LogManager.GetCurrentClassLogger()
 
     Friend WithEvents bwDownloadPic As New System.ComponentModel.BackgroundWorker
     Friend WithEvents tmrLoad As New Timer
     Friend WithEvents tmrWait As New Timer
 
-    Private _TMDB As Scraper
+    Private _AEBN As AEBN.Scraper
     Private sHTTP As New HTTP
     Private _currnode As Integer = -1
     Private _prevnode As Integer = -2
-    Private _SpecialSettings As TMDB_Data.SpecialSettings
+    Private _SpecialSettings As AEBN_Data.SpecialSettings
 
     Private _InfoCache As New Dictionary(Of String, MediaContainers.TVShow)
     Private _PosterCache As New Dictionary(Of String, Image)
-    Private _filterOptions As Structures.ScrapeOptions
+    Private _filteredOptions As Structures.ScrapeOptions
+    Private _scrapeModifiers As Structures.ScrapeModifiers
 
     Private _tmpTVShow As New MediaContainers.TVShow
 
@@ -58,35 +59,40 @@ Public Class dlgTMDBSearchResults_TV
 
 #Region "Methods"
 
-    Public Sub New(ByVal SpecialSettings As TMDB_Data.SpecialSettings, TMDB As Scraper)
+    Public Sub New(ByVal SpecialSettings As AEBN_Data.SpecialSettings, ByRef AEBN As AEBN.Scraper)
         ' This call is required by the designer.
         InitializeComponent()
         Left = Master.AppPos.Left + (Master.AppPos.Width - Width) \ 2
         Top = Master.AppPos.Top + (Master.AppPos.Height - Height) \ 2
         StartPosition = FormStartPosition.Manual
         _SpecialSettings = SpecialSettings
-        _TMDB = TMDB
+        _AEBN = AEBN
     End Sub
 
-    Public Overloads Function ShowDialog(ByVal sShowTitle As String, ByVal sShowPath As String, ByVal filterOptions As Structures.ScrapeOptions) As DialogResult
+    Public Overloads Function ShowDialog(ByVal sShowTitle As String, ByVal sShowPath As String, ByVal ScrapeModifiers As Structures.ScrapeModifiers, ByVal FilteredOptions As Structures.ScrapeOptions) As Windows.Forms.DialogResult
         tmrWait.Enabled = False
         tmrWait.Interval = 250
         tmrLoad.Enabled = False
+
         tmrLoad.Interval = 100
 
-        _filterOptions = filterOptions
+        _filteredOptions = FilteredOptions
+        _scrapeModifiers = ScrapeModifiers
 
         Text = String.Concat(Master.eLang.GetString(794, "Search Results"), " - ", sShowTitle)
         txtSearch.Text = sShowTitle
         txtFileName.Text = sShowPath
-        chkManual.Enabled = False
 
-        _TMDB.SearchAsync_TVShow(sShowTitle, _filterOptions)
+        ' fix for Enhancement #91
+        'chkManual.Enabled = False
+        chkManual.Enabled = True
+
+        _AEBN.SearchTVShowAsync(sShowTitle, _scrapeModifiers, _filteredOptions)
 
         Return ShowDialog()
     End Function
 
-    Public Overloads Function ShowDialog(ByVal Res As SearchResults_TVShow, ByVal sShowTitle As String, ByVal sShowPath As String) As DialogResult
+    Public Overloads Function ShowDialog(ByVal Res As AEBN.SearchResults_TVShow, ByVal sShowTitle As String, ByVal sShowPath As String) As Windows.Forms.DialogResult
         tmrWait.Enabled = False
         tmrWait.Interval = 250
         tmrLoad.Enabled = False
@@ -107,33 +113,25 @@ Public Class dlgTMDBSearchResults_TV
             _InfoCache.Clear()
             _PosterCache.Clear()
             ClearInfo()
-            lblLoading.Text = String.Concat(Master.eLang.GetString(758, "Please wait"), "...")
+            Label3.Text = Master.eLang.GetString(798, "Searching AEBN...")
             pnlLoading.Visible = True
-            chkManual.Enabled = False
-            _TMDB.CancelAsync()
 
-            _TMDB.SearchAsync_TVShow(txtSearch.Text, _filterOptions)
+            chkManual.Enabled = False
+
+            _AEBN.CancelAsync()
+            _AEBN.SearchTVShowAsync(txtSearch.Text, _scrapeModifiers, _filteredOptions)
         End If
     End Sub
 
     Private Sub btnVerify_Click(ByVal sender As Object, ByVal e As EventArgs) Handles btnVerify.Click
         Dim pOpt As New Structures.ScrapeOptions
         pOpt = SetPreviewOptions()
-        '' The rule is that if there is a tt is an IMDB otherwise is a TMDB
-        _TMDB.GetSearchTVShowInfoAsync(txtTMDBID.Text, pOpt)
-
-    End Sub
-
-    Private Sub btnOpenFolder_Click(sender As Object, e As EventArgs) Handles btnOpenFolder.Click
-        If Not String.IsNullOrEmpty(txtFileName.Text) Then
-            Dim fPath As String = Directory.GetParent(txtFileName.Text).FullName
-            If Not String.IsNullOrEmpty(fPath) Then
-                Using Explorer As New Diagnostics.Process
-                    Explorer.StartInfo.FileName = "explorer.exe"
-                    Explorer.StartInfo.Arguments = String.Format("/select,""{0}""", fPath)
-                    Explorer.Start()
-                End Using
-            End If
+        If Regex.IsMatch(txtAEBNID.Text.Replace("tt", String.Empty), "\d\d\d\d\d\d\d") Then
+            pnlLoading.Visible = True
+            _AEBN.CancelAsync()
+            _AEBN.GetSearchTVShowInfoAsync(txtAEBNID.Text.Replace("tt", String.Empty), _tmpTVShow, pOpt)
+        Else
+            MessageBox.Show(Master.eLang.GetString(799, "The ID you entered is not a valid AEBN ID."), Master.eLang.GetString(292, "Invalid Entry"), MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
         End If
     End Sub
 
@@ -147,37 +145,60 @@ Public Class dlgTMDBSearchResults_TV
             Threading.Thread.Sleep(50)
         End While
 
-        e.Result = New Results With {.Result = sHTTP.Image, .IMDBId = Args.IMDBId}
+        e.Result = New Results With {.Result = sHTTP.Image, .AEBNId = Args.AEBNId}
     End Sub
 
     Private Sub bwDownloadPic_RunWorkerCompleted(ByVal sender As Object, ByVal e As System.ComponentModel.RunWorkerCompletedEventArgs) Handles bwDownloadPic.RunWorkerCompleted
+        '//
+        ' Thread finished: display pic if it was able to get one
+        '\\
+
         Dim Res As Results = DirectCast(e.Result, Results)
 
-        pbPoster.Image = Res.Result
-        If Not _PosterCache.ContainsKey(Res.IMDBId) Then
-            _PosterCache.Add(Res.IMDBId, CType(Res.Result.Clone, Image))
-        End If
-        pnlPicStatus.Visible = False
+        Try
+            pbPoster.Image = Res.Result
+            If Not _PosterCache.ContainsKey(Res.AEBNId) Then
+                _PosterCache.Add(Res.AEBNId, CType(Res.Result.Clone, Image))
+            End If
+        Catch ex As Exception
+            logger.Error(ex, New StackFrame().GetMethod().Name)
+        Finally
+            pnlPicStatus.Visible = False
+        End Try
     End Sub
 
     Private Sub Cancel_Button_Click(ByVal sender As Object, ByVal e As EventArgs) Handles Cancel_Button.Click
-        If _TMDB.bwTMDB.IsBusy Then
-            _TMDB.CancelAsync()
+        If _AEBN.bwAEBN.IsBusy Then
+            _AEBN.CancelAsync()
         End If
+
         _tmpTVShow = New MediaContainers.TVShow
 
         DialogResult = DialogResult.Cancel
+        Close()
+    End Sub
+
+    Private Sub btnOpenFolder_Click(sender As Object, e As EventArgs) Handles btnOpenFolder.Click
+        Dim fPath As String = Directory.GetParent(txtFileName.Text).FullName
+
+        If Not String.IsNullOrEmpty(fPath) Then
+            Process.Start("Explorer.exe", fPath)
+        End If
     End Sub
 
     Private Sub chkManual_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkManual.CheckedChanged
         ClearInfo()
+        If chkManual.Enabled Then
+            pnlLoading.Visible = False
+            _AEBN.CancelAsync()
+        End If
         OK_Button.Enabled = False
-        txtTMDBID.Enabled = chkManual.Checked
+        txtAEBNID.Enabled = chkManual.Checked
         btnVerify.Enabled = chkManual.Checked
         tvResults.Enabled = Not chkManual.Checked
 
         If Not chkManual.Checked Then
-            txtTMDBID.Text = String.Empty
+            txtAEBNID.Text = String.Empty
         End If
     End Sub
 
@@ -185,59 +206,76 @@ Public Class dlgTMDBSearchResults_TV
         ControlsVisible(False)
         lblTitle.Text = String.Empty
         lblTagline.Text = String.Empty
-        lblYear.Text = String.Empty
-        lblCreator.Text = String.Empty
+        lblPremiered.Text = String.Empty
+        lblCreators.Text = String.Empty
         lblGenre.Text = String.Empty
         txtPlot.Text = String.Empty
-        lblTMDBID.Text = String.Empty
+        lblAEBNID.Text = String.Empty
         pbPoster.Image = Nothing
 
-        _tmpTVShow = New MediaContainers.TVShow
+        _tmpTVShow.Clear()
 
-        _TMDB.CancelAsync()
+        _AEBN.CancelAsync()
     End Sub
 
     Private Sub ControlsVisible(ByVal areVisible As Boolean)
-        lblAiredHeader.Visible = areVisible
+        lblPremieredHeader.Visible = areVisible
         lblCreatorsHeader.Visible = areVisible
         lblGenreHeader.Visible = areVisible
         lblPlotHeader.Visible = areVisible
-        lblTMDBHeader.Visible = areVisible
+        lblAEBNHeader.Visible = areVisible
         txtPlot.Visible = areVisible
-        lblYear.Visible = areVisible
+        lblPremiered.Visible = areVisible
         lblTagline.Visible = areVisible
         lblTitle.Visible = areVisible
-        lblCreator.Visible = areVisible
+        lblCreators.Visible = areVisible
         lblGenre.Visible = areVisible
-        lblTMDBID.Visible = areVisible
+        lblAEBNID.Visible = areVisible
         pbPoster.Visible = areVisible
     End Sub
 
-    Private Sub dlgIMDBSearchResults_GotFocus(ByVal sender As Object, ByVal e As EventArgs) Handles Me.GotFocus
+    Private Sub dlgAEBNSearchResults_GotFocus(ByVal sender As Object, ByVal e As EventArgs) Handles Me.GotFocus
         AcceptButton = OK_Button
     End Sub
 
-    Private Sub dlgTMDBSearchResults_Load(ByVal sender As Object, ByVal e As EventArgs) Handles Me.Load
+    Private Sub dlgAEBNSearchResults_Load(ByVal sender As Object, ByVal e As EventArgs) Handles Me.Load
         SetUp()
         pnlPicStatus.Visible = False
+        AddHandler _AEBN.SearchInfoDownloaded_TV, AddressOf SearchInfoDownloaded
+        AddHandler _AEBN.SearchResultsDownloaded_TV, AddressOf SearchResultsDownloaded
 
-        AddHandler _TMDB.SearchInfoDownloaded_TVShow, AddressOf SearchInfoDownloaded
-        AddHandler _TMDB.SearchResultsDownloaded_TVShow, AddressOf SearchResultsDownloaded
-
-        Dim iBackground As New Bitmap(pnlTop.Width, pnlTop.Height)
-        Using g As Graphics = Graphics.FromImage(iBackground)
-            g.FillRectangle(New Drawing2D.LinearGradientBrush(pnlTop.ClientRectangle, Color.SteelBlue, Color.LightSteelBlue, Drawing2D.LinearGradientMode.Horizontal), pnlTop.ClientRectangle)
-            pnlTop.BackgroundImage = iBackground
-        End Using
+        Try
+            Dim iBackground As New Bitmap(pnlTop.Width, pnlTop.Height)
+            Using g As Graphics = Graphics.FromImage(iBackground)
+                g.FillRectangle(New Drawing2D.LinearGradientBrush(pnlTop.ClientRectangle, Color.SteelBlue, Color.LightSteelBlue, Drawing2D.LinearGradientMode.Horizontal), pnlTop.ClientRectangle)
+                pnlTop.BackgroundImage = iBackground
+            End Using
+        Catch ex As Exception
+            logger.Error(ex, New StackFrame().GetMethod().Name)
+        End Try
     End Sub
 
-    Private Sub dlgTMDBSearchResults_Shown(ByVal sender As Object, ByVal e As EventArgs) Handles Me.Shown
+    Private Sub dlgAEBNSearchResults_Shown(ByVal sender As Object, ByVal e As EventArgs) Handles Me.Shown
         Activate()
         tvResults.Focus()
     End Sub
 
     Private Sub OK_Button_Click(ByVal sender As Object, ByVal e As EventArgs) Handles OK_Button.Click
+        If chkManual.Checked AndAlso btnVerify.Enabled Then
+            If Not Regex.IsMatch(txtAEBNID.Text.Replace("tt", String.Empty), "\d\d\d\d\d\d\d") Then
+                MessageBox.Show(Master.eLang.GetString(799, "The ID you entered is not a valid AEBN ID."), Master.eLang.GetString(292, "Invalid Entry"), MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                Exit Sub
+            Else
+                If MessageBox.Show(String.Concat(Master.eLang.GetString(821, "You have manually entered an AEBN ID but have not verified it is correct."), Environment.NewLine, Environment.NewLine, Master.eLang.GetString(101, "Are you sure you want to continue?")), Master.eLang.GetString(823, "Continue without verification?"), MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.No Then
+                    Exit Sub
+                Else
+                    '  _tmpTVShow.AEBN = txtAEBNID.Text.Replace("tt", String.Empty)
+                End If
+            End If
+        End If
+
         DialogResult = DialogResult.OK
+        Close()
     End Sub
 
     Private Sub SearchInfoDownloaded(ByVal sPoster As String, ByVal sInfo As MediaContainers.TVShow)
@@ -248,51 +286,51 @@ Public Class dlgTMDBSearchResults_TV
             ControlsVisible(True)
             _tmpTVShow = sInfo
             lblTitle.Text = _tmpTVShow.Title
-            lblTagline.Text = String.Empty '_nShow.Tagline
-            lblYear.Text = _tmpTVShow.Premiered
-            lblCreator.Text = String.Join(" / ", _tmpTVShow.Creators.ToArray)
+            lblTagline.Text = String.Empty
+            lblPremiered.Text = _tmpTVShow.Premiered
+            lblCreators.Text = String.Join(" / ", _tmpTVShow.Creators)
             lblGenre.Text = String.Join(" / ", _tmpTVShow.Genres.ToArray)
-            txtPlot.Text = StringUtils.ShortenOutline(_tmpTVShow.Plot, 410)
-            lblTMDBID.Text = _tmpTVShow.UniqueIDs.TMDbId.ToString
+            txtPlot.Text = _tmpTVShow.Plot
+            ' lblAEBNID.Text = _tmpTVShow.AEBN
 
-            If _PosterCache.ContainsKey(_tmpTVShow.UniqueIDs.TMDbId.ToString) Then
-                'just set it
-                pbPoster.Image = _PosterCache(_tmpTVShow.UniqueIDs.TMDbId.ToString)
-            Else
-                'go download it, if available
-                If Not String.IsNullOrEmpty(sPoster) Then
-                    If bwDownloadPic.IsBusy Then
-                        bwDownloadPic.CancelAsync()
-                    End If
-                    pnlPicStatus.Visible = True
-                    bwDownloadPic = New System.ComponentModel.BackgroundWorker
-                    bwDownloadPic.WorkerSupportsCancellation = True
-                    bwDownloadPic.RunWorkerAsync(New Arguments With {.pURL = sPoster, .IMDBId = _tmpTVShow.UniqueIDs.TMDbId.ToString})
-                End If
-
-            End If
-
-            'store clone of tmpshow
-            If Not _InfoCache.ContainsKey(_tmpTVShow.UniqueIDs.TMDbId.ToString) Then
-                _InfoCache.Add(_tmpTVShow.UniqueIDs.TMDbId.ToString, GetTVShowClone(_tmpTVShow))
-            End If
-
-
-            btnVerify.Enabled = False
+            '  If _PosterCache.ContainsKey(_tmpTVShow.AEBN) Then
+            'just set it
+            'pbPoster.Image = _PosterCache(_tmpTVShow.AEBN)
         Else
-            If chkManual.Checked Then
-                MessageBox.Show(Master.eLang.GetString(935, "Unable to retrieve movie details for the entered TMDB ID. Please check your entry and try again."), Master.eLang.GetString(826, "Verification Failed"), MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
-                btnVerify.Enabled = True
+            'go download it, if available
+            If Not String.IsNullOrEmpty(sPoster) Then
+                If bwDownloadPic.IsBusy Then
+                    bwDownloadPic.CancelAsync()
+                End If
+                pnlPicStatus.Visible = True
+                bwDownloadPic = New System.ComponentModel.BackgroundWorker
+                bwDownloadPic.WorkerSupportsCancellation = True
+                '  bwDownloadPic.RunWorkerAsync(New Arguments With {.pURL = sPoster, .AEBNId = _tmpTVShow.AEBN})
             End If
+
         End If
+
+        'store clone of tmpmovie
+        '   If Not _InfoCache.ContainsKey(_tmpTVShow.AEBN) Then
+        '_InfoCache.Add(_tmpTVShow.AEBN, GetTVShowClone(_tmpTVShow))
+        ' End If
+
+
+        btnVerify.Enabled = False
+        'else
+        If chkManual.Checked Then
+            MessageBox.Show(Master.eLang.GetString(825, "Unable to retrieve movie details for the entered AEBN ID. Please check your entry and try again."), Master.eLang.GetString(826, "Verification Failed"), MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+            btnVerify.Enabled = True
+        End If
+        ' End If
     End Sub
 
-    Private Sub SearchResultsDownloaded(ByVal M As SearchResults_TVShow)
+    Private Sub SearchResultsDownloaded(ByVal M As AEBN.SearchResults_TVShow)
         tvResults.Nodes.Clear()
         ClearInfo()
         If M IsNot Nothing AndAlso M.Matches.Count > 0 Then
             For Each Show As MediaContainers.TVShow In M.Matches
-                tvResults.Nodes.Add(New TreeNode() With {.Text = String.Concat(Show.Title), .Tag = Show.UniqueIDs.TMDbId})
+                '  tvResults.Nodes.Add(New TreeNode() With {.Text = String.Concat(Show.Title), .Tag = Show.AEBN})
             Next
             tvResults.SelectedNode = tvResults.Nodes(0)
 
@@ -320,16 +358,16 @@ Public Class dlgTMDBSearchResults_TV
     Private Sub SetUp()
         OK_Button.Text = Master.eLang.GetString(179, "OK")
         Cancel_Button.Text = Master.eLang.GetString(167, "Cancel")
-        Label2.Text = Master.eLang.GetString(951, "View details of each result to find the proper TV show.")
+        Label2.Text = Master.eLang.GetString(836, "View details of each result to find the proper movie.")
         Label1.Text = Master.eLang.GetString(948, "TV Search Results")
-        chkManual.Text = Master.eLang.GetString(926, "Manual TMDB Entry:")
+        chkManual.Text = Master.eLang.GetString(847, "Manual AEBN Entry:")
         btnVerify.Text = Master.eLang.GetString(848, "Verify")
-        lblAiredHeader.Text = String.Concat(Master.eLang.GetString(728, "Aired"), ":")
         lblCreatorsHeader.Text = String.Concat(Master.eLang.GetString(744, "Creators"), ":")
-        lblGenreHeader.Text = String.Concat(Master.eLang.GetString(725, "Genres"), ":")
-        lblTMDBHeader.Text = String.Concat(Master.eLang.GetString(933, "TMDB ID"), ":")
+        lblPremieredHeader.Text = String.Concat(Master.eLang.GetString(724, "Premiered"), ":")
+        lblGenreHeader.Text = Master.eLang.GetString(51, "Genre(s):")
+        lblAEBNHeader.Text = Master.eLang.GetString(873, "AEBN ID:")
         lblPlotHeader.Text = Master.eLang.GetString(242, "Plot Outline:")
-        lblLoading.Text = String.Concat(Master.eLang.GetString(758, "Please wait"), "...")
+        Label3.Text = Master.eLang.GetString(798, "Searching AEBN...")
     End Sub
 
     Private Sub tmrLoad_Tick(ByVal sender As Object, ByVal e As EventArgs) Handles tmrLoad.Tick
@@ -339,9 +377,9 @@ Public Class dlgTMDBSearchResults_TV
         tmrWait.Stop()
         tmrLoad.Stop()
         pnlLoading.Visible = True
-        lblLoading.Text = Master.eLang.GetString(875, "Downloading details...")
+        Label3.Text = Master.eLang.GetString(875, "Downloading details...")
 
-        _TMDB.GetSearchTVShowInfoAsync(tvResults.SelectedNode.Tag.ToString, pOpt)
+        _AEBN.GetSearchTVShowInfoAsync(tvResults.SelectedNode.Tag.ToString, _tmpTVShow, pOpt)
     End Sub
 
     Private Sub tmrWait_Tick(ByVal sender As Object, ByVal e As EventArgs) Handles tmrWait.Tick
@@ -354,40 +392,44 @@ Public Class dlgTMDBSearchResults_TV
             tmrWait.Stop()
         End If
     End Sub
-
     Private Sub tvResults_AfterSelect(ByVal sender As Object, ByVal e As System.Windows.Forms.TreeViewEventArgs) Handles tvResults.AfterSelect
-        tmrWait.Stop()
-        tmrLoad.Stop()
+        Try
+            tmrWait.Stop()
+            tmrLoad.Stop()
 
-        ClearInfo()
-        OK_Button.Enabled = False
+            ClearInfo()
+            OK_Button.Enabled = False
 
-        If tvResults.SelectedNode.Tag IsNot Nothing AndAlso Not String.IsNullOrEmpty(tvResults.SelectedNode.Tag.ToString) Then
-            _currnode = tvResults.SelectedNode.Index
+            If tvResults.SelectedNode.Tag IsNot Nothing AndAlso Not String.IsNullOrEmpty(tvResults.SelectedNode.Tag.ToString) Then
+                _currnode = tvResults.SelectedNode.Index
 
-            'check if this tv show is in the cache already
-            If _InfoCache.ContainsKey(tvResults.SelectedNode.Tag.ToString) Then
-                _tmpTVShow = GetTVShowClone(_InfoCache(tvResults.SelectedNode.Tag.ToString))
-                SearchInfoDownloaded(String.Empty, _tmpTVShow)
-                Return
+                'check if this movie is in the cache already
+                If _InfoCache.ContainsKey(tvResults.SelectedNode.Tag.ToString) Then
+                    _tmpTVShow = GetTVShowClone(_InfoCache(tvResults.SelectedNode.Tag.ToString))
+                    SearchInfoDownloaded(String.Empty, _tmpTVShow)
+                    Return
+                End If
+
+                pnlLoading.Visible = True
+                tmrWait.Start()
+            Else
+                pnlLoading.Visible = False
             End If
 
-            pnlLoading.Visible = True
-            tmrWait.Start()
-        Else
-            pnlLoading.Visible = False
-        End If
+        Catch ex As Exception
+            logger.Error(ex, New StackFrame().GetMethod().Name)
+        End Try
     End Sub
 
     Private Sub tvResults_GotFocus(ByVal sender As Object, ByVal e As EventArgs) Handles tvResults.GotFocus
         AcceptButton = OK_Button
     End Sub
 
-    Private Sub txtTMDBID_GotFocus(ByVal sender As Object, ByVal e As EventArgs) Handles txtTMDBID.GotFocus
+    Private Sub txtAEBNID_GotFocus(ByVal sender As Object, ByVal e As EventArgs) Handles txtAEBNID.GotFocus
         AcceptButton = btnVerify
     End Sub
 
-    Private Sub txtTMDBID_TextChanged(ByVal sender As Object, ByVal e As EventArgs) Handles txtTMDBID.TextChanged
+    Private Sub txtAEBNID_TextChanged(ByVal sender As Object, ByVal e As EventArgs) Handles txtAEBNID.TextChanged
         If chkManual.Checked Then
             btnVerify.Enabled = True
             OK_Button.Enabled = False
@@ -398,17 +440,17 @@ Public Class dlgTMDBSearchResults_TV
         AcceptButton = btnSearch
     End Sub
 
-    Private Sub txtYear_GotFocus(ByVal sender As Object, ByVal e As EventArgs)
-        AcceptButton = btnSearch
-    End Sub
-
     Private Function GetTVShowClone(ByVal original As MediaContainers.TVShow) As MediaContainers.TVShow
-        Using mem As New IO.MemoryStream()
-            Dim bin As New System.Runtime.Serialization.Formatters.Binary.BinaryFormatter(Nothing, New System.Runtime.Serialization.StreamingContext(Runtime.Serialization.StreamingContextStates.Clone))
-            bin.Serialize(mem, original)
-            mem.Seek(0, IO.SeekOrigin.Begin)
-            Return DirectCast(bin.Deserialize(mem), MediaContainers.TVShow)
-        End Using
+        Try
+            Using mem As New MemoryStream()
+                Dim bin As New Runtime.Serialization.Formatters.Binary.BinaryFormatter(Nothing, New Runtime.Serialization.StreamingContext(Runtime.Serialization.StreamingContextStates.Clone))
+                bin.Serialize(mem, original)
+                mem.Seek(0, SeekOrigin.Begin)
+                Return DirectCast(bin.Deserialize(mem), MediaContainers.TVShow)
+            End Using
+        Catch ex As Exception
+            logger.Error(ex, New StackFrame().GetMethod().Name)
+        End Try
 
         Return Nothing
     End Function
@@ -423,7 +465,7 @@ Public Class dlgTMDBSearchResults_TV
 #Region "Fields"
 
         Dim pURL As String
-        Dim IMDBId As String
+        Dim AEBNId As String
 
 #End Region 'Fields
 
@@ -434,7 +476,7 @@ Public Class dlgTMDBSearchResults_TV
 #Region "Fields"
 
         Dim Result As Image
-        Dim IMDBId As String
+        Dim AEBNId As String
 
 #End Region 'Fields
 

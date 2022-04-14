@@ -1,5 +1,5 @@
 ﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
-Partial Class dlgTMDBSearchResults_Movie
+Partial Class dlgAEBNSearchResults_Movie
     Inherits System.Windows.Forms.Form
 
     'Form overrides dispose to clean up the component list.
@@ -22,40 +22,39 @@ Partial Class dlgTMDBSearchResults_Movie
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(dlgTMDBSearchResults_Movie))
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(dlgAEBNSearchResults_Movie))
         Me.OK_Button = New System.Windows.Forms.Button()
         Me.Cancel_Button = New System.Windows.Forms.Button()
         Me.tvResults = New System.Windows.Forms.TreeView()
         Me.pbPoster = New System.Windows.Forms.PictureBox()
         Me.lblTitle = New System.Windows.Forms.Label()
         Me.lblTagline = New System.Windows.Forms.Label()
-        Me.txtPlot = New System.Windows.Forms.TextBox()
+        Me.txtOutline = New System.Windows.Forms.TextBox()
         Me.lblYear = New System.Windows.Forms.Label()
         Me.lblDirectors = New System.Windows.Forms.Label()
         Me.lblGenre = New System.Windows.Forms.Label()
-        Me.txtTMDBID = New System.Windows.Forms.TextBox()
+        Me.txtAEBNID = New System.Windows.Forms.TextBox()
         Me.pnlTop = New System.Windows.Forms.Panel()
         Me.Label2 = New System.Windows.Forms.Label()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.PictureBox1 = New System.Windows.Forms.PictureBox()
         Me.chkManual = New System.Windows.Forms.CheckBox()
         Me.btnVerify = New System.Windows.Forms.Button()
-        Me.lblTMDBID = New System.Windows.Forms.Label()
-        Me.lblPremieredHeader = New System.Windows.Forms.Label()
+        Me.lblAEBNID = New System.Windows.Forms.Label()
+        Me.lblYearHeader = New System.Windows.Forms.Label()
         Me.lblDirectorsHeader = New System.Windows.Forms.Label()
         Me.lblGenreHeader = New System.Windows.Forms.Label()
-        Me.lblTMDBHeader = New System.Windows.Forms.Label()
+        Me.lblAEBNHeader = New System.Windows.Forms.Label()
         Me.lblPlotHeader = New System.Windows.Forms.Label()
         Me.btnSearch = New System.Windows.Forms.Button()
         Me.txtSearch = New System.Windows.Forms.TextBox()
         Me.pnlLoading = New System.Windows.Forms.Panel()
-        Me.lblLoading = New System.Windows.Forms.Label()
-        Me.pbLoading = New System.Windows.Forms.ProgressBar()
+        Me.Label3 = New System.Windows.Forms.Label()
+        Me.ProgressBar1 = New System.Windows.Forms.ProgressBar()
         Me.pnlPicStatus = New System.Windows.Forms.Panel()
         Me.Label4 = New System.Windows.Forms.Label()
-        Me.btnOpenFolder = New System.Windows.Forms.Button()
         Me.txtFileName = New System.Windows.Forms.TextBox()
-        Me.txtYear = New System.Windows.Forms.TextBox()
+        Me.btnOpenFolder = New System.Windows.Forms.Button()
         CType(Me.pbPoster, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.pnlTop.SuspendLayout()
         CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -89,9 +88,6 @@ Partial Class dlgTMDBSearchResults_Movie
         Me.tvResults.HideSelection = False
         Me.tvResults.Location = New System.Drawing.Point(8, 126)
         Me.tvResults.Name = "tvResults"
-        Me.tvResults.ShowLines = False
-        Me.tvResults.ShowPlusMinus = False
-        Me.tvResults.ShowRootLines = False
         Me.tvResults.Size = New System.Drawing.Size(281, 299)
         Me.tvResults.TabIndex = 5
         '
@@ -125,16 +121,16 @@ Partial Class dlgTMDBSearchResults_Movie
         Me.lblTagline.Text = "Tagline"
         Me.lblTagline.Visible = False
         '
-        'txtPlot
+        'txtOutline
         '
-        Me.txtPlot.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtPlot.Location = New System.Drawing.Point(298, 325)
-        Me.txtPlot.Multiline = True
-        Me.txtPlot.Name = "txtPlot"
-        Me.txtPlot.Size = New System.Drawing.Size(343, 100)
-        Me.txtPlot.TabIndex = 22
-        Me.txtPlot.TabStop = False
-        Me.txtPlot.Visible = False
+        Me.txtOutline.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtOutline.Location = New System.Drawing.Point(298, 325)
+        Me.txtOutline.Multiline = True
+        Me.txtOutline.Name = "txtOutline"
+        Me.txtOutline.Size = New System.Drawing.Size(343, 100)
+        Me.txtOutline.TabIndex = 22
+        Me.txtOutline.TabStop = False
+        Me.txtOutline.Visible = False
         '
         'lblYear
         '
@@ -160,21 +156,21 @@ Partial Class dlgTMDBSearchResults_Movie
         'lblGenre
         '
         Me.lblGenre.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblGenre.Location = New System.Drawing.Point(476, 240)
+        Me.lblGenre.Location = New System.Drawing.Point(476, 213)
         Me.lblGenre.Name = "lblGenre"
-        Me.lblGenre.Size = New System.Drawing.Size(165, 37)
+        Me.lblGenre.Size = New System.Drawing.Size(165, 52)
         Me.lblGenre.TabIndex = 17
         Me.lblGenre.Text = "Genre"
         Me.lblGenre.Visible = False
         '
-        'txtTMDBID
+        'txtAEBNID
         '
-        Me.txtTMDBID.Enabled = False
-        Me.txtTMDBID.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtTMDBID.Location = New System.Drawing.Point(192, 429)
-        Me.txtTMDBID.Name = "txtTMDBID"
-        Me.txtTMDBID.Size = New System.Drawing.Size(97, 22)
-        Me.txtTMDBID.TabIndex = 7
+        Me.txtAEBNID.Enabled = False
+        Me.txtAEBNID.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtAEBNID.Location = New System.Drawing.Point(143, 429)
+        Me.txtAEBNID.Name = "txtAEBNID"
+        Me.txtAEBNID.Size = New System.Drawing.Size(100, 22)
+        Me.txtAEBNID.TabIndex = 7
         '
         'pnlTop
         '
@@ -187,7 +183,7 @@ Partial Class dlgTMDBSearchResults_Movie
         Me.pnlTop.Location = New System.Drawing.Point(0, 0)
         Me.pnlTop.Name = "pnlTop"
         Me.pnlTop.Size = New System.Drawing.Size(664, 64)
-        Me.pnlTop.TabIndex = 8
+        Me.pnlTop.TabIndex = 2
         '
         'Label2
         '
@@ -230,43 +226,43 @@ Partial Class dlgTMDBSearchResults_Movie
         Me.chkManual.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.chkManual.Location = New System.Drawing.Point(8, 433)
         Me.chkManual.Name = "chkManual"
-        Me.chkManual.Size = New System.Drawing.Size(190, 17)
+        Me.chkManual.Size = New System.Drawing.Size(128, 17)
         Me.chkManual.TabIndex = 6
-        Me.chkManual.Text = "Manual TMDb or IMDb ID Entry:"
+        Me.chkManual.Text = "Manual AEBN Entry:"
         Me.chkManual.UseVisualStyleBackColor = True
         '
         'btnVerify
         '
         Me.btnVerify.Enabled = False
         Me.btnVerify.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnVerify.Location = New System.Drawing.Point(298, 429)
+        Me.btnVerify.Location = New System.Drawing.Point(249, 429)
         Me.btnVerify.Name = "btnVerify"
         Me.btnVerify.Size = New System.Drawing.Size(75, 22)
         Me.btnVerify.TabIndex = 8
         Me.btnVerify.Text = "Verify"
         Me.btnVerify.UseVisualStyleBackColor = True
         '
-        'lblTMDBID
+        'lblAEBNID
         '
-        Me.lblTMDBID.AutoSize = True
-        Me.lblTMDBID.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblTMDBID.Location = New System.Drawing.Point(476, 277)
-        Me.lblTMDBID.Name = "lblTMDBID"
-        Me.lblTMDBID.Size = New System.Drawing.Size(37, 13)
-        Me.lblTMDBID.TabIndex = 20
-        Me.lblTMDBID.Text = "TMDB"
-        Me.lblTMDBID.Visible = False
+        Me.lblAEBNID.AutoSize = True
+        Me.lblAEBNID.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblAEBNID.Location = New System.Drawing.Point(476, 277)
+        Me.lblAEBNID.Name = "lblAEBNID"
+        Me.lblAEBNID.Size = New System.Drawing.Size(35, 13)
+        Me.lblAEBNID.TabIndex = 19
+        Me.lblAEBNID.Text = "AEBN"
+        Me.lblAEBNID.Visible = False
         '
-        'lblPremieredHeader
+        'lblYearHeader
         '
-        Me.lblPremieredHeader.AutoSize = True
-        Me.lblPremieredHeader.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(238, Byte))
-        Me.lblPremieredHeader.Location = New System.Drawing.Point(414, 160)
-        Me.lblPremieredHeader.Name = "lblPremieredHeader"
-        Me.lblPremieredHeader.Size = New System.Drawing.Size(63, 13)
-        Me.lblPremieredHeader.TabIndex = 12
-        Me.lblPremieredHeader.Text = "Premiered:"
-        Me.lblPremieredHeader.Visible = False
+        Me.lblYearHeader.AutoSize = True
+        Me.lblYearHeader.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(238, Byte))
+        Me.lblYearHeader.Location = New System.Drawing.Point(414, 160)
+        Me.lblYearHeader.Name = "lblYearHeader"
+        Me.lblYearHeader.Size = New System.Drawing.Size(32, 13)
+        Me.lblYearHeader.TabIndex = 12
+        Me.lblYearHeader.Text = "Year:"
+        Me.lblYearHeader.Visible = False
         '
         'lblDirectorsHeader
         '
@@ -283,23 +279,23 @@ Partial Class dlgTMDBSearchResults_Movie
         '
         Me.lblGenreHeader.AutoSize = True
         Me.lblGenreHeader.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(238, Byte))
-        Me.lblGenreHeader.Location = New System.Drawing.Point(416, 240)
+        Me.lblGenreHeader.Location = New System.Drawing.Point(414, 213)
         Me.lblGenreHeader.Name = "lblGenreHeader"
-        Me.lblGenreHeader.Size = New System.Drawing.Size(46, 13)
+        Me.lblGenreHeader.Size = New System.Drawing.Size(54, 13)
         Me.lblGenreHeader.TabIndex = 16
-        Me.lblGenreHeader.Text = "Genres:"
+        Me.lblGenreHeader.Text = "Genre(s):"
         Me.lblGenreHeader.Visible = False
         '
-        'lblTMDBHeader
+        'lblAEBNHeader
         '
-        Me.lblTMDBHeader.AutoSize = True
-        Me.lblTMDBHeader.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(238, Byte))
-        Me.lblTMDBHeader.Location = New System.Drawing.Point(414, 277)
-        Me.lblTMDBHeader.Name = "lblTMDBHeader"
-        Me.lblTMDBHeader.Size = New System.Drawing.Size(56, 13)
-        Me.lblTMDBHeader.TabIndex = 19
-        Me.lblTMDBHeader.Text = "TMDB ID:"
-        Me.lblTMDBHeader.Visible = False
+        Me.lblAEBNHeader.AutoSize = True
+        Me.lblAEBNHeader.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(238, Byte))
+        Me.lblAEBNHeader.Location = New System.Drawing.Point(414, 277)
+        Me.lblAEBNHeader.Name = "lblAEBNHeader"
+        Me.lblAEBNHeader.Size = New System.Drawing.Size(53, 13)
+        Me.lblAEBNHeader.TabIndex = 18
+        Me.lblAEBNHeader.Text = "AEBN ID:"
+        Me.lblAEBNHeader.Visible = False
         '
         'lblPlotHeader
         '
@@ -325,38 +321,38 @@ Partial Class dlgTMDBSearchResults_Movie
         '
         Me.txtSearch.Location = New System.Drawing.Point(8, 101)
         Me.txtSearch.Name = "txtSearch"
-        Me.txtSearch.Size = New System.Drawing.Size(211, 22)
-        Me.txtSearch.TabIndex = 2
+        Me.txtSearch.Size = New System.Drawing.Size(252, 22)
+        Me.txtSearch.TabIndex = 3
         '
         'pnlLoading
         '
         Me.pnlLoading.BackColor = System.Drawing.Color.White
         Me.pnlLoading.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-        Me.pnlLoading.Controls.Add(Me.lblLoading)
-        Me.pnlLoading.Controls.Add(Me.pbLoading)
+        Me.pnlLoading.Controls.Add(Me.Label3)
+        Me.pnlLoading.Controls.Add(Me.ProgressBar1)
         Me.pnlLoading.Location = New System.Drawing.Point(368, 213)
         Me.pnlLoading.Name = "pnlLoading"
         Me.pnlLoading.Size = New System.Drawing.Size(200, 54)
-        Me.pnlLoading.TabIndex = 18
+        Me.pnlLoading.TabIndex = 20
         '
-        'lblLoading
+        'Label3
         '
-        Me.lblLoading.AutoSize = True
-        Me.lblLoading.Location = New System.Drawing.Point(3, 10)
-        Me.lblLoading.Name = "lblLoading"
-        Me.lblLoading.Size = New System.Drawing.Size(73, 13)
-        Me.lblLoading.TabIndex = 0
-        Me.lblLoading.Text = "Please wait..."
-        Me.lblLoading.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.Label3.AutoSize = True
+        Me.Label3.Location = New System.Drawing.Point(3, 10)
+        Me.Label3.Name = "Label3"
+        Me.Label3.Size = New System.Drawing.Size(98, 13)
+        Me.Label3.TabIndex = 0
+        Me.Label3.Text = "Searching AEBN..."
+        Me.Label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
-        'pbLoading
+        'ProgressBar1
         '
-        Me.pbLoading.Location = New System.Drawing.Point(3, 32)
-        Me.pbLoading.MarqueeAnimationSpeed = 25
-        Me.pbLoading.Name = "pbLoading"
-        Me.pbLoading.Size = New System.Drawing.Size(192, 17)
-        Me.pbLoading.Style = System.Windows.Forms.ProgressBarStyle.Marquee
-        Me.pbLoading.TabIndex = 1
+        Me.ProgressBar1.Location = New System.Drawing.Point(3, 32)
+        Me.ProgressBar1.MarqueeAnimationSpeed = 25
+        Me.ProgressBar1.Name = "ProgressBar1"
+        Me.ProgressBar1.Size = New System.Drawing.Size(192, 17)
+        Me.ProgressBar1.Style = System.Windows.Forms.ProgressBarStyle.Marquee
+        Me.ProgressBar1.TabIndex = 1
         '
         'pnlPicStatus
         '
@@ -377,31 +373,24 @@ Partial Class dlgTMDBSearchResults_Movie
         Me.Label4.Text = "Fetching Poster..."
         Me.Label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
         '
-        'btnOpenFolder
-        '
-        Me.btnOpenFolder.Location = New System.Drawing.Point(612, 73)
-        Me.btnOpenFolder.Name = "btnOpenFolder"
-        Me.btnOpenFolder.Size = New System.Drawing.Size(29, 23)
-        Me.btnOpenFolder.TabIndex = 25
-        Me.btnOpenFolder.Text = "..."
-        Me.btnOpenFolder.UseVisualStyleBackColor = True
-        '
         'txtFileName
         '
         Me.txtFileName.Enabled = False
         Me.txtFileName.Location = New System.Drawing.Point(8, 73)
         Me.txtFileName.Name = "txtFileName"
         Me.txtFileName.Size = New System.Drawing.Size(598, 22)
-        Me.txtFileName.TabIndex = 24
+        Me.txtFileName.TabIndex = 3
         '
-        'txtYear
+        'btnOpenFolder
         '
-        Me.txtYear.Location = New System.Drawing.Point(225, 101)
-        Me.txtYear.Name = "txtYear"
-        Me.txtYear.Size = New System.Drawing.Size(35, 22)
-        Me.txtYear.TabIndex = 3
+        Me.btnOpenFolder.Location = New System.Drawing.Point(612, 73)
+        Me.btnOpenFolder.Name = "btnOpenFolder"
+        Me.btnOpenFolder.Size = New System.Drawing.Size(29, 23)
+        Me.btnOpenFolder.TabIndex = 23
+        Me.btnOpenFolder.Text = "..."
+        Me.btnOpenFolder.UseVisualStyleBackColor = True
         '
-        'dlgTMDBSearchResults_Movie
+        'dlgAEBNSearchResults_Movie
         '
         Me.AcceptButton = Me.OK_Button
         Me.AutoScaleDimensions = New System.Drawing.SizeF(96.0!, 96.0!)
@@ -409,7 +398,6 @@ Partial Class dlgTMDBSearchResults_Movie
         Me.CancelButton = Me.Cancel_Button
         Me.ClientSize = New System.Drawing.Size(664, 494)
         Me.ControlBox = False
-        Me.Controls.Add(Me.txtYear)
         Me.Controls.Add(Me.btnOpenFolder)
         Me.Controls.Add(Me.txtFileName)
         Me.Controls.Add(Me.pnlLoading)
@@ -419,19 +407,19 @@ Partial Class dlgTMDBSearchResults_Movie
         Me.Controls.Add(Me.btnSearch)
         Me.Controls.Add(Me.txtSearch)
         Me.Controls.Add(Me.lblPlotHeader)
-        Me.Controls.Add(Me.lblTMDBHeader)
+        Me.Controls.Add(Me.lblAEBNHeader)
         Me.Controls.Add(Me.lblGenreHeader)
         Me.Controls.Add(Me.lblDirectorsHeader)
-        Me.Controls.Add(Me.lblPremieredHeader)
-        Me.Controls.Add(Me.lblTMDBID)
+        Me.Controls.Add(Me.lblYearHeader)
+        Me.Controls.Add(Me.lblAEBNID)
         Me.Controls.Add(Me.btnVerify)
         Me.Controls.Add(Me.chkManual)
         Me.Controls.Add(Me.pnlTop)
-        Me.Controls.Add(Me.txtTMDBID)
+        Me.Controls.Add(Me.txtAEBNID)
         Me.Controls.Add(Me.lblGenre)
         Me.Controls.Add(Me.lblDirectors)
         Me.Controls.Add(Me.lblYear)
-        Me.Controls.Add(Me.txtPlot)
+        Me.Controls.Add(Me.txtOutline)
         Me.Controls.Add(Me.lblTagline)
         Me.Controls.Add(Me.lblTitle)
         Me.Controls.Add(Me.pbPoster)
@@ -442,7 +430,7 @@ Partial Class dlgTMDBSearchResults_Movie
         Me.MaximizeBox = False
         Me.MinimizeBox = False
         Me.MinimumSize = New System.Drawing.Size(670, 500)
-        Me.Name = "dlgTMDBSearchResults_Movie"
+        Me.Name = "dlgAEBNSearchResults_Movie"
         Me.Text = "Search Results"
         CType(Me.pbPoster, System.ComponentModel.ISupportInitialize).EndInit()
         Me.pnlTop.ResumeLayout(False)
@@ -461,32 +449,31 @@ Partial Class dlgTMDBSearchResults_Movie
     Friend WithEvents pbPoster As System.Windows.Forms.PictureBox
     Friend WithEvents lblTitle As System.Windows.Forms.Label
     Friend WithEvents lblTagline As System.Windows.Forms.Label
-    Friend WithEvents txtPlot As System.Windows.Forms.TextBox
+    Friend WithEvents txtOutline As System.Windows.Forms.TextBox
     Friend WithEvents lblYear As System.Windows.Forms.Label
     Friend WithEvents lblDirectors As System.Windows.Forms.Label
     Friend WithEvents lblGenre As System.Windows.Forms.Label
-    Friend WithEvents txtTMDBID As System.Windows.Forms.TextBox
+    Friend WithEvents txtAEBNID As System.Windows.Forms.TextBox
     Friend WithEvents pnlTop As System.Windows.Forms.Panel
     Friend WithEvents Label2 As System.Windows.Forms.Label
     Friend WithEvents Label1 As System.Windows.Forms.Label
     Friend WithEvents PictureBox1 As System.Windows.Forms.PictureBox
     Friend WithEvents chkManual As System.Windows.Forms.CheckBox
     Friend WithEvents btnVerify As System.Windows.Forms.Button
-    Friend WithEvents lblTMDBID As System.Windows.Forms.Label
-    Friend WithEvents lblPremieredHeader As System.Windows.Forms.Label
+    Friend WithEvents lblAEBNID As System.Windows.Forms.Label
+    Friend WithEvents lblYearHeader As System.Windows.Forms.Label
     Friend WithEvents lblDirectorsHeader As System.Windows.Forms.Label
     Friend WithEvents lblGenreHeader As System.Windows.Forms.Label
-    Friend WithEvents lblTMDBHeader As System.Windows.Forms.Label
+    Friend WithEvents lblAEBNHeader As System.Windows.Forms.Label
     Friend WithEvents lblPlotHeader As System.Windows.Forms.Label
     Friend WithEvents btnSearch As System.Windows.Forms.Button
     Friend WithEvents txtSearch As System.Windows.Forms.TextBox
     Friend WithEvents pnlLoading As System.Windows.Forms.Panel
-    Friend WithEvents lblLoading As System.Windows.Forms.Label
-    Friend WithEvents pbLoading As System.Windows.Forms.ProgressBar
+    Friend WithEvents Label3 As System.Windows.Forms.Label
+    Friend WithEvents ProgressBar1 As System.Windows.Forms.ProgressBar
     Friend WithEvents pnlPicStatus As System.Windows.Forms.Panel
     Friend WithEvents Label4 As System.Windows.Forms.Label
-    Friend WithEvents btnOpenFolder As System.Windows.Forms.Button
     Friend WithEvents txtFileName As System.Windows.Forms.TextBox
-    Friend WithEvents txtYear As System.Windows.Forms.TextBox
+    Friend WithEvents btnOpenFolder As System.Windows.Forms.Button
 
 End Class

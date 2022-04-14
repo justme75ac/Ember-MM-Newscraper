@@ -18,49 +18,79 @@
 ' # along with Ember Media Manager.  If not, see <http://www.gnu.org/licenses/>. #
 ' ################################################################################
 
+Imports System.IO
+Imports System.Text.RegularExpressions
 Imports EmberAPI
 Imports NLog
-Imports System.Diagnostics
 
-Public Class SearchResults_Movie
+Namespace AEBN
+
+    Public Class SearchResults_Movie
 
 #Region "Fields"
 
-        Private _Matches As New List(Of MediaContainers.Movie)
+        Private _ExactMatches As New List(Of MediaContainers.Movie)
+        Private _PartialMatches As New List(Of MediaContainers.Movie)
+        Private _PopularTitles As New List(Of MediaContainers.Movie)
+        Private _TvTitles As New List(Of MediaContainers.Movie)
+        Private _VideoTitles As New List(Of MediaContainers.Movie)
+        Private _ShortTitles As New List(Of MediaContainers.Movie)
 
 #End Region 'Fields
 
 #Region "Properties"
 
-        Public Property Matches() As List(Of MediaContainers.Movie)
+        Public Property ExactMatches() As List(Of MediaContainers.Movie)
             Get
-                Return _Matches
+                Return _ExactMatches
             End Get
             Set(ByVal value As List(Of MediaContainers.Movie))
-                _Matches = value
+                _ExactMatches = value
             End Set
         End Property
 
-#End Region 'Properties
-
-    End Class
-
-    Public Class SearchResults_MovieSet
-
-#Region "Fields"
-
-        Private _Matches As New List(Of MediaContainers.Movieset)
-
-#End Region 'Fields
-
-#Region "Properties"
-
-        Public Property Matches() As List(Of MediaContainers.Movieset)
+        Public Property PartialMatches() As List(Of MediaContainers.Movie)
             Get
-                Return _Matches
+                Return _PartialMatches
             End Get
-            Set(ByVal value As List(Of MediaContainers.Movieset))
-                _Matches = value
+            Set(ByVal value As List(Of MediaContainers.Movie))
+                _PartialMatches = value
+            End Set
+        End Property
+
+        Public Property PopularTitles() As List(Of MediaContainers.Movie)
+            Get
+                Return _PopularTitles
+            End Get
+            Set(ByVal value As List(Of MediaContainers.Movie))
+                _PopularTitles = value
+            End Set
+        End Property
+
+        Public Property TvTitles() As List(Of MediaContainers.Movie)
+            Get
+                Return _TvTitles
+            End Get
+            Set(ByVal value As List(Of MediaContainers.Movie))
+                _TvTitles = value
+            End Set
+        End Property
+
+        Public Property VideoTitles() As List(Of MediaContainers.Movie)
+            Get
+                Return _VideoTitles
+            End Get
+            Set(ByVal value As List(Of MediaContainers.Movie))
+                _VideoTitles = value
+            End Set
+        End Property
+
+        Public Property ShortTitles() As List(Of MediaContainers.Movie)
+            Get
+                Return _ShortTitles
+            End Get
+            Set(ByVal value As List(Of MediaContainers.Movie))
+                _ShortTitles = value
             End Set
         End Property
 
@@ -91,1505 +121,1574 @@ Public Class SearchResults_Movie
 
     End Class
 
-Public Class Scraper
+    Public Class Scraper
 
 #Region "Fields"
 
-    Shared _Logger As Logger = LogManager.GetCurrentClassLogger()
+        Shared logger As Logger = LogManager.GetCurrentClassLogger()
 
-    Private _client As AEbnLib.Client.AEbnClient  'preferred language
-    Private _clientE As AEbnLib.Client.AEbnClient 'english language
-    Private _addonSettings As AEBN_Data.SpecialSettings
-    Private _sPoster As String = String.Empty
+        Friend WithEvents bwAEBN As New System.ComponentModel.BackgroundWorker
 
-    Private _Fallback_Movie As AEbnLib.Objects.Movies.Movie = Nothing
-    Private _Fallback_Movieset As AEbnLib.Objects.Collections.Collection = Nothing
-    Private _Fallback_TVEpisode As AEbnLib.Objects.TvShows.TvEpisode = Nothing
-    Private _Fallback_TVSeason As AEbnLib.Objects.TvShows.TvSeason = Nothing
-    Private _Fallback_TVShow As AEbnLib.Objects.TvShows.TvShow = Nothing
+        Private Const LINK_PATTERN As String = "<a[\s]+[^>]*?href[\s]?=[\s\""\']*(?<url>.*?)[\""\']*.*?>(?<name>[^<]+|.*?)?<\/a>"
+        Private Const ACTORTABLE_PATTERN As String = "<table class=""cast"">(.*?)</table>"
+        Private Const HREF_PATTERN As String = "<a.*?href=[""'](?<url>.*?)[""'].*?>(?<name>.*?)</a>"
+        Private Const HREF_PATTERN_2 As String = "<a\shref=[""""'](?<url>.*?)[""""'].*?>(?<name>.*?)</a>"
+        Private Const HREF_PATTERN_3 As String = "<a href=""/search/title\?certificates=[^""]*"">([^<]*):([^<]*)</a>[^<]*(<i>([^<]*)</i>)?"
+        Private Const HREF_PATTERN_4 As String = "<a.*?href=[""']/(title/tt\d{7}/|name/nm\d{7}/)[""'].*?>(?<text>.*?)</a>"
+        Private Const AEBN_ID_REGEX As String = "tt\d\d\d\d\d\d\d"
+        Private Const IMG_PATTERN As String = "<img src=""(?<thumb>.*?)"" width=""\d{1,3}"" height=""\d{1,3}"" border="".{1,3}"">"
+        Private Const MOVIE_TITLE_PATTERN As String = "(?<=<(title)>).*(?=<\/\1>)"
+        Private Const TABLE_PATTERN As String = "<table.*?>\n?(.*?)</table>"
+        Private Const TABLE_PATTERN_TV As String = "<table class=""results"">(.*?)</table>"
+        Private Const TD_PATTERN_1 As String = "<td\sclass=""nm"">(.*?)</td>"
+        Private Const TD_PATTERN_2 As String = "(?<=<td\sclass=""char"">)(?<name>.*?)(?=</td>)(\s\(.*?\))?"
+        Private Const TD_PATTERN_3 As String = "<td\sclass=""hs"">(.*?)</td>"
+        Private Const TD_PATTERN_4 As String = "<td>(?<title>.*?)</td>"
+        Private Const TITLE_PATTERN As String = "<a\shref=[""""'](?<url>.*?)[""""'].*?>(?<name>.*?)</a>((\s)+?(\((?<year>\d{4})(\/.*?)?\)))?((\s)+?(\((?<type>.*?)\)))?"
+        Private Const TR_PATTERN As String = "<tr\sclass="".*?"">(.*?)</tr>"
+        Private Const TvTITLE_PATTERN As String = "<a\shref=[""'](?<url>.*?)[""']\stitle=[""'](?<name>.*?)((\s)+?(\((?<year>\d{4})))"
+        Private Const TVSHOWTITLE_PATTERN As String = "<tr class.*?>.*?<a href=""\/title\/(?<AEBN>tt\d*)\/"">(?<TITLE>.*?)<\/a>.*?year_type"">\((?<YEAR>\d*).*?<\/tr>"
+        Private Const TVEPISODE_PATTERN As String = "<div class=""list_item (?:odd|even)"">.*?<a href=""\/title\/(?<AEBN>tt\d*)\/.*?title=""(?<TITLE>.*?)"" itemprop=""url"">.*?content=""(?<EPISODE>\d*)"""
+        Private Const TVEPISODE_TITLE_PATTERN As String = "<title>&#x22;.*?&#x22;(?<TITLE>.*?)<\/title>"
+        Private Const TVEPISODE_SEASON_EPISODE As String = "<h5>Original Air Date:<\/h5>.*?\(Season (?<SEASON>\d+), Episode (?<EPISODE>\d+)\).*?<\/div>"
+        Private Const TVEPISODE_CREDITS As String = "<a.*?href=[""'](?<URL>.*?)[""'].*?>(?<NAME>.*?).?<\/a>.*?<td class=""credit"">.*?\((?<CLASS>.*?)\).*?<\/td>"
 
-    Friend WithEvents bwAEBN As New ComponentModel.BackgroundWorker
+        Private sPoster As String
+        Private intHTTP As HTTP = Nothing
+
+        Private _SpecialSettings As AEBN_Data.SpecialSettings
 
 #End Region 'Fields
 
-#Region "Properties"
-
-    Public Property DefaultLanguage As String
-        Get
-            Return _client.DefaultLanguage
-        End Get
-        Set(value As String)
-            _client.DefaultLanguage = value
-        End Set
-    End Property
-
-    Public ReadOnly Property IsClientCreated As Boolean
-        Get
-            Return _client IsNot Nothing
-        End Get
-    End Property
-
-#End Region 'Properties
-
 #Region "Enumerations"
 
-    Private Enum SearchType
-        Movies = 0
-        Details = 1
-        SearchDetails_Movie = 2
-        MovieSets = 3
-        SearchDetails_MovieSet = 4
-        TVShows = 5
-        SearchDetails_TVShow = 6
-    End Enum
+        Private Enum SearchType
+            Details = 0
+            Movies = 1
+            SearchDetails_Movie = 2
+            SearchDetails_TVShow = 3
+            TVShows = 4
+        End Enum
 
 #End Region 'Enumerations
 
 #Region "Events"
 
-    Public Event SearchInfoDownloaded_Movie(ByVal strPoster As String, ByVal sInfo As MediaContainers.Movie)
-    Public Event SearchInfoDownloaded_MovieSet(ByVal strPoster As String, ByVal sInfo As MediaContainers.Movieset)
-    Public Event SearchInfoDownloaded_TVShow(ByVal strPoster As String, ByVal sInfo As MediaContainers.TVShow)
+        Public Event Exception(ByVal ex As Exception)
 
-    Public Event SearchResultsDownloaded_Movie(ByVal mResults As SearchResults_Movie)
-    Public Event SearchResultsDownloaded_MovieSet(ByVal mResults As SearchResults_MovieSet)
-    Public Event SearchResultsDownloaded_TVShow(ByVal mResults As SearchResults_TVShow)
+        Public Event SearchInfoDownloaded_Movie(ByVal sPoster As String, ByVal sInfo As MediaContainers.Movie)
+        Public Event SearchInfoDownloaded_TV(ByVal sPoster As String, ByVal sInfo As MediaContainers.TVShow)
+
+        Public Event SearchResultsDownloaded_Movie(ByVal mResults As SearchResults_Movie)
+        Public Event SearchResultsDownloaded_TV(ByVal mResults As SearchResults_TVShow)
 
 #End Region 'Events
 
 #Region "Methods"
 
-    Public Async Function CreateAPI(ByVal addonSettings As AEBN_Data.SpecialSettings) As Task
-        Try
-            _addonSettings = addonSettings
+        Public Sub New(ByVal SpecialSettings As AEBN_Data.SpecialSettings)
+            _SpecialSettings = SpecialSettings
+        End Sub
 
-            _client = New AEbnLib.Client.AEbnClient(_addonSettings.APIKey)
-            Await _client.GetConfigAsync()
-            _client.MaxRetryCount = 2
-            _Logger.Trace("[AEBN_Data] [CreateAPI] Client created")
+        Public Sub CancelAsync()
 
-            If _addonSettings.FallBackEng Then
-                _clientE = New AEbnLib.Client.AEbnClient(_addonSettings.APIKey)
-                Await _clientE.GetConfigAsync()
-                _clientE.DefaultLanguage = "en-US"
-                _clientE.MaxRetryCount = 2
-                _Logger.Trace("[AEBN_Data] [CreateAPI] Client-EN created")
-            Else
-                _clientE = _client
-                _Logger.Trace("[AEBN_Data] [CreateAPI] Client-EN = Client")
+            If bwAEBN.IsBusy Then
+                If intHTTP IsNot Nothing Then
+                    intHTTP.Cancel()
+                End If
+                bwAEBN.CancelAsync()
             End If
-        Catch ex As Exception
-            _Logger.Error(String.Format("[AEBN_Data] [CreateAPI] [Error] {0}", ex.Message))
-        End Try
-    End Function
 
-    Private Sub bwAEBN_DoWork(ByVal sender As Object, ByVal e As System.ComponentModel.DoWorkEventArgs) Handles bwAEBN.DoWork
-        Dim Args As Arguments = DirectCast(e.Argument, Arguments)
-        '' The rule is that if there is a tt is an IMDB otherwise is a AEBN
+            While bwAEBN.IsBusy
+                Application.DoEvents()
+                Threading.Thread.Sleep(50)
+            End While
+        End Sub
+        ''' <summary>
+        '''  Scrape MovieDetails from AEBN
+        ''' </summary>
+        ''' <param name="strID">AEBNID of movie to be scraped</param>
+        ''' <param name="FullCrew">Module setting: Scrape full cast?</param>
+        ''' <param name="GetPoster">Scrape posters for the movie?</param>
+        ''' <param name="Options">Module settings<param>
+        ''' <param name="IsSearch">Not used at moment</param>
+        ''' <returns>True: success, false: no success</returns>
+        ''' <remarks></remarks>
+        Public Function GetMovieInfo(ByVal strID As String, ByVal GetPoster As Boolean, ByVal FilteredOptions As Structures.ScrapeOptions) As MediaContainers.Movie
+            Try
+                If bwAEBN.CancellationPending Then Return Nothing
 
-        Select Case Args.Search
-            Case SearchType.Movies
-                Dim r As SearchResults_Movie = SearchMovie(Args.Parameter, Args.Year)
-                e.Result = New Results With {.ResultType = SearchType.Movies, .Result = r}
+                Dim nMovie As New MediaContainers.Movie
 
-            Case SearchType.MovieSets
-                Dim r As SearchResults_MovieSet = SearchMovieSet(Args.Parameter)
-                e.Result = New Results With {.ResultType = SearchType.MovieSets, .Result = r}
+                Dim HTML As String
+                intHTTP = New HTTP
+                HTML = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/title/", strID, "/combined"))
+                intHTTP.Dispose()
+                intHTTP = Nothing
 
-            Case SearchType.TVShows
-                Dim r As SearchResults_TVShow = SearchTVShow(Args.Parameter)
-                e.Result = New Results With {.ResultType = SearchType.TVShows, .Result = r}
+                If bwAEBN.CancellationPending Then Return Nothing
 
-            Case SearchType.SearchDetails_Movie
-                Dim r As MediaContainers.Movie = GetInfo_Movie(Args.Parameter, Args.ScrapeOptions, True)
-                e.Result = New Results With {.ResultType = SearchType.SearchDetails_Movie, .Result = r}
+                Dim PlotHtml As String
+                intHTTP = New HTTP
+                PlotHtml = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/title/", strID, "/plotsummary"))
+                intHTTP.Dispose()
+                intHTTP = Nothing
 
-            Case SearchType.SearchDetails_MovieSet
-                Dim intTmdbId As Integer = -1
-                If Integer.TryParse(Args.Parameter, intTmdbId) Then
-                    Dim r As MediaContainers.Movieset = GetInfo_Movieset(intTmdbId, Args.ScrapeOptions, True)
-                    e.Result = New Results With {.ResultType = SearchType.SearchDetails_MovieSet, .Result = r}
-                Else
-                    e.Result = New Results With {.ResultType = SearchType.SearchDetails_MovieSet, .Result = Nothing}
+                nMovie.AEBN = strID
+                nMovie.Scrapersource = "AEBN"
+
+                If bwAEBN.CancellationPending Then Return Nothing
+
+                Dim scrapedresult As String = String.Empty
+
+                Dim OriginalTitle As String = Regex.Match(HTML, MOVIE_TITLE_PATTERN).ToString
+
+
+                'Original Title
+                If FilteredOptions.bMainOriginalTitle Then
+                    nMovie.OriginalTitle = CleanTitle(HttpUtility.HtmlDecode(Regex.Match(OriginalTitle, ".*(?=\s\(\d+.*?\))").ToString)).Trim
                 End If
 
-            Case SearchType.SearchDetails_TVShow
-                Dim intTmdbId As Integer = -1
-                If Integer.TryParse(Args.Parameter, intTmdbId) Then
-                    Dim r As MediaContainers.TVShow = GetInfo_TVShow(intTmdbId, Args.ScrapeModifiers, Args.ScrapeOptions, True)
-                    e.Result = New Results With {.ResultType = SearchType.SearchDetails_TVShow, .Result = r}
-                Else
-                    e.Result = New Results With {.ResultType = SearchType.SearchDetails_TVShow, .Result = Nothing}
+                If bwAEBN.CancellationPending Then Return Nothing
+
+                'Title
+                If FilteredOptions.bMainTitle Then
+                    If Not String.IsNullOrEmpty(_SpecialSettings.ForceTitleLanguage) Then
+                        nMovie.Title = GetForcedTitle(strID, nMovie.OriginalTitle)
+                    Else
+                        nMovie.Title = CleanTitle(HttpUtility.HtmlDecode(Regex.Match(OriginalTitle, ".*(?=\s\(\d+.*?\))").ToString)).Trim
+                    End If
                 End If
-        End Select
-    End Sub
 
-    Private Sub bwAEBN_RunWorkerCompleted(ByVal sender As Object, ByVal e As System.ComponentModel.RunWorkerCompletedEventArgs) Handles bwAEBN.RunWorkerCompleted
-        Dim Res As Results = DirectCast(e.Result, Results)
+                If bwAEBN.CancellationPending Then Return Nothing
 
-        Select Case Res.ResultType
-            Case SearchType.Movies
-                RaiseEvent SearchResultsDownloaded_Movie(DirectCast(Res.Result, SearchResults_Movie))
+                'Poster for search result
+                If GetPoster Then
+                    sPoster = Regex.Match(Regex.Match(HTML, "(?<=\b(name=""poster"")).*\b[</a>]\b").ToString, "(?<=\b(src=)).*\b(?=[</a>])").ToString.Replace("""", String.Empty).Replace("/></", String.Empty)
+                End If
 
-            Case SearchType.MovieSets
-                RaiseEvent SearchResultsDownloaded_MovieSet(DirectCast(Res.Result, SearchResults_MovieSet))
+                If bwAEBN.CancellationPending Then Return Nothing
 
-            Case SearchType.TVShows
-                RaiseEvent SearchResultsDownloaded_TVShow(DirectCast(Res.Result, SearchResults_TVShow))
+                'Year
+                If FilteredOptions.bMainYear Then
+                    nMovie.Year = Regex.Match(OriginalTitle, "(?<=\()\d+(?=.*\))", RegexOptions.RightToLeft).ToString
+                End If
 
-            Case SearchType.SearchDetails_Movie
-                Dim movieInfo As MediaContainers.Movie = DirectCast(Res.Result, MediaContainers.Movie)
-                RaiseEvent SearchInfoDownloaded_Movie(_sPoster, movieInfo)
+                If bwAEBN.CancellationPending Then Return Nothing
 
-            Case SearchType.SearchDetails_MovieSet
-                Dim moviesetInfo As MediaContainers.Movieset = DirectCast(Res.Result, MediaContainers.Movieset)
-                RaiseEvent SearchInfoDownloaded_MovieSet(_sPoster, moviesetInfo)
+                'Certifications
+                If FilteredOptions.bMainCertifications Then
+                    Dim D, W As Integer
+                    D = HTML.IndexOf("<h5>Certification:</h5>")
+                    If D > 0 Then
+                        W = HTML.IndexOf("</div>", D)
+                        Dim rCert As MatchCollection = Regex.Matches(HTML.Substring(D, W - D), HREF_PATTERN_3)
 
-            Case SearchType.SearchDetails_TVShow
-                Dim showInfo As MediaContainers.TVShow = DirectCast(Res.Result, MediaContainers.TVShow)
-                RaiseEvent SearchInfoDownloaded_TVShow(_sPoster, showInfo)
-        End Select
-    End Sub
-
-    Public Sub CancelAsync()
-        If bwAEBN.IsBusy Then bwAEBN.CancelAsync()
-
-        While bwAEBN.IsBusy
-            Application.DoEvents()
-            Threading.Thread.Sleep(50)
-        End While
-    End Sub
-
-    Public Sub GetMovieID(ByVal DBMovie As Database.DBElement)
-        Dim strUniqueID As String = String.Empty
-        If DBMovie.Movie.UniqueIDs.AEbnIdSpecified Then
-            strUniqueID = DBMovie.Movie.UniqueIDs.AEbnId.ToString
-        ElseIf DBMovie.Movie.UniqueIDs.IMDbIdSpecified Then
-            strUniqueID = DBMovie.Movie.UniqueIDs.IMDbId
-        End If
-
-        If Not String.IsNullOrEmpty(strUniqueID) Then
-            Dim Movie As AEbnLib.Objects.Movies.Movie
-            Dim APIResult As Task(Of AEbnLib.Objects.Movies.Movie)
-            APIResult = Task.Run(Function() _client.GetMovieAsync(strUniqueID))
-
-            Movie = APIResult.Result
-            If Movie Is Nothing OrElse Movie.Id = 0 Then Return
-
-            DBMovie.Movie.UniqueIDs.AEbnId = Movie.Id
-        End If
-    End Sub
-
-    Public Function GetMovieID(ByVal imdbId As String) As Integer
-        Dim Movie As AEbnLib.Objects.Movies.Movie
-
-        Dim APIResult As Task(Of AEbnLib.Objects.Movies.Movie)
-        APIResult = Task.Run(Function() _client.GetMovieAsync(imdbId))
-
-        Movie = APIResult.Result
-        If Movie Is Nothing OrElse Movie.Id = 0 Then Return -1
-
-        Return Movie.Id
-    End Function
-
-    Public Function GetMovieCollectionID(ByVal imdbId As String) As Integer
-        Dim Movie As AEbnLib.Objects.Movies.Movie
-
-        Dim APIResult As Task(Of AEbnLib.Objects.Movies.Movie)
-        APIResult = Task.Run(Function() _client.GetMovieAsync(imdbId))
-
-        Movie = APIResult.Result
-        If Movie Is Nothing Then Return -1
-
-        If Movie.BelongsToCollection IsNot Nothing AndAlso Movie.BelongsToCollection.Id > 0 Then
-            Return Movie.BelongsToCollection.Id
-        Else
-            Return -1
-        End If
-    End Function
-    ''' <summary>
-    '''  Scrape MovieDetails from AEBN
-    ''' </summary>
-    ''' <param name="tmdbIdOrImdbId">AEBNID or ID (IMDB ID starts with "tt") of movie to be scraped</param>
-    ''' <param name="GetPoster">Scrape posters for the movie?</param>
-    ''' <returns>True: success, false: no success</returns>
-    Public Function GetInfo_Movie(ByVal tmdbIdOrImdbId As String, ByVal FilteredOptions As Structures.ScrapeOptions, ByVal GetPoster As Boolean) As MediaContainers.Movie
-        _Fallback_Movie = Nothing
-        If String.IsNullOrEmpty(tmdbIdOrImdbId) Then Return Nothing
-
-        Dim APIResult As Task(Of AEbnLib.Objects.Movies.Movie)
-        Dim intAEBNID As Integer = -1
-
-        If tmdbIdOrImdbId.ToLower.StartsWith("tt") Then
-            'search movie by IMDB ID
-            APIResult = Task.Run(Function() _client.GetMovieAsync(tmdbIdOrImdbId, AEbnLib.Objects.Movies.MovieMethods.Credits Or AEbnLib.Objects.Movies.MovieMethods.Releases Or AEbnLib.Objects.Movies.MovieMethods.Videos))
-        ElseIf Integer.TryParse(tmdbIdOrImdbId, intAEBNID) Then
-            'search movie by AEBN ID
-            APIResult = Task.Run(Function() _client.GetMovieAsync(intAEBNID, AEbnLib.Objects.Movies.MovieMethods.Credits Or AEbnLib.Objects.Movies.MovieMethods.Releases Or AEbnLib.Objects.Movies.MovieMethods.Videos))
-        Else
-            _Logger.Error(String.Format("Can't scrape or movie not found: [0]", tmdbIdOrImdbId))
-            Return Nothing
-        End If
-
-        If APIResult Is Nothing OrElse APIResult.Result Is Nothing OrElse Not APIResult.Result.Id > 0 OrElse APIResult.Exception IsNot Nothing Then
-            _Logger.Error(String.Format("Can't scrape or movie not found: [0]", tmdbIdOrImdbId))
-            Return Nothing
-        End If
-
-        Dim Result As AEbnLib.Objects.Movies.Movie = APIResult.Result
-        Dim nMovie As New MediaContainers.Movie With {.Scrapersource = "AEBN"}
-
-        'IDs
-        nMovie.UniqueIDs.AEbnId = Result.Id
-        If Result.ImdbId IsNot Nothing Then nMovie.UniqueIDs.IMDbId = Result.ImdbId
-
-        If bwAEBN.CancellationPending Or Result Is Nothing Then Return Nothing
-
-        'Cast (Actors)
-        If FilteredOptions.bMainActors Then
-            If Result.Credits IsNot Nothing AndAlso Result.Credits.Cast IsNot Nothing Then
-                For Each aCast As AEbnLib.Objects.Movies.Cast In Result.Credits.Cast
-                    nMovie.Actors.Add(New MediaContainers.Person With {
-                                      .Name = aCast.Name,
-                                      .Role = aCast.Character,
-                                      .URLOriginal = If(Not String.IsNullOrEmpty(aCast.ProfilePath), String.Concat(_client.Config.Images.BaseUrl, "original", aCast.ProfilePath), String.Empty),
-                                      .AEbnId = CStr(aCast.Id)
-                                      })
-                Next
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Certifications
-        If FilteredOptions.bMainCertifications Then
-            If Result.Releases IsNot Nothing AndAlso Result.Releases.Countries IsNot Nothing AndAlso Result.Releases.Countries.Count > 0 Then
-                For Each cCountry In Result.Releases.Countries
-                    If Not String.IsNullOrEmpty(cCountry.Certification) Then
-                        Dim Country = Localization.Countries.Items.FirstOrDefault(Function(l) l.Alpha2 = cCountry.Iso_3166_1)
-                        If Country IsNot Nothing AndAlso Country.Name IsNot Nothing AndAlso Not String.IsNullOrEmpty(Country.Name) Then
-                            nMovie.Certifications.Add(String.Concat(Country.Name, ":", cCountry.Certification))
-                        Else
-                            _Logger.Warn("Unhandled certification country encountered: {0}", cCountry.Iso_3166_1)
+                        If rCert.Count > 0 Then
+                            Dim Certs = From M In rCert Select N = String.Format("{0}:{1}", DirectCast(M, Match).Groups(1).ToString.Trim, DirectCast(M, Match).Groups(2).ToString.Trim) Order By N Ascending
+                            For Each tCert In Certs
+                                nMovie.Certifications.Add(tCert.ToString.Replace("West", String.Empty).Trim)
+                            Next
                         End If
                     End If
-                Next
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Collection ID
-        If FilteredOptions.bMainCollectionID Then
-            If Result.BelongsToCollection IsNot Nothing Then
-                Dim nFullMovieSetInfo = GetInfo_Movieset(Result.BelongsToCollection.Id,
-                                                         New Structures.ScrapeOptions With {.bMainPlot = True, .bMainTitle = True},
-                                                         False)
-                If nFullMovieSetInfo IsNot Nothing Then
-                    nMovie.Sets.Add(New MediaContainers.MoviesetDetails With {
-                                    .Plot = nFullMovieSetInfo.Plot,
-                                    .Title = nFullMovieSetInfo.Title,
-                                    .UniqueIDs = nFullMovieSetInfo.UniqueIDs
-                                    })
-                    nMovie.UniqueIDs.AEbnCollectionId = nFullMovieSetInfo.UniqueIDs.AEbnId
                 End If
-            End If
-        End If
 
-        If bwAEBN.CancellationPending Then Return Nothing
+                If bwAEBN.CancellationPending Then Return Nothing
 
-        'Countries
-        If FilteredOptions.bMainCountries Then
-            If Result.ProductionCountries IsNot Nothing AndAlso Result.ProductionCountries.Count > 0 Then
-                For Each aContry As AEbnLib.Objects.General.ProductionCountry In Result.ProductionCountries
-                    nMovie.Countries.Add(aContry.Name)
-                Next
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Director / Writer
-        If FilteredOptions.bMainDirectors OrElse FilteredOptions.bMainWriters Then
-            If Result.Credits IsNot Nothing AndAlso Result.Credits.Crew IsNot Nothing Then
-                For Each aCrew As AEbnLib.Objects.General.Crew In Result.Credits.Crew
-                    If FilteredOptions.bMainDirectors AndAlso aCrew.Department = "Directing" AndAlso aCrew.Job = "Director" Then
-                        nMovie.Directors.Add(aCrew.Name)
-                    End If
-                    If FilteredOptions.bMainWriters AndAlso aCrew.Department = "Writing" AndAlso (aCrew.Job = "Author" OrElse aCrew.Job = "Screenplay" OrElse aCrew.Job = "Writer") Then
-                        nMovie.Credits.Add(aCrew.Name)
-                    End If
-                Next
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Genres
-        If FilteredOptions.bMainGenres Then
-            If Result.Genres.Count > 0 Then
-                nMovie.Genres.AddRange(Result.Genres.Select(Function(f) f.Name))
-            ElseIf RunFallback_Movie(Result.Id) AndAlso _Fallback_Movie.Genres.Count > 0 Then
-                nMovie.Genres.AddRange(_Fallback_Movie.Genres.Select(Function(f) f.Name))
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'OriginalTitle
-        If FilteredOptions.bMainOriginalTitle Then
-            nMovie.OriginalTitle = Result.OriginalTitle
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Plot
-        If FilteredOptions.bMainPlot Then
-            If Result.Overview IsNot Nothing AndAlso Not String.IsNullOrEmpty(Result.Overview) Then
-                nMovie.Plot = Result.Overview
-            ElseIf RunFallback_Movie(Result.Id) AndAlso _Fallback_Movie.Overview IsNot Nothing AndAlso Not String.IsNullOrEmpty(_Fallback_Movie.Overview) Then
-                nMovie.Plot = _Fallback_Movie.Overview
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Posters (only for SearchResult dialog, auto fallback to "en" by AEBN)
-        If GetPoster Then
-            If Result.PosterPath IsNot Nothing AndAlso Not String.IsNullOrEmpty(Result.PosterPath) Then
-                _sPoster = String.Concat(_client.Config.Images.BaseUrl, "w92", Result.PosterPath)
-            Else
-                _sPoster = String.Empty
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Premiered
-        If FilteredOptions.bMainPremiered Then
-            Dim nDate As Date? = Nothing
-            If Result.ReleaseDate.HasValue Then
-                nDate = Result.ReleaseDate.Value
-            ElseIf RunFallback_Movie(Result.Id) AndAlso _Fallback_Movie.ReleaseDate.HasValue Then
-                nDate = _Fallback_Movie.ReleaseDate.Value
-            End If
-            If nDate.HasValue Then
-                'always save date in same date format not depending on users language setting!
-                nMovie.Premiered = nDate.Value.ToString("yyyy-MM-dd")
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Rating
-        If FilteredOptions.bMainRating Then
-            nMovie.Ratings.Add(New MediaContainers.RatingDetails With {
-                               .Max = 10,
-                               .Type = "themoviedb",
-                               .Value = Result.VoteAverage,
-                               .Votes = Result.VoteCount
-                               })
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Runtime
-        If FilteredOptions.bMainRuntime Then
-            If Result.Runtime IsNot Nothing Then
-                nMovie.Runtime = CStr(Result.Runtime)
-            ElseIf RunFallback_Movie(Result.Id) AndAlso _Fallback_Movie.Runtime IsNot Nothing Then
-                nMovie.Runtime = CStr(_Fallback_Movie.Runtime)
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Studios
-        If FilteredOptions.bMainStudios Then
-            If Result.ProductionCompanies.Count > 0 Then
-                nMovie.Studios.AddRange(Result.ProductionCompanies.Select(Function(f) f.Name))
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Tagline
-        If FilteredOptions.bMainTagline Then
-            If Result.Tagline IsNot Nothing AndAlso Not String.IsNullOrEmpty(Result.Tagline) Then
-                nMovie.Tagline = Result.Tagline
-            ElseIf RunFallback_Movie(Result.Id) AndAlso _Fallback_Movie.Tagline IsNot Nothing AndAlso Not String.IsNullOrEmpty(_Fallback_Movie.Tagline) Then
-                nMovie.Tagline = _Fallback_Movie.Tagline
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Title
-        If FilteredOptions.bMainTitle Then
-            If Not String.IsNullOrEmpty(Result.Title) Then
-                nMovie.Title = Result.Title
-            ElseIf RunFallback_Movie(Result.Id) AndAlso Not String.IsNullOrEmpty(_Fallback_Movie.Title) Then
-                nMovie.Title = _Fallback_Movie.Title
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Trailer
-        If FilteredOptions.bMainTrailer Then
-            Dim nTrailers As New List(Of AEbnLib.Objects.General.Video)
-            If Result.Videos IsNot Nothing AndAlso Result.Videos.Results.Count > 0 Then
-                nTrailers = Result.Videos.Results
-            ElseIf RunFallback_Movie(Result.Id) AndAlso _Fallback_Movie.Videos Is Nothing AndAlso _Fallback_Movie.Videos.Results.Count > 0 Then
-                nTrailers = _Fallback_Movie.Videos.Results
-            End If
-
-            For Each aTrailer In nTrailers
-                Dim nTrailer = YouTube.Scraper.GetVideoDetails(aTrailer.Key)
-                If nTrailer IsNot Nothing Then
-                    nMovie.Trailer = nTrailer.UrlForNfo
-                    Exit For
+                'MPAA
+                If FilteredOptions.bMainMPAA Then
+                    Dim D, W, tempD As Integer
+                    tempD = If(HTML.IndexOf("<h5><a href=""/mpaa"">MPAA</a>:</h5>") > 0, HTML.IndexOf("<h5><a href=""/mpaa"">MPAA</a>:</h5>"), 0)
+                    D = If(tempD > 0, HTML.IndexOf("<div class=""info-content"">", tempD), 0)
+                    W = If(D > 0, HTML.IndexOf("</div", D), 0)
+                    nMovie.MPAA = If(D > 0 AndAlso W > 0, HttpUtility.HtmlDecode(HTML.Substring(D, W - D).Remove(0, 26)).Trim(), String.Empty)
                 End If
-            Next
-        End If
 
-        If bwAEBN.CancellationPending Then Return Nothing
+                If bwAEBN.CancellationPending Then Return Nothing
 
-        _Fallback_Movie = Nothing
-        Return nMovie
-    End Function
+                'Release Date
+                If FilteredOptions.bMainRelease Then
+                    Dim RelDate As Date
+                    Dim sRelDate As MatchCollection = Regex.Matches(HTML, "<h5>Release Date:</h5>.*?(?<DATE>\d+\s\w+\s\d\d\d\d\s)", RegexOptions.Singleline)
+                    If sRelDate.Count > 0 Then
+                        If Date.TryParse(sRelDate.Item(0).Groups(1).Value, RelDate) Then
+                            nMovie.ReleaseDate = RelDate.ToString("yyyy-MM-dd")
+                        End If
+                    End If
+                End If
 
-    Public Function GetInfo_Movieset(ByVal tmdbId As Integer, ByVal filteredOptions As Structures.ScrapeOptions, ByVal getPoster As Boolean) As MediaContainers.Movieset
-        _Fallback_Movieset = Nothing
-        If tmdbId = -1 Then Return Nothing
-        Dim APIResult As Task(Of AEbnLib.Objects.Collections.Collection) = Task.Run(Function() _client.GetCollectionAsync(tmdbId))
+                If bwAEBN.CancellationPending Then Return Nothing
 
-        If APIResult Is Nothing OrElse APIResult.Result Is Nothing OrElse Not APIResult.Result.Id > 0 OrElse APIResult.Exception IsNot Nothing Then
-            _Logger.Warn(String.Format("[AEBN_Data] [Abort] No API result for AEBN Collection ID [{0}]", tmdbId))
-            Return Nothing
-        End If
+                'Rating
+                If FilteredOptions.bMainRating Then
+                    Dim RegexRating As String = Regex.Match(HTML, "\b\d\W\d/\d\d").ToString
+                    If Not String.IsNullOrEmpty(RegexRating) Then
+                        nMovie.Rating = RegexRating.Split(Convert.ToChar("/")).First.Trim
+                        nMovie.Votes = Regex.Match(HTML, "class=""tn15more"">([0-9,]+) votes</a>").Groups(1).Value.Trim
+                    End If
+                End If
 
-        Dim Result As AEbnLib.Objects.Collections.Collection = APIResult.Result
-        Dim nMovieSet As New MediaContainers.Movieset With {
-                .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.MovieSet) With {.AEbnId = Result.Id}
-            }
+                If bwAEBN.CancellationPending Then Return Nothing
 
-        If bwAEBN.CancellationPending Or Result Is Nothing Then Return Nothing
+                'Trailer
+                If FilteredOptions.bMainTrailer Then
+                    'Get first AEBN trailer if possible
+                    Dim TrailerList As List(Of MediaContainers.Trailer) = EmberAPI.AEBN.Scraper.GetMovieTrailersByAEBNID(nMovie.AEBN)
+                    If TrailerList.Count > 0 Then
+                        Dim sAEBN As New EmberAPI.AEBN.Scraper
+                        sAEBN.GetVideoLinks(TrailerList.Item(0).URLWebsite)
+                        If sAEBN.VideoLinks.Count > 0 Then
+                            nMovie.Trailer = sAEBN.VideoLinks.FirstOrDefault().Value.URL.ToString
+                        End If
+                    End If
+                End If
 
-        'Plot
-        If filteredOptions.bMainPlot Then
-            If Result.Overview IsNot Nothing AndAlso Not String.IsNullOrEmpty(Result.Overview) Then
-                nMovieSet.Plot = HttpUtility.HtmlDecode(Result.Overview)
-            ElseIf RunFallback_Movieset(Result.Id) AndAlso _Fallback_Movieset.Overview IsNot Nothing AndAlso Not String.IsNullOrEmpty(_Fallback_Movieset.Overview) Then
-                nMovieSet.Plot = HttpUtility.HtmlDecode(_Fallback_Movieset.Overview)
-            End If
-        End If
+                If bwAEBN.CancellationPending Then Return Nothing
 
-        If bwAEBN.CancellationPending Then Return Nothing
+                'Top250
+                'ie: <a href="/chart/top?tt0167260">Top 250: #13</a>
+                If FilteredOptions.bMainTop250 Then
+                    Dim strTop250 As String = Regex.Match(HTML, String.Concat("/chart/top\?", nMovie.AEBN, """>Top 250: #([0-9]+)</a>")).Groups(1).Value.Trim
+                    Dim iTop250 As Integer = 0
+                    If Integer.TryParse(strTop250, iTop250) Then
+                        nMovie.Top250 = iTop250
+                    End If
+                End If
 
-        'Posters (only for SearchResult dialog, auto fallback to "en" by AEBN)
-        If getPoster Then
-            If Result.PosterPath IsNot Nothing AndAlso Not String.IsNullOrEmpty(Result.PosterPath) Then
-                _sPoster = String.Concat(_client.Config.Images.BaseUrl, "w92", Result.PosterPath)
-            Else
-                _sPoster = String.Empty
-            End If
-        End If
+                If bwAEBN.CancellationPending Then Return Nothing
 
-        'Title
-        If filteredOptions.bMainTitle Then
-            If Not String.IsNullOrEmpty(Result.Name) Then
-                nMovieSet.Title = Result.Name
-            ElseIf RunFallback_Movieset(Result.Id) AndAlso Not String.IsNullOrEmpty(_Fallback_Movieset.Name) Then
-                nMovieSet.Title = _Fallback_Movieset.Name
-            End If
-        End If
+                'Actors
+                If FilteredOptions.bMainActors Then
+                    'Find all cast of the movie
+                    'Match the table only 1 time
+                    Dim ActorsTable As String = Regex.Match(HTML, ACTORTABLE_PATTERN).ToString
+                    Dim ThumbsSize = AdvancedSettings.GetSetting("ActorThumbsSize", "SY275_SX400")
 
-        _Fallback_Movieset = Nothing
-        Return nMovieSet
+                    Dim rCast As MatchCollection = Regex.Matches(ActorsTable, TR_PATTERN)
 
-        _Fallback_Movieset = Nothing
-        Return Nothing
-    End Function
+                    For Each tCast In rCast
+                        Dim tActor As New MediaContainers.Person
+                        Dim t1 = Regex.Match(Regex.Match(tCast.ToString, TD_PATTERN_1).ToString, HREF_PATTERN)
+                        Dim t2 = Regex.Match(Regex.Match(tCast.ToString, TD_PATTERN_2).ToString, HREF_PATTERN)
+                        If Not t2.Success Then
+                            t2 = Regex.Match(tCast.ToString, TD_PATTERN_2)
+                        End If
+                        Dim t3 = Regex.Match(Regex.Match(tCast.ToString, TD_PATTERN_3).ToString, IMG_PATTERN)
+                        tActor.Name = HttpUtility.HtmlDecode(t1.Groups("name").ToString.Trim)
+                        tActor.Role = HttpUtility.HtmlDecode(t2.Groups("name").ToString.Trim)
+                        tActor.URLOriginal = If(t3.Groups("thumb").ToString.IndexOf("addtiny") > 0 OrElse t3.Groups("thumb").ToString.IndexOf("no_photo") > 0, String.Empty, HttpUtility.HtmlDecode(t3.Groups("thumb").ToString.Trim).Replace("._SX23_SY30_.jpg", String.Concat("._", ThumbsSize, "_.jpg")))
+                        nMovie.Actors.Add(tActor)
+                    Next
+                End If
 
-    Public Function GetInfo_TVEpisode(ByVal showId As Integer, ByVal aired As String, ByRef filteredOptions As Structures.ScrapeOptions) As MediaContainers.EpisodeDetails
-        Dim nTVEpisode As New MediaContainers.EpisodeDetails
-        Dim ShowInfo As AEbnLib.Objects.TvShows.TvShow
+                If bwAEBN.CancellationPending Then Return Nothing
 
-        Dim showAPIResult As Task(Of AEbnLib.Objects.TvShows.TvShow) = Task.Run(Function() _client.GetTvShowAsync(showId))
+                'Tagline
+                If FilteredOptions.bMainTagline Then
+                    Dim D, W, tempD As Integer
+                    tempD = If(HTML.IndexOf("<h5>Tagline:</h5>") > 0, HTML.IndexOf("<h5>Tagline:</h5>"), 0)
+                    D = If(tempD > 0, HTML.IndexOf("<div class=""info-content"">", tempD), 0)
+                    Dim lHtmlIndexOf As Integer = If(D > 0, HTML.IndexOf("<a class=""tn15more inline""", D), 0)
+                    Dim TagLineEnd As Integer = If(lHtmlIndexOf > 0, lHtmlIndexOf, 0)
+                    If D > 0 Then W = If(TagLineEnd > 0, TagLineEnd, HTML.IndexOf("</div>", D))
+                    nMovie.Tagline = If(D > 0 AndAlso W > 0, HttpUtility.HtmlDecode(HTML.Substring(D, W - D).Replace("<h5>Tagline:</h5>", String.Empty).Split(Environment.NewLine.ToCharArray)(1)).Trim, String.Empty)
+                End If
 
-        ShowInfo = showAPIResult.Result
+                If bwAEBN.CancellationPending Then Return Nothing
 
-        For Each aSeason As AEbnLib.Objects.Search.SearchTvSeason In ShowInfo.Seasons
-            Dim seasonAPIResult As Task(Of AEbnLib.Objects.TvShows.TvSeason)
-            seasonAPIResult = Task.Run(Function() _client.GetTvSeasonAsync(showId, aSeason.SeasonNumber, AEbnLib.Objects.TvShows.TvSeasonMethods.Credits Or AEbnLib.Objects.TvShows.TvSeasonMethods.ExternalIds))
+                'Director
+                If FilteredOptions.bMainDirectors Then
+                    Dim D, W As Integer
+                    'Get the directors
+                    D = If(HTML.IndexOf("<h5>Director:</h5>") > 0, HTML.IndexOf("<h5>Director:</h5>"), HTML.IndexOf("<h5>Directors:</h5>"))
+                    W = If(D > 0, HTML.IndexOf("</div>", D), 0)
+                    'got any director(s) ?
+                    If D > 0 AndAlso Not W <= 0 Then
+                        'get only the first director's name
+                        Dim rDir As MatchCollection = Regex.Matches(HTML.Substring(D, W - D), HREF_PATTERN)
+                        Dim Dir = From M In rDir Where Not DirectCast(M, Match).Groups("name").ToString.Contains("more")
+                                  Select HttpUtility.HtmlDecode(DirectCast(M, Match).Groups("name").ToString)
+                        'only update nMovie if scraped result is not empty/nothing!
+                        If Dir.Count > 0 Then
+                            ' nMovie.Director = Strings.Join(Dir.ToArray, " / ").Trim
+                            nMovie.Directors.AddRange(Dir.ToList)
+                        End If
+                    End If
+                End If
 
-            Dim SeasonInfo As AEbnLib.Objects.TvShows.TvSeason = seasonAPIResult.Result
-            Dim EpisodeList As IEnumerable(Of AEbnLib.Objects.Search.TvSeasonEpisode) = SeasonInfo.Episodes.Where(Function(f) CBool(f.AirDate = CDate(aired)))
-            If EpisodeList IsNot Nothing AndAlso EpisodeList.Count = 1 Then
-                Return GetInfo_TVEpisode(showId, EpisodeList(0).SeasonNumber, EpisodeList(0).EpisodeNumber, filteredOptions)
-            ElseIf EpisodeList.Count > 0 Then
+                If bwAEBN.CancellationPending Then Return Nothing
+
+                'Countries
+                If FilteredOptions.bMainCountries Then
+                    Dim D, W As Integer
+                    D = If(HTML.IndexOf("<h5>Country:</h5>") > 0, HTML.IndexOf("<h5>Country:</h5>"), HTML.IndexOf("<h5>Countries:</h5>"))
+                    W = If(D > 0, HTML.IndexOf("</div>", D), 0)
+                    'got any country ?
+                    If D > 0 AndAlso Not W <= 0 Then
+                        'get only the first country's name
+                        Dim rCou As MatchCollection = Regex.Matches(HTML.Substring(D, W - D), HREF_PATTERN)
+                        Dim Cou = From M In rCou Where Not DirectCast(M, Match).Groups("name").ToString.Contains("more")
+                                  Select HttpUtility.HtmlDecode(DirectCast(M, Match).Groups("name").ToString)
+
+                        'only update nMovie if scraped result is not empty/nothing!
+                        If Cou.Count > 0 Then
+                            If _SpecialSettings.CountryAbbreviation = False Then
+                                For Each entry In Cou
+                                    entry = entry.Replace("USA", "United States of America")
+                                    entry = entry.Replace("UK", "United Kingdom")
+                                    nMovie.Countries.Add(entry)
+                                Next
+                            Else
+                                nMovie.Countries.AddRange(Cou.ToList)
+                            End If
+
+                        End If
+                    End If
+                End If
+
+                If bwAEBN.CancellationPending Then Return Nothing
+
+                'Genres
+                If FilteredOptions.bMainGenres Then
+                    Dim D, W As Integer
+                    D = HTML.IndexOf("<h5>Genre:</h5>")
+                    'Check if doesnt find genres
+                    If D > 0 Then
+                        W = HTML.IndexOf("</div>", D)
+
+                        If W > 0 Then
+                            Dim rGenres As MatchCollection = Regex.Matches(HTML.Substring(D, W - D), HREF_PATTERN)
+                            Dim Gen = From M In rGenres
+                                      Select N = HttpUtility.HtmlDecode(DirectCast(M, Match).Groups("name").ToString) Where Not N.Contains("more") Take 999999
+                            If Gen.Count > 0 Then
+                                nMovie.Genres.AddRange(Gen.ToList)
+                            End If
+                        End If
+                    End If
+                End If
+
+                If bwAEBN.CancellationPending Then Return Nothing
+
+                'Outline
+                If FilteredOptions.bMainOutline Then
+                    Dim D, W, tempD As Integer
+                    Try
+                        If nMovie.Title.Contains("(VG)") Then
+                            D = If(HTML.IndexOf("<h5>Plot Summary:</h5>") > 0, HTML.IndexOf("<h5>Plot Summary:</h5>"), HTML.IndexOf("<h5>Tagline:</h5>"))
+                            If D > 0 Then W = HTML.IndexOf("</div>", D)
+                        Else
+                            tempD = If(HTML.IndexOf("<h5>Plot:</h5>") > 0, HTML.IndexOf("<h5>Plot:</h5>"), HTML.IndexOf("<h5>Plot Summary:</h5>"))
+                            D = If(tempD > 0, HTML.IndexOf("<div class=""info-content"">", tempD), 0)
+                            If D <= 0 Then D = HTML.IndexOf("<h5>Plot Synopsis:</h5>")
+                            If D > 0 Then
+                                W = HTML.IndexOf("<a class=", D)
+                                If W > 0 Then
+                                    W = HTML.IndexOf("</div>", D)
+                                Else
+                                    '   IMnMovie.Outline = String.Empty
+                                    GoTo mPlot
+                                End If
+                            Else
+                                'IMnMovie.Outline = String.Empty
+                                GoTo mPlot 'This plot synopsis is empty
+                            End If
+                        End If
+
+                        Dim PlotOutline As String = HTML.Substring(D, W - D).Remove(0, 26)
+
+                        PlotOutline = HttpUtility.HtmlDecode(If(PlotOutline.Contains("is empty") OrElse PlotOutline.Contains("View full synopsis") _
+                                           , String.Empty, PlotOutline.Replace("|", String.Empty).Replace("&raquo;", String.Empty)).Trim)
+                        'only update nMovie if scraped result is not empty/nothing!
+                        If Not String.IsNullOrEmpty(PlotOutline) Then
+                            'check if outline has links to other AEBN entry
+                            For Each rMatch As Match In Regex.Matches(PlotOutline, HREF_PATTERN_4)
+                                PlotOutline = PlotOutline.Replace(rMatch.Value, rMatch.Groups("text").Value.Trim)
+                            Next
+                            nMovie.Outline = Regex.Replace(PlotOutline, HREF_PATTERN, String.Empty).Trim
+                        End If
+
+                    Catch ex As Exception
+                    End Try
+                End If
+
+                If bwAEBN.CancellationPending Then Return Nothing
+
+mPlot:          'Plot
+                If FilteredOptions.bMainPlot Then
+                    Dim FullPlotS As String = Regex.Match(PlotHtml, "<p class=""plotSummary"">(.*?)</p>", RegexOptions.Singleline Or RegexOptions.IgnoreCase Or RegexOptions.Multiline).Groups(1).Value.ToString.Trim
+                    Dim FullPlotO As String = Regex.Match(PlotHtml, "<li class=""odd"">\s*<p>(.*?)<br/>", RegexOptions.Singleline Or RegexOptions.IgnoreCase Or RegexOptions.Multiline).Groups(1).Value.ToString.Trim
+                    Dim FullPlotE As String = Regex.Match(PlotHtml, "<li class=""even"">\s*<p>(.*?)<br/>", RegexOptions.Singleline Or RegexOptions.IgnoreCase Or RegexOptions.Multiline).Groups(1).Value.ToString.Trim
+                    Dim FullPlot As String = If(Not String.IsNullOrEmpty(FullPlotS), FullPlotS, If(Not String.IsNullOrEmpty(FullPlotO), FullPlotO, FullPlotE))
+                    FullPlot = Regex.Replace(FullPlot, "<a(.*?)>", "")
+                    FullPlot = Regex.Replace(FullPlot, "</a>", "")
+                    'only update nMovie if scraped result is not empty/nothing!
+                    If Not String.IsNullOrEmpty(FullPlot) Then
+                        nMovie.Plot = FullPlot
+                    End If
+                End If
+
+                If bwAEBN.CancellationPending Then Return Nothing
+
+                'Duration
+                If FilteredOptions.bMainRuntime Then
+                    scrapedresult = HttpUtility.HtmlDecode(Regex.Match(HTML, "<h5>Runtime:</h5>[^0-9]*([^<]*)").Groups(1).Value.Trim)
+                    'only update nMovie if scraped result is not empty/nothing!
+                    If Not String.IsNullOrEmpty(scrapedresult) Then
+                        'examples:
+                        ' <h5>Runtime:</h5><div class="info-content">93 min </div> OR
+                        ' <h5>Runtime:</h5><div class="info-content">"94 min  | USA:102 min (unrated version)</div>
+                        ' <h5>Runtime:</h5><div class="info-content">Thailand: 89 min  | USA:93 min </div>
+                        '  scrapedresult = Web.HttpUtility.HtmlDecode(Regex.Match(HTML, "<h5>Runtime:</h5>[^0-9]*([^<]*)").Groups(1).Value.Trim)
+                        Dim Match As Match = Regex.Match(HTML, "Runtime:(\s*<((?<!>).)+)+(?<length>\d+|((?!</div|<h).)+)", RegexOptions.IgnoreCase)
+                        If Match.Success Then
+                            If Regex.IsMatch(Match.Groups("length").Value, "^\d+$") Then
+                                scrapedresult = Match.Groups("length").Value
+                            ElseIf Regex.IsMatch(Match.Groups("length").Value, "\d+") Then
+                                scrapedresult = Regex.Match(Match.Groups("length").Value, "\d+").Value
+                            End If
+                            nMovie.Runtime = scrapedresult
+                        End If
+                    End If
+                End If
+
+                'Studios
+                If FilteredOptions.bMainStudios Then
+                    Dim D, W As Integer
+                    D = HTML.IndexOf("<b class=""blackcatheader"">Production Companies</b>")
+                    If D > 0 Then W = HTML.IndexOf("</ul>", D)
+                    If D > 0 AndAlso W > 0 Then
+                        'only get the first one
+                        Dim Ps = From P1 In Regex.Matches(HTML.Substring(D, W - D), HREF_PATTERN)
+                                 Where Not DirectCast(P1, Match).Groups("name").ToString = String.Empty
+                                 Select Studio = HttpUtility.HtmlDecode(DirectCast(P1, Match).Groups("name").ToString)
+                        '  nMovie.Studio = Ps(0).ToString.Trim
+                        'only update nMovie if scraped result is not empty/nothing!
+                        If Ps.Count > 0 Then
+                            nMovie.Studios.AddRange(Ps.ToList)
+                        End If
+                    End If
+                    If _SpecialSettings.StudiowithDistributors Then
+                        D = HTML.IndexOf("<b class=""blackcatheader"">Distributors</b>")
+                        If D > 0 Then W = HTML.IndexOf("</ul>", D)
+                        If D > 0 AndAlso W > 0 Then
+                            Dim distributor_pattern As String = "<a.*?href=[""'](?<url>.*?)[""'].*?>(?<name>.*?)</a>(?<releaseinfo>.*?)</li>"
+                            'example of DISTRIBUTOR_PATTERN input string: 
+                            '<li><a href="/company/co0015030/">Alfa Films</a> (2015) (Argentina) (theatrical)</li>
+                            '<li><a href="/company/co0481930/">Bravos Pictures</a> (2015) (Hong Kong) (theatrical)</li><li>
+                            Dim Ps = From P1 In Regex.Matches(HTML.Substring(D, W - D), distributor_pattern)
+                                     Where Not DirectCast(P1, Match).Groups("name").ToString = String.Empty AndAlso DirectCast(P1, Match).Groups("releaseinfo").ToString.Contains(_SpecialSettings.ForceTitleLanguage)
+                                     Select Studio = HttpUtility.HtmlDecode(DirectCast(P1, Match).Groups("name").ToString)
+                            '  nMovie.Studio = Ps(0).ToString.Trim
+                            'only update nMovie if scraped result is not empty/nothing!
+                            If Ps.Count > 0 Then
+                                For Each item In Ps.ToList
+                                    If nMovie.Studios.Contains(item) = False Then
+                                        nMovie.Studios.Add(item)
+                                    End If
+                                Next
+                            End If
+                        End If
+                    End If
+                End If
+
+                If bwAEBN.CancellationPending Then Return Nothing
+
+                'Writers
+                If FilteredOptions.bMainWriters Then
+                    Dim D, W As Integer
+                    D = HTML.IndexOf("<h5>Writer")
+                    If D > 0 Then W = HTML.IndexOf("</div>", D)
+                    If D > 0 AndAlso W > 0 Then
+                        Dim q = From M In Regex.Matches(HTML.Substring(D, W - D), HREF_PATTERN)
+                                Where Not DirectCast(M, Match).Groups("name").ToString.Trim = "more" _
+                                AndAlso Not DirectCast(M, Match).Groups("name").ToString.Trim = "(more)" _
+                                AndAlso Not DirectCast(M, Match).Groups("name").ToString.Trim = "WGA" _
+                                AndAlso Not DirectCast(M, Match).Groups("name").ToString.Trim.Contains("see more")
+                                Select Writer = HttpUtility.HtmlDecode(DirectCast(M, Match).Groups("name").ToString)
+
+                        'only update nMovie if scraped result is not empty/nothing!
+                        If q.Count > 0 Then
+                            nMovie.Credits.AddRange(q.ToList) 'Strings.Join(q.ToArray, " / ").Trim
+                        End If
+                    End If
+                End If
+
+                Return nMovie
+            Catch ex As Exception
+                logger.Error(ex, New StackFrame().GetMethod().Name)
                 Return Nothing
-            End If
-        Next
+            End Try
+        End Function
 
-        Return Nothing
-    End Function
+        Public Function GetTVEpisodeInfo(ByVal strAEBNID As String, ByRef FilteredOptions As Structures.ScrapeOptions) As MediaContainers.EpisodeDetails
+            'If String.IsNullOrEmpty(strAEBNID) OrElse strAEBNID.Length < 2 Then Return Nothing
 
-    Public Function GetInfo_TVEpisode(ByVal showId As Integer, ByVal seasonNumber As Integer, ByVal episodeNumber As Integer, ByRef filteredOptions As Structures.ScrapeOptions) As MediaContainers.EpisodeDetails
-        _Fallback_TVEpisode = Nothing
-        Dim APIResult As Task(Of AEbnLib.Objects.TvShows.TvEpisode) = Task.Run(Function() _client.GetTvEpisodeAsync(showId, seasonNumber, episodeNumber, AEbnLib.Objects.TvShows.TvEpisodeMethods.Credits Or AEbnLib.Objects.TvShows.TvEpisodeMethods.ExternalIds))
+            'If bwAEBN.CancellationPending Then Return Nothing
 
-        If APIResult Is Nothing OrElse APIResult.Result Is Nothing OrElse APIResult.Result.Id Is Nothing OrElse APIResult.Exception IsNot Nothing Then
-            _Logger.Error(String.Format("Can't scrape or episode not found: tmdbID={0}, Season{1}, Episode{2}", showId, seasonNumber, episodeNumber))
+            'Dim nTVEpisode As New MediaContainers.EpisodeDetails
+
+            ' nTVEpisode.Scrapersource = "AEBN"
+
+            'Dim HTML As String
+            'intHTTP = New HTTP
+            'HTML = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/title/", strAEBNID, "/combined"))
+            'intHTTP.Dispose()
+            'intHTTP = Nothing
+
+            ''IDs
+            'nTVEpisode.AEBN = strAEBNID
+
+            ''get season and episode number
+            'Dim rSeasonEpisode As Match = Regex.Match(HTML, TVEPISODE_SEASON_EPISODE, RegexOptions.IgnoreCase Or RegexOptions.Singleline)
+            'If Not rSeasonEpisode.Success Then Return Nothing
+
+            ''Episode # Standard
+            'nTVEpisode.Episode = CInt(rSeasonEpisode.Groups("EPISODE").Value)
+
+            ''Season # Standard
+            'nTVEpisode.Season = CInt(rSeasonEpisode.Groups("SEASON").Value)
+
+            ''Actors
+            'If FilteredOptions.bEpisodeActors Then
+            '    'Find all cast of the episode
+            '    'Match the table only 1 time
+            '    Dim ActorsTable As String = Regex.Match(HTML, ACTORTABLE_PATTERN).ToString
+            '    Dim ThumbsSize = AdvancedSettings.GetSetting("ActorThumbsSize", "SY275_SX400")
+
+            '    Dim rCast As MatchCollection = Regex.Matches(ActorsTable, TR_PATTERN)
+
+            '    For Each tCast In rCast
+            '        Dim tActor As New MediaContainers.Person
+            '        Dim t1 = Regex.Match(Regex.Match(tCast.ToString, TD_PATTERN_1).ToString, HREF_PATTERN)
+            '        Dim t2 = Regex.Match(Regex.Match(tCast.ToString, TD_PATTERN_2).ToString, HREF_PATTERN)
+            '        If Not t2.Success Then
+            '            t2 = Regex.Match(tCast.ToString, TD_PATTERN_2)
+            '        End If
+            '        Dim t3 = Regex.Match(Regex.Match(tCast.ToString, TD_PATTERN_3).ToString, IMG_PATTERN)
+            '        tActor.Name = HttpUtility.HtmlDecode(t1.Groups("name").ToString.Trim)
+            '        tActor.Role = HttpUtility.HtmlDecode(t2.Groups("name").ToString.Trim)
+            '        tActor.URLOriginal = If(t3.Groups("thumb").ToString.IndexOf("addtiny") > 0 OrElse t3.Groups("thumb").ToString.IndexOf("no_photo") > 0, String.Empty, HttpUtility.HtmlDecode(t3.Groups("thumb").ToString.Trim).Replace("._SX23_SY30_.jpg", String.Concat("._", ThumbsSize, "_.jpg")))
+            '        nTVEpisode.Actors.Add(tActor)
+            '    Next
+            'End If
+
+            ''Aired
+            'If FilteredOptions.bEpisodeAired Then
+            '    Dim RelDate As Date
+            '    Dim sRelDate As MatchCollection = Regex.Matches(HTML, "<h5>Original Air Date:</h5>.*?(?<DATE>\d+\s\w+\s\d\d\d\d\s)", RegexOptions.Singleline)
+            '    If sRelDate.Count > 0 Then
+            '        If Date.TryParse(sRelDate.Item(0).Groups(1).Value, RelDate) Then
+            '            nTVEpisode.Aired = RelDate.ToString("yyyy-MM-dd")
+            '        End If
+            '    End If
+            'End If
+
+            ''Credits (writers)
+            'If FilteredOptions.bEpisodeCredits Then
+            '    Dim strFullCreditsHTML As String
+            '    intHTTP = New HTTP
+            '    strFullCreditsHTML = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/title/", strAEBNID, "/fullcredits"))
+            '    intHTTP.Dispose()
+            '    intHTTP = Nothing
+
+            '    Dim D, W As Integer
+            '    D = strFullCreditsHTML.IndexOf(">Writing Credits")
+            '    If D > 0 Then W = strFullCreditsHTML.IndexOf("</table>", D)
+            '    If D > 0 AndAlso W > 0 Then
+            '        Dim q = From M In Regex.Matches(strFullCreditsHTML.Substring(D, W - D), TVEPISODE_CREDITS, RegexOptions.IgnoreCase Or RegexOptions.Singleline)
+            '                Where DirectCast(M, Match).Groups("CLASS").Value.Trim.ToLower = "written by"
+            '                Select Writer = HttpUtility.HtmlDecode(DirectCast(M, Match).Groups("NAME").Value.Trim)
+            '        If q.Count > 0 Then
+            '            nTVEpisode.Credits.AddRange(q.ToList)
+            '        End If
+            '    End If
+            'End If
+
+            ''Directors
+            'If FilteredOptions.bEpisodeDirectors Then
+            '    Dim D, W As Integer
+            '    'Get the directors
+            '    D = If(HTML.IndexOf("<h5>Director:</h5>") > 0, HTML.IndexOf("<h5>Director:</h5>"), HTML.IndexOf("<h5>Directors:</h5>"))
+            '    W = If(D > 0, HTML.IndexOf("</div>", D), 0)
+            '    'got any director(s) ?
+            '    If D > 0 AndAlso Not W <= 0 Then
+            '        'get only the first director's name
+            '        Dim rDir As MatchCollection = Regex.Matches(HTML.Substring(D, W - D), HREF_PATTERN)
+            '        Dim Dir = From M In rDir Where Not DirectCast(M, Match).Groups("name").ToString.Contains("more")
+            '                  Select HttpUtility.HtmlDecode(DirectCast(M, Match).Groups("name").ToString)
+            '        If Dir.Count > 0 Then
+            '            ' nMovie.Director = Strings.Join(Dir.ToArray, " / ").Trim
+            '            nTVEpisode.Directors.AddRange(Dir.ToList)
+            '        End If
+            '    End If
+            'End If
+
+            ' ''Guest Stars
+            ''If FilteredOptions.bEpisodeGuestStars Then
+            ''    If EpisodeInfo.GuestStars IsNot Nothing Then
+            ''        For Each aCast As TMDbLib.Objects.TvShows.Cast In EpisodeInfo.GuestStars
+            ''            nTVEpisode.GuestStars.Add(New MediaContainers.Person With {.Name = aCast.Name,
+            ''                                                               .Role = aCast.Character,
+            ''                                                               .URLOriginal = If(Not String.IsNullOrEmpty(aCast.ProfilePath), String.Concat(_TMDBApi.Config.Images.BaseUrl, "original", aCast.ProfilePath), String.Empty),
+            ''                                                               .TMDB = CStr(aCast.Id)})
+            ''        Next
+            ''    End If
+            ''End If
+
+            ''Plot
+            'If FilteredOptions.bEpisodePlot Then
+            '    Dim PlotHtml As String
+            '    intHTTP = New HTTP
+            '    PlotHtml = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/title/", strAEBNID, "/plotsummary"))
+            '    intHTTP.Dispose()
+            '    intHTTP = Nothing
+
+            '    Dim FullPlotS As String = Regex.Match(PlotHtml, "<p class=""plotSummary"">(.*?)</p>", RegexOptions.Singleline Or RegexOptions.IgnoreCase Or RegexOptions.Multiline).Groups(1).Value.ToString.Trim
+            '    Dim FullPlotO As String = Regex.Match(PlotHtml, "<li class=""odd"">\s*<p>(.*?)<br/>", RegexOptions.Singleline Or RegexOptions.IgnoreCase Or RegexOptions.Multiline).Groups(1).Value.ToString.Trim
+            '    Dim FullPlotE As String = Regex.Match(PlotHtml, "<li class=""even"">\s*<p>(.*?)<br/>", RegexOptions.Singleline Or RegexOptions.IgnoreCase Or RegexOptions.Multiline).Groups(1).Value.ToString.Trim
+            '    Dim FullPlot As String = If(Not String.IsNullOrEmpty(FullPlotS), FullPlotS, If(Not String.IsNullOrEmpty(FullPlotO), FullPlotO, FullPlotE))
+            '    FullPlot = Regex.Replace(FullPlot, "<a(.*?)>", "")
+            '    FullPlot = Regex.Replace(FullPlot, "</a>", "")
+
+            '    If Not String.IsNullOrEmpty(FullPlot) Then
+            '        nTVEpisode.Plot = FullPlot
+            '    End If
+            'End If
+
+            ''Rating
+            'If FilteredOptions.bEpisodeRating Then
+            '    Dim RegexRating As String = Regex.Match(HTML, "\b\d\W\d/\d\d").ToString
+            '    If String.IsNullOrEmpty(RegexRating) = False Then
+            '        nTVEpisode.Rating = RegexRating.Split(Convert.ToChar("/")).First.Trim
+            '        nTVEpisode.Votes = Regex.Match(HTML, "class=""tn15more"">([0-9,]+) votes</a>").Groups(1).Value.Trim
+            '    End If
+            'End If
+
+            ' ''ThumbPoster
+            ''If EpisodeInfo.StillPath IsNot Nothing Then
+            ''    nTVEpisode.ThumbPoster.URLOriginal = _TMDBApi.Config.Images.BaseUrl & "original" & EpisodeInfo.StillPath
+            ''    nTVEpisode.ThumbPoster.URLThumb = _TMDBApi.Config.Images.BaseUrl & "w185" & EpisodeInfo.StillPath
+            ''End If
+
+            ''Title
+            'If FilteredOptions.bEpisodeTitle Then
+            '    Dim rTitle As Match = Regex.Match(HTML, TVEPISODE_TITLE_PATTERN)
+            '    If rTitle.Success Then
+            '        nTVEpisode.Title = CleanTitle_TVEpisode(HttpUtility.HtmlDecode(rTitle.Groups("TITLE").Value))
+            '    End If
+            'End If
+
+            'Return 'nTVEpisode
             Return Nothing
-        End If
 
-        Dim Result As AEbnLib.Objects.TvShows.TvEpisode = APIResult.Result
-        Dim nTVEpisode As New MediaContainers.EpisodeDetails With {.Scrapersource = "AEBN"}
+        End Function
 
-        'IDs
-        nTVEpisode.UniqueIDs.AEbnId = CInt(Result.Id)
-        If Result.ExternalIds IsNot Nothing AndAlso Result.ExternalIds.TvdbId IsNot Nothing Then nTVEpisode.UniqueIDs.TVDbId = CInt(Result.ExternalIds.TvdbId)
-        If Result.ExternalIds IsNot Nothing AndAlso Result.ExternalIds.ImdbId IsNot Nothing Then nTVEpisode.UniqueIDs.IMDbId = Result.ExternalIds.ImdbId
+        Public Function GetTVEpisodeInfo(ByVal strTVShowAEBNID As String, ByVal iSeasonNumber As Integer, ByVal iEpisodeNumber As Integer, ByRef FilteredOptions As Structures.ScrapeOptions) As MediaContainers.EpisodeDetails
+            If String.IsNullOrEmpty(strTVShowAEBNID) OrElse iSeasonNumber = -1 OrElse iEpisodeNumber = -1 Then Return Nothing
 
-        'Episode # Standard
-        If Result.EpisodeNumber >= 0 Then
-            nTVEpisode.Episode = Result.EpisodeNumber
-        End If
+            Dim strTVEpisodeAEBNID As String = String.Empty
 
-        'Season # Standard
-        If Result.SeasonNumber >= 0 Then
-            nTVEpisode.Season = Result.SeasonNumber
-        End If
+            Dim HTML As String
+            intHTTP = New HTTP
+            HTML = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/title/", strTVShowAEBNID, "/episodes?season=", iSeasonNumber))
+            intHTTP.Dispose()
+            intHTTP = Nothing
 
-        'Cast (Actors)
-        If filteredOptions.bEpisodeActors Then
-            If Result.Credits IsNot Nothing AndAlso Result.Credits.Cast IsNot Nothing Then
-                For Each aCast As AEbnLib.Objects.TvShows.Cast In Result.Credits.Cast
-                    nTVEpisode.Actors.Add(New MediaContainers.Person With {
-                                          .Name = aCast.Name,
-                                          .Role = aCast.Character,
-                                          .URLOriginal = If(Not String.IsNullOrEmpty(aCast.ProfilePath), String.Concat(_client.Config.Images.BaseUrl, "original", aCast.ProfilePath), String.Empty),
-                                          .AEbnId = CStr(aCast.Id)})
-                Next
-            End If
-        End If
+            Dim D, W As Integer
+            D = HTML.IndexOf("<div class=""list detail eplist"">")
+            'Check if doesnt find genres
+            If D > 0 Then
+                W = HTML.IndexOf("<hr>", D)
 
-        'Aired
-        If filteredOptions.bEpisodeAired Then
-            Dim nDate As Date? = Nothing
-            If Result.AirDate.HasValue Then
-                nDate = Result.AirDate
-            End If
-            If nDate.HasValue Then
-                'always save date in same date format not depending on users language setting!
-                nTVEpisode.Aired = nDate.Value.ToString("yyyy-MM-dd")
-            End If
-        End If
-
-        'Director / Writer
-        If filteredOptions.bEpisodeCredits OrElse filteredOptions.bEpisodeDirectors Then
-            If Result.Credits IsNot Nothing AndAlso Result.Credits.Crew IsNot Nothing Then
-                For Each aCrew As AEbnLib.Objects.General.Crew In Result.Credits.Crew
-                    If filteredOptions.bEpisodeCredits AndAlso aCrew.Department = "Writing" AndAlso (aCrew.Job = "Author" OrElse aCrew.Job = "Screenplay" OrElse aCrew.Job = "Writer") Then
-                        nTVEpisode.Credits.Add(aCrew.Name)
+                If W > 0 Then
+                    Dim rEpisodes As MatchCollection = Regex.Matches(HTML.Substring(D, W - D), TVEPISODE_PATTERN, RegexOptions.Singleline Or RegexOptions.IgnoreCase)
+                    If rEpisodes.Count > 0 Then
+                        For Each tEpisode As Match In rEpisodes
+                            If CInt(tEpisode.Groups("EPISODE").Value) = iEpisodeNumber Then
+                                Dim nEpisode As MediaContainers.EpisodeDetails = GetTVEpisodeInfo(tEpisode.Groups("AEBN").Value, FilteredOptions)
+                                If nEpisode IsNot Nothing Then
+                                    Return nEpisode
+                                End If
+                            End If
+                        Next
                     End If
-                    If filteredOptions.bEpisodeDirectors AndAlso aCrew.Department = "Directing" AndAlso aCrew.Job = "Director" Then
-                        nTVEpisode.Directors.Add(aCrew.Name)
+                End If
+            End If
+
+            Return Nothing
+        End Function
+
+        Public Sub GetTVSeasonInfo(ByRef nTVShow As MediaContainers.TVShow, ByVal strTVShowAEBNID As String, ByVal iSeasonNumber As Integer, ByRef ScrapeModifiers As Structures.ScrapeModifiers, ByRef FilteredOptions As Structures.ScrapeOptions)
+
+            If ScrapeModifiers.withEpisodes Then
+                Dim HTML As String
+                intHTTP = New HTTP
+                HTML = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/title/", strTVShowAEBNID, "/episodes?season=", iSeasonNumber))
+                intHTTP.Dispose()
+                intHTTP = Nothing
+
+                Dim D, W As Integer
+                D = HTML.IndexOf("<div class=""list detail eplist"">")
+                'Check if doesnt find genres
+                If D > 0 Then
+                    W = HTML.IndexOf("<hr>", D)
+
+                    If W > 0 Then
+                        Dim rEpisodes As MatchCollection = Regex.Matches(HTML.Substring(D, W - D), TVEPISODE_PATTERN, RegexOptions.Singleline Or RegexOptions.IgnoreCase)
+                        If rEpisodes.Count > 0 Then
+                            For Each tEpisode As Match In rEpisodes
+                                Dim nEpisode As MediaContainers.EpisodeDetails = GetTVEpisodeInfo(tEpisode.Groups("AEBN").Value, FilteredOptions)
+                                If nEpisode IsNot Nothing Then
+                                    nTVShow.KnownEpisodes.Add(nEpisode)
+                                End If
+                            Next
+                        End If
                     End If
-                Next
-            End If
-        End If
-
-        'Guest Stars
-        If filteredOptions.bEpisodeGuestStars Then
-            If Result.GuestStars IsNot Nothing Then
-                For Each aCast As AEbnLib.Objects.TvShows.Cast In Result.GuestStars
-                    nTVEpisode.GuestStars.Add(New MediaContainers.Person With {
-                                              .Name = aCast.Name,
-                                              .Role = aCast.Character,
-                                              .URLOriginal = If(Not String.IsNullOrEmpty(aCast.ProfilePath), String.Concat(_client.Config.Images.BaseUrl, "original", aCast.ProfilePath), String.Empty),
-                                              .AEbnId = CStr(aCast.Id)
-                                              })
-                Next
-            End If
-        End If
-
-        'Plot
-        If filteredOptions.bEpisodePlot Then
-            If Result.Overview IsNot Nothing AndAlso Not String.IsNullOrEmpty(Result.Overview) Then
-                nTVEpisode.Plot = Result.Overview
-            ElseIf RunFallback_TVEpisode(showId, seasonNumber, episodeNumber) AndAlso _Fallback_TVEpisode.Overview IsNot Nothing AndAlso Not String.IsNullOrEmpty(_Fallback_TVEpisode.Overview) Then
-                nTVEpisode.Plot = _Fallback_TVEpisode.Overview
-            End If
-        End If
-
-        'Rating
-        'VoteAverage is rounded to get a comparable result as with other reviews 
-        If filteredOptions.bEpisodeRating Then
-            nTVEpisode.Ratings.Add(New MediaContainers.RatingDetails With {
-                                   .Max = 10,
-                                   .Type = "themoviedb",
-                                   .Value = Math.Round(Result.VoteAverage, 1),
-                                   .Votes = Result.VoteCount
-                                   })
-        End If
-
-        'ThumbPoster
-        If Result.StillPath IsNot Nothing Then
-            nTVEpisode.ThumbPoster.URLOriginal = String.Concat(_client.Config.Images.BaseUrl, "original", Result.StillPath)
-            nTVEpisode.ThumbPoster.URLThumb = String.Concat(_client.Config.Images.BaseUrl, "w185", Result.StillPath)
-        End If
-
-        'Title
-        If filteredOptions.bEpisodeTitle Then
-            If Not String.IsNullOrEmpty(Result.Name) Then
-                nTVEpisode.Title = Result.Name
-            ElseIf RunFallback_TVEpisode(showId, seasonNumber, episodeNumber) AndAlso Not String.IsNullOrEmpty(_Fallback_TVEpisode.Name) Then
-                nTVEpisode.Title = _Fallback_TVEpisode.Name
-            End If
-        End If
-
-        _Fallback_TVEpisode = Nothing
-        Return nTVEpisode
-    End Function
-
-    Public Sub GetInfo_TVSeason(ByRef tvShow As MediaContainers.TVShow, ByVal showId As Integer, ByVal seasonNumber As Integer, ByRef scrapeModifiers As Structures.ScrapeModifiers, ByRef filteredOptions As Structures.ScrapeOptions)
-        _Fallback_TVSeason = Nothing
-        Dim APIResult As Task(Of AEbnLib.Objects.TvShows.TvSeason) = Task.Run(Function() _client.GetTvSeasonAsync(showId, seasonNumber, AEbnLib.Objects.TvShows.TvSeasonMethods.Credits Or AEbnLib.Objects.TvShows.TvSeasonMethods.ExternalIds))
-
-        If APIResult Is Nothing OrElse APIResult.Result Is Nothing OrElse APIResult.Result.Id Is Nothing OrElse APIResult.Exception IsNot Nothing Then
-            _Logger.Error(String.Format("Can't scrape or season not found: ShowID={0}, Season={1}", showId, seasonNumber))
-            Return
-        End If
-
-        Dim Result As AEbnLib.Objects.TvShows.TvSeason = APIResult.Result
-
-        If scrapeModifiers.withSeasons Then
-            Dim nTVSeason As New MediaContainers.SeasonDetails With {.Scrapersource = "AEBN"}
-
-            'IDs
-            nTVSeason.UniqueIDs.AEbnId = CInt(Result.Id)
-            If Result.ExternalIds IsNot Nothing AndAlso Result.ExternalIds.TvdbId IsNot Nothing Then nTVSeason.UniqueIDs.TVDbId = CInt(Result.ExternalIds.TvdbId)
-
-            'Season #
-            If Result.SeasonNumber >= 0 Then
-                nTVSeason.Season = Result.SeasonNumber
-            End If
-
-            'Aired
-            If filteredOptions.bSeasonAired Then
-                Dim nDate As Date? = Nothing
-                If Result.AirDate.HasValue Then
-                    nDate = Result.AirDate
-                End If
-                If nDate.HasValue Then
-                    'always save date in same date format not depending on users language setting!
-                    nTVSeason.Aired = nDate.Value.ToString("yyyy-MM-dd")
                 End If
             End If
+        End Sub
+        ''' <summary>
+        '''  Scrape TV Show details from AEBN
+        ''' </summary>
+        ''' <param name="strID">AEBN ID of tv show to be scraped</param>
+        ''' <param name="GetPoster">Scrape posters for the tv show?</param>
+        ''' <param name="Options">Module settings<param>
+        ''' <returns>True: success, false: no success</returns>
+        Public Function GetTVShowInfo(ByVal strID As String, ByVal ScrapeModifiers As Structures.ScrapeModifiers, ByVal FilteredOptions As Structures.ScrapeOptions, ByVal GetPoster As Boolean) As MediaContainers.TVShow
+            'If String.IsNullOrEmpty(strID) OrElse strID.Length < 2 Then Return Nothing
 
-            'Plot
-            If filteredOptions.bSeasonPlot Then
-                If Result.Overview IsNot Nothing AndAlso Not String.IsNullOrEmpty(Result.Overview) Then
-                    nTVSeason.Plot = Result.Overview
-                ElseIf RunFallback_TVSeason(showId, seasonNumber) AndAlso _Fallback_TVSeason.Overview IsNot Nothing AndAlso Not String.IsNullOrEmpty(_Fallback_TVSeason.Overview) Then
-                    nTVSeason.Plot = _Fallback_TVSeason.Overview
-                End If
-            End If
+            'Try
+            '    Dim nTVShow As New MediaContainers.TVShow
 
-            'Title
-            If filteredOptions.bSeasonTitle Then
-                If Not String.IsNullOrEmpty(Result.Name) Then
-                    nTVSeason.Title = Result.Name
-                ElseIf RunFallback_TVSeason(showId, seasonNumber) AndAlso Not String.IsNullOrEmpty(_Fallback_TVSeason.Name) Then
-                    nTVSeason.Title = _Fallback_TVSeason.Name
-                End If
-            End If
+            '    nTVShow.AEBN = strID
+            '    nTVShow.Scrapersource = "AEBN"
 
-            tvShow.KnownSeasons.Add(nTVSeason)
-        End If
+            '    Dim HTML As String
+            '    intHTTP = New HTTP
+            '    HTML = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/title/", strID, "/combined"))
+            '    intHTTP.Dispose()
+            '    intHTTP = Nothing
 
-        If scrapeModifiers.withEpisodes AndAlso Result.Episodes IsNot Nothing Then
-            For Each aEpisode As AEbnLib.Objects.Search.TvSeasonEpisode In Result.Episodes
-                tvShow.KnownEpisodes.Add(GetInfo_TVEpisode(showId, aEpisode.SeasonNumber, aEpisode.EpisodeNumber, filteredOptions))
-            Next
-        End If
+            '    If bwAEBN.CancellationPending Then Return Nothing
 
-        _Fallback_TVSeason = Nothing
-    End Sub
+            '    'Actors
+            '    If FilteredOptions.bMainActors Then
+            '        'Find all cast of the tv show
+            '        'Match the table only 1 time
+            '        Dim ActorsTable As String = Regex.Match(HTML, ACTORTABLE_PATTERN).ToString
+            '        Dim ThumbsSize = AdvancedSettings.GetSetting("ActorThumbsSize", "SY275_SX400")
 
-    Public Function GetInfo_TVSeason(ByVal showId As Integer, ByVal seasonNumber As Integer, ByRef filteredOptions As Structures.ScrapeOptions) As MediaContainers.SeasonDetails
-        _Fallback_TVSeason = Nothing
-        Dim APIResult As Task(Of AEbnLib.Objects.TvShows.TvSeason) = Task.Run(Function() _client.GetTvSeasonAsync(showId, seasonNumber, AEbnLib.Objects.TvShows.TvSeasonMethods.Credits Or AEbnLib.Objects.TvShows.TvSeasonMethods.ExternalIds))
+            '        Dim rCast As MatchCollection = Regex.Matches(ActorsTable, TR_PATTERN)
 
-        If APIResult Is Nothing OrElse APIResult.Result Is Nothing OrElse APIResult.Result.Id Is Nothing OrElse APIResult.Exception IsNot Nothing Then
-            _Logger.Error(String.Format("Can't scrape or season not found: tmdbID={0}, Season={1}", showId, seasonNumber))
+            '        For Each tCast In rCast
+            '            Dim tActor As New MediaContainers.Person
+            '            Dim t1 = Regex.Match(Regex.Match(tCast.ToString, TD_PATTERN_1).ToString, HREF_PATTERN)
+            '            Dim t2 = Regex.Match(Regex.Match(tCast.ToString, TD_PATTERN_2).ToString, HREF_PATTERN)
+            '            If Not t2.Success Then
+            '                t2 = Regex.Match(tCast.ToString, TD_PATTERN_2)
+            '            End If
+            '            Dim t3 = Regex.Match(Regex.Match(tCast.ToString, TD_PATTERN_3).ToString, IMG_PATTERN)
+            '            tActor.Name = HttpUtility.HtmlDecode(t1.Groups("name").ToString.Trim)
+            '            tActor.Role = HttpUtility.HtmlDecode(t2.Groups("name").ToString.Trim)
+            '            tActor.URLOriginal = If(t3.Groups("thumb").ToString.IndexOf("addtiny") > 0 OrElse t3.Groups("thumb").ToString.IndexOf("no_photo") > 0, String.Empty, HttpUtility.HtmlDecode(t3.Groups("thumb").ToString.Trim).Replace("._SX23_SY30_.jpg", String.Concat("._", ThumbsSize, "_.jpg")))
+            '            nTVShow.Actors.Add(tActor)
+            '        Next
+            '    End If
+
+            '    If bwAEBN.CancellationPending Then Return Nothing
+
+            '    'Certifications
+            '    If FilteredOptions.bMainCertifications Then
+            '        Dim D, W As Integer
+            '        D = HTML.IndexOf("<h5>Certification:</h5>")
+            '        If D > 0 Then
+            '            W = HTML.IndexOf("</div>", D)
+            '            Dim rCert As MatchCollection = Regex.Matches(HTML.Substring(D, W - D), HREF_PATTERN_3)
+
+            '            If rCert.Count > 0 Then
+            '                Dim Certs = From M In rCert Select N = String.Format("{0}:{1}", DirectCast(M, Match).Groups(1).ToString.Trim, DirectCast(M, Match).Groups(2).ToString.Trim) Order By N Ascending
+            '                For Each tCert In Certs
+            '                    nTVShow.Certifications.Add(tCert.ToString.Replace("West", String.Empty).Trim)
+            '                Next
+            '            End If
+            '        End If
+            '    End If
+
+            '    If bwAEBN.CancellationPending Then Return Nothing
+
+            '    'Countries
+            '    If FilteredOptions.bMainCountries Then
+            '        Dim D, W As Integer
+            '        D = If(HTML.IndexOf("<h5>Country:</h5>") > 0, HTML.IndexOf("<h5>Country:</h5>"), HTML.IndexOf("<h5>Countries:</h5>"))
+            '        W = If(D > 0, HTML.IndexOf("</div>", D), 0)
+            '        'got any country ?
+            '        If D > 0 AndAlso Not W <= 0 Then
+            '            'get only the first country's name
+            '            Dim rCou As MatchCollection = Regex.Matches(HTML.Substring(D, W - D), HREF_PATTERN)
+            '            Dim Cou = From M In rCou Where Not DirectCast(M, Match).Groups("name").ToString.Contains("more")
+            '                      Select HttpUtility.HtmlDecode(DirectCast(M, Match).Groups("name").ToString)
+
+            '            If Cou.Count > 0 Then
+            '                nTVShow.Countries.AddRange(Cou.ToList)
+            '            End If
+            '        End If
+            '    End If
+
+            '    If bwAEBN.CancellationPending Then Return Nothing
+
+            '    'Creators
+            '    If FilteredOptions.bMainCreators Then
+            '        Dim D, W As Integer
+            '        D = HTML.IndexOf("<h5>Creators")
+            '        If D > 0 Then W = HTML.IndexOf("</div>", D)
+            '        If D > 0 AndAlso W > 0 Then
+            '            Dim q = From M In Regex.Matches(HTML.Substring(D, W - D), HREF_PATTERN)
+            '                    Where Not DirectCast(M, Match).Groups("name").ToString.Trim = "more" _
+            '                    AndAlso Not DirectCast(M, Match).Groups("name").ToString.Trim = "(more)" _
+            '                    AndAlso Not DirectCast(M, Match).Groups("name").ToString.Trim = "WGA" _
+            '                    AndAlso Not DirectCast(M, Match).Groups("name").ToString.Trim.Contains("see more")
+            '                    Select Writer = HttpUtility.HtmlDecode(DirectCast(M, Match).Groups("name").ToString)
+
+            '            If q.Count > 0 Then
+            '                nTVShow.Creators.AddRange(q.ToList)
+            '            End If
+            '        Else
+            '            D = HTML.IndexOf("<h5>Writer")
+            '            If D > 0 Then W = HTML.IndexOf("</div>", D)
+            '            If D > 0 AndAlso W > 0 Then
+            '                Dim q = From M In Regex.Matches(HTML.Substring(D, W - D), HREF_PATTERN)
+            '                        Where Not DirectCast(M, Match).Groups("name").ToString.Trim = "more" _
+            '                        AndAlso Not DirectCast(M, Match).Groups("name").ToString.Trim = "(more)" _
+            '                        AndAlso Not DirectCast(M, Match).Groups("name").ToString.Trim = "WGA" _
+            '                        AndAlso Not DirectCast(M, Match).Groups("name").ToString.Trim.Contains("see more")
+            '                        Select Writer = HttpUtility.HtmlDecode(DirectCast(M, Match).Groups("name").ToString)
+
+            '                If q.Count > 0 Then
+            '                    nTVShow.Creators.AddRange(q.ToList)
+            '                End If
+            '            End If
+            '        End If
+            '    End If
+
+            '    If bwAEBN.CancellationPending Then Return Nothing
+
+            '    'Genres
+            '    If FilteredOptions.bMainGenres Then
+            '        Dim D, W As Integer
+            '        D = HTML.IndexOf("<h5>Genre:</h5>")
+            '        'Check if doesnt find genres
+            '        If D > 0 Then
+            '            W = HTML.IndexOf("</div>", D)
+
+            '            If W > 0 Then
+            '                Dim rGenres As MatchCollection = Regex.Matches(HTML.Substring(D, W - D), HREF_PATTERN)
+            '                Dim Gen = From M In rGenres
+            '                          Select N = HttpUtility.HtmlDecode(DirectCast(M, Match).Groups("name").ToString) Where Not N.Contains("more") Take 999999
+            '                If Gen.Count > 0 Then
+            '                    nTVShow.Genres.AddRange(Gen.ToList)
+            '                End If
+            '            End If
+            '        End If
+            '    End If
+
+            '    If bwAEBN.CancellationPending Then Return Nothing
+
+            '    'Plot
+            '    If FilteredOptions.bMainPlot Then
+            '        Dim PlotHtml As String
+            '        intHTTP = New HTTP
+            '        PlotHtml = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/title/", strID, "/plotsummary"))
+            '        intHTTP.Dispose()
+            '        intHTTP = Nothing
+
+            '        Dim FullPlotS As String = Regex.Match(PlotHtml, "<p class=""plotSummary"">(.*?)</p>", RegexOptions.Singleline Or RegexOptions.IgnoreCase Or RegexOptions.Multiline).Groups(1).Value.ToString.Trim
+            '        Dim FullPlotO As String = Regex.Match(PlotHtml, "<li class=""odd"">\s*<p>(.*?)<br/>", RegexOptions.Singleline Or RegexOptions.IgnoreCase Or RegexOptions.Multiline).Groups(1).Value.ToString.Trim
+            '        Dim FullPlotE As String = Regex.Match(PlotHtml, "<li class=""even"">\s*<p>(.*?)<br/>", RegexOptions.Singleline Or RegexOptions.IgnoreCase Or RegexOptions.Multiline).Groups(1).Value.ToString.Trim
+            '        Dim FullPlot As String = If(Not String.IsNullOrEmpty(FullPlotS), FullPlotS, If(Not String.IsNullOrEmpty(FullPlotO), FullPlotO, FullPlotE))
+            '        FullPlot = Regex.Replace(FullPlot, "<a(.*?)>", "")
+            '        FullPlot = Regex.Replace(FullPlot, "</a>", "")
+
+            '        If Not String.IsNullOrEmpty(FullPlot) Then
+            '            nTVShow.Plot = FullPlot
+            '        End If
+            '    End If
+
+            '    If bwAEBN.CancellationPending Then Return Nothing
+
+            '    'Poster for search result
+            '    If GetPoster Then
+            '        sPoster = Regex.Match(Regex.Match(HTML, "(?<=\b(name=""poster"")).*\b[</a>]\b").ToString, "(?<=\b(src=)).*\b(?=[</a>])").ToString.Replace("""", String.Empty).Replace("/></", String.Empty)
+            '    End If
+
+            '    If bwAEBN.CancellationPending Then Return Nothing
+
+            '    'Premiered
+            '    If FilteredOptions.bMainPremiered Then
+            '        Dim RelDate As Date
+            '        Dim sRelDate As MatchCollection = Regex.Matches(HTML, "<h5>Release Date:</h5>.*?(?<DATE>\d+\s\w+\s\d\d\d\d\s)", RegexOptions.Singleline)
+            '        If sRelDate.Count > 0 Then
+            '            If Date.TryParse(sRelDate.Item(0).Groups(1).Value, RelDate) Then
+            '                'always save date in same date format not depending on users language setting!
+            '                nTVShow.Premiered = RelDate.ToString("yyyy-MM-dd")
+            '            End If
+            '        End If
+            '    End If
+
+            '    If bwAEBN.CancellationPending Then Return Nothing
+
+            '    'Rating
+            '    If FilteredOptions.bMainRating Then
+            '        Dim RegexRating As String = Regex.Match(HTML, "\b\d\W\d/\d\d").ToString
+            '        If String.IsNullOrEmpty(RegexRating) = False Then
+            '            nTVShow.Rating = RegexRating.Split(Convert.ToChar("/")).First.Trim
+            '            nTVShow.Votes = Regex.Match(HTML, "class=""tn15more"">([0-9,]+) votes</a>").Groups(1).Value.Trim
+            '        End If
+            '    End If
+
+            '    If bwAEBN.CancellationPending Then Return Nothing
+
+            '    'Runtime
+            '    If FilteredOptions.bMainRuntime Then
+            '        Dim strRuntime As String = HttpUtility.HtmlDecode(Regex.Match(HTML, "<h5>Runtime:</h5>[^0-9]*([^<]*)").Groups(1).Value.Trim)
+            '        If Not String.IsNullOrEmpty(strRuntime) Then
+            '            'examples:
+            '            ' <h5>Runtime:</h5><div class="info-content">93 min </div> OR
+            '            ' <h5>Runtime:</h5><div class="info-content">"94 min  | USA:102 min (unrated version)</div>
+            '            ' <h5>Runtime:</h5><div class="info-content">Thailand: 89 min  | USA:93 min </div>
+            '            '  scrapedresult = Web.HttpUtility.HtmlDecode(Regex.Match(HTML, "<h5>Runtime:</h5>[^0-9]*([^<]*)").Groups(1).Value.Trim)
+            '            Dim Match As Match = Regex.Match(HTML, "Runtime:(\s*<((?<!>).)+)+(?<length>\d+|((?!</div|<h).)+)", RegexOptions.IgnoreCase)
+            '            If Match.Success Then
+            '                If Regex.IsMatch(Match.Groups("length").Value, "^\d+$") Then
+            '                    strRuntime = Match.Groups("length").Value
+            '                ElseIf Regex.IsMatch(Match.Groups("length").Value, "\d+") Then
+            '                    strRuntime = Regex.Match(Match.Groups("length").Value, "\d+").Value
+            '                End If
+            '                nTVShow.Runtime = strRuntime
+            '            End If
+            '        End If
+            '    End If
+
+            '    'Studios
+            '    If FilteredOptions.bMainStudios Then
+            '        Dim D, W As Integer
+            '        'If FullCrew Then
+            '        '    D = HTML.IndexOf("<b class=""blackcatheader"">Production Companies</b>")
+            '        '    If D > 0 Then W = HTML.IndexOf("</ul>", D)
+            '        '    If D > 0 AndAlso W > 0 Then
+            '        '        'only get the first one
+            '        '        Dim Ps = From P1 In Regex.Matches(HTML.Substring(D, W - D), HREF_PATTERN) _
+            '        '                 Where Not DirectCast(P1, Match).Groups("name").ToString = String.Empty _
+            '        '                 Select Studio = Web.HttpUtility.HtmlDecode(DirectCast(P1, Match).Groups("name").ToString) Take 1
+            '        '        '  nMovie.Studio = Ps(0).ToString.Trim
+            '        '        'only update nMovie if scraped result is not empty/nothing!
+            '        '        If Ps.Count > 0 Then
+            '        '            nMovie.Studios.AddRange(Ps.ToList)
+            '        '        End If
+            '        '    End If
+            '        'Else
+            '        D = HTML.IndexOf("<h5>Company:</h5>")
+            '        If D > 0 Then W = HTML.IndexOf("</div>", D)
+            '        If D > 0 AndAlso W > 0 Then
+            '            nTVShow.Studios.Add(HttpUtility.HtmlDecode(Regex.Match(HTML.Substring(D, W - D), HREF_PATTERN).Groups("name").ToString.Trim))
+            '        End If
+            '        'End If
+            '    End If
+
+            '    If bwAEBN.CancellationPending Then Return Nothing
+
+            '    'Title / OriginalTitle
+            '    If FilteredOptions.bMainTitle OrElse FilteredOptions.bMainOriginalTitle Then
+            '        Dim strOriginalTitle As String = Regex.Match(HTML, MOVIE_TITLE_PATTERN).ToString
+            '        strOriginalTitle = CleanTitle(HttpUtility.HtmlDecode(Regex.Match(strOriginalTitle, ".*(?=\s\(\d+.*?\))").ToString)).Trim
+
+            '        If Not String.IsNullOrEmpty(_SpecialSettings.ForceTitleLanguage) Then
+            '            nTVShow.Title = GetForcedTitle(strID, strOriginalTitle)
+            '        Else
+            '            nTVShow.Title = CleanTitle(HttpUtility.HtmlDecode(Regex.Match(strOriginalTitle, ".*(?=\s\(\d+.*?\))").ToString)).Trim
+            '        End If
+
+            '        If FilteredOptions.bMainOriginalTitle Then
+            '            nTVShow.OriginalTitle = strOriginalTitle
+            '        End If
+            '    End If
+
+            '    If bwAEBN.CancellationPending Then Return Nothing
+
+            '    'Seasons and Episodes
+            '    If ScrapeModifiers.withEpisodes OrElse ScrapeModifiers.withSeasons Then
+            '        Dim D, W As Integer
+            '        D = HTML.IndexOf("<h5>Seasons:</h5>")
+            '        'Check if doesnt find genres
+            '        If D > 0 Then
+            '            W = HTML.IndexOf("</div>", D)
+
+            '            If W > 0 Then
+            '                Dim rSeasons As MatchCollection = Regex.Matches(HTML.Substring(D, W - D), HREF_PATTERN)
+            '                If rSeasons.Count > 0 Then
+            '                    For Each tSeason As Match In rSeasons
+            '                        Dim iSeason As Integer = -1
+            '                        If Integer.TryParse(tSeason.Groups("name").Value, iSeason) Then
+            '                            GetTVSeasonInfo(nTVShow, nTVShow.AEBN, iSeason, ScrapeModifiers, FilteredOptions)
+            '                            If ScrapeModifiers.withSeasons Then
+            '                                nTVShow.KnownSeasons.Add(New MediaContainers.SeasonDetails With {.Season = iSeason})
+            '                            End If
+            '                        End If
+            '                    Next
+            '                End If
+            '            End If
+            '        End If
+            '    End If
+
+            '    Return nTVShow
+            'Catch ex As Exception
+            '    logger.Error(ex, New StackFrame().GetMethod().Name)
+            '    Return Nothing
+            'End Try
+
             Return Nothing
-        End If
+        End Function
 
-        Dim Result As AEbnLib.Objects.TvShows.TvSeason = APIResult.Result
-        Dim nTVSeason As New MediaContainers.SeasonDetails With {.Scrapersource = "AEBN"}
-
-        'IDs
-        nTVSeason.UniqueIDs.AEbnId = CInt(Result.Id)
-        If Result.ExternalIds IsNot Nothing AndAlso Result.ExternalIds.TvdbId IsNot Nothing Then nTVSeason.UniqueIDs.TVDbId = CInt(Result.ExternalIds.TvdbId)
-
-        'Season #
-        If Result.SeasonNumber >= 0 Then
-            nTVSeason.Season = Result.SeasonNumber
-        End If
-
-        'Aired
-        If filteredOptions.bSeasonAired Then
-            Dim nDate As Date? = Nothing
-            If Result.AirDate.HasValue Then
-                nDate = Result.AirDate
+        Public Function GetMovieStudios(ByVal strID As String) As List(Of String)
+            Dim alStudio As New List(Of String)
+            If (String.IsNullOrEmpty(strID)) Then
+                logger.Warn("Attempting to GetMovieStudios with invalid ID <{0}>", strID)
+                Return alStudio
             End If
-            If nDate.HasValue Then
-                'always save date in same date format not depending on users language setting!
-                nTVSeason.Aired = nDate.Value.ToString("yyyy-MM-dd")
+            Dim HTML As String
+            intHTTP = New HTTP
+            HTML = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/title/", strID, "/combined"))
+            intHTTP.Dispose()
+            intHTTP = Nothing
+
+            If (String.IsNullOrEmpty(HTML)) Then
+                logger.Warn("AEBN Query returned no results for ID of <{0}>", strID)
+                Return alStudio
             End If
-        End If
+            Dim D, W As Integer
 
-        'Plot
-        If filteredOptions.bSeasonPlot Then
-            If Result.Overview IsNot Nothing AndAlso Not String.IsNullOrEmpty(Result.Overview) Then
-                nTVSeason.Plot = Result.Overview
-            ElseIf RunFallback_TVSeason(showId, seasonNumber) AndAlso _Fallback_TVSeason.Overview IsNot Nothing AndAlso Not String.IsNullOrEmpty(_Fallback_TVSeason.Overview) Then
-                nTVSeason.Plot = _Fallback_TVSeason.Overview
+            D = HTML.IndexOf("<b class=""blackcatheader"">Production Companies</b>")
+            If D > 0 Then W = HTML.IndexOf("</ul>", D)
+            If D > 0 AndAlso W > 0 Then
+                Dim Ps = From P1 In Regex.Matches(HTML.Substring(D, W - D), HREF_PATTERN)
+                         Where Not DirectCast(P1, Match).Groups("name").ToString = String.Empty
+                         Select Studio = HttpUtility.HtmlDecode(DirectCast(P1, Match).Groups("name").ToString)
+                alStudio.AddRange(Ps.ToArray)
             End If
-        End If
 
-        'Title
-        If filteredOptions.bSeasonTitle Then
-            If Not String.IsNullOrEmpty(Result.Name) Then
-                nTVSeason.Title = Result.Name
-            ElseIf RunFallback_TVSeason(showId, seasonNumber) AndAlso Not String.IsNullOrEmpty(_Fallback_TVSeason.Name) Then
-                nTVSeason.Title = _Fallback_TVSeason.Name
-            End If
-        End If
+            Return alStudio
+        End Function
 
-        _Fallback_TVSeason = Nothing
-        Return nTVSeason
-    End Function
-    ''' <summary>
-    '''  Scrape TV Show details from AEBN
-    ''' </summary>
-    ''' <param name="showId">AEBN ID of tv show to be scraped</param>
-    ''' <param name="getPoster">Scrape posters for the movie?</param>
-    ''' <returns>True: success, false: no success</returns>
-    Public Function GetInfo_TVShow(ByVal showId As Integer, ByRef scrapeModifiers As Structures.ScrapeModifiers, ByRef filteredOptions As Structures.ScrapeOptions, ByVal getPoster As Boolean) As MediaContainers.TVShow
-        If showId = -1 Then Return Nothing
-        _Fallback_TVShow = Nothing
+        Public Function GetSearchMovieInfo(ByVal sMovieName As String, ByVal sMovieYear As String, ByRef oDBElement As Database.DBElement, ByVal ScrapeType As Enums.ScrapeType, ByVal FilteredOptions As Structures.ScrapeOptions) As MediaContainers.Movie
+            Dim r As SearchResults_Movie = SearchMovie(sMovieName, sMovieYear)
 
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        Dim APIResult As Task(Of AEbnLib.Objects.TvShows.TvShow) = Task.Run(Function() _client.GetTvShowAsync(showId, AEbnLib.Objects.TvShows.TvShowMethods.ContentRatings Or AEbnLib.Objects.TvShows.TvShowMethods.Credits Or AEbnLib.Objects.TvShows.TvShowMethods.ExternalIds))
-
-        If APIResult Is Nothing OrElse APIResult.Result Is Nothing OrElse Not APIResult.Result.Id > 0 OrElse APIResult.Exception IsNot Nothing Then
-            _Logger.Error(String.Format("Can't scrape or tv show not found: [{0}]", showId))
-            Return Nothing
-        End If
-
-        Dim Result As AEbnLib.Objects.TvShows.TvShow = APIResult.Result
-        Dim nTVShow As New MediaContainers.TVShow With {.Scrapersource = "AEBN"}
-
-        'IDs
-        nTVShow.UniqueIDs.AEbnId = Result.Id
-        If Result.ExternalIds.TvdbId IsNot Nothing AndAlso Integer.TryParse(Result.ExternalIds.TvdbId, 0) Then nTVShow.UniqueIDs.TVDbId = CInt(Result.ExternalIds.TvdbId)
-        If Result.ExternalIds.ImdbId IsNot Nothing Then nTVShow.UniqueIDs.IMDbId = Result.ExternalIds.ImdbId
-
-        If bwAEBN.CancellationPending Or Result Is Nothing Then Return Nothing
-
-        'Actors
-        If filteredOptions.bMainActors Then
-            If Result.Credits IsNot Nothing AndAlso Result.Credits.Cast IsNot Nothing Then
-                For Each aCast As AEbnLib.Objects.TvShows.Cast In Result.Credits.Cast
-                    nTVShow.Actors.Add(New MediaContainers.Person With {
-                                           .Name = aCast.Name,
-                                           .Role = aCast.Character,
-                                           .URLOriginal = If(Not String.IsNullOrEmpty(aCast.ProfilePath), String.Concat(_client.Config.Images.BaseUrl, "original", aCast.ProfilePath), String.Empty),
-                                           .AEbnId = CStr(aCast.Id)
-                                           })
-                Next
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Certifications
-        If filteredOptions.bMainCertifications Then
-            If Result.ContentRatings IsNot Nothing AndAlso Result.ContentRatings.Results IsNot Nothing AndAlso Result.ContentRatings.Results.Count > 0 Then
-                For Each aCountry In Result.ContentRatings.Results
-                    If Not String.IsNullOrEmpty(aCountry.Rating) Then
-                        Dim Country = Localization.Countries.Items.FirstOrDefault(Function(l) l.Alpha2 = aCountry.Iso_3166_1)
-                        If Country IsNot Nothing AndAlso Country.Name IsNot Nothing AndAlso Not String.IsNullOrEmpty(Country.Name) Then
-                            nTVShow.Certifications.Add(String.Concat(Country.Name, ":", aCountry.Rating))
+            Try
+                Select Case ScrapeType
+                    Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
+                        If r.ExactMatches.Count = 1 Then
+                            Return GetMovieInfo(r.ExactMatches.Item(0).AEBN, False, FilteredOptions)
+                        ElseIf r.PopularTitles.Count = 1 AndAlso r.PopularTitles(0).Lev <= 5 Then
+                            Return GetMovieInfo(r.PopularTitles.Item(0).AEBN, False, FilteredOptions)
+                        ElseIf r.ExactMatches.Count = 1 AndAlso r.ExactMatches(0).Lev <= 5 Then
+                            Return GetMovieInfo(r.ExactMatches.Item(0).AEBN, False, FilteredOptions)
                         Else
-                            _Logger.Warn("Unhandled certification country encountered: {0}", aCountry.Iso_3166_1)
+                            Using dlgSearch As New dlgAEBNSearchResults_Movie(_SpecialSettings, Me)
+                                If dlgSearch.ShowDialog(r, sMovieName, oDBElement.Filename) = DialogResult.OK Then
+                                    If Not String.IsNullOrEmpty(dlgSearch.Result.AEBN) Then
+                                        Return GetMovieInfo(dlgSearch.Result.AEBN, False, FilteredOptions)
+                                    End If
+                                End If
+                            End Using
                         End If
-                    End If
-                Next
-            End If
-        End If
 
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Countries 
-        If filteredOptions.bMainCountries Then
-            If Result.ProductionCountries IsNot Nothing AndAlso Result.ProductionCountries.Count > 0 Then
-                For Each aCountry In Result.ProductionCountries
-                    nTVShow.Countries.Add(aCountry.Name)
-                Next
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Creators
-        If filteredOptions.bMainCreators Then
-            nTVShow.Creators.AddRange(Result.CreatedBy.Select(Function(f) f.Name))
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Genres
-        If filteredOptions.bMainGenres Then
-            If Result.Genres.Count > 0 Then
-                nTVShow.Genres.AddRange(Result.Genres.Select(Function(f) f.Name))
-            ElseIf RunFallback_TVShow(Result.Id) AndAlso _Fallback_TVShow.Genres.Count > 0 Then
-                nTVShow.Genres.AddRange(_Fallback_TVShow.Genres.Select(Function(f) f.Name))
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'OriginalTitle
-        If filteredOptions.bMainOriginalTitle Then
-            nTVShow.OriginalTitle = Result.OriginalName
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Plot
-        If filteredOptions.bMainPlot Then
-            If Result.Overview IsNot Nothing AndAlso Not String.IsNullOrEmpty(Result.Overview) Then
-                nTVShow.Plot = Result.Overview
-            ElseIf RunFallback_TVShow(Result.Id) AndAlso _Fallback_TVShow.Overview IsNot Nothing AndAlso Not String.IsNullOrEmpty(_Fallback_TVShow.Overview) Then
-                nTVShow.Plot = _Fallback_TVShow.Overview
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Posters (only for SearchResult dialog, auto fallback to "en" by AEBN)
-        If getPoster Then
-            If Result.PosterPath IsNot Nothing AndAlso Not String.IsNullOrEmpty(Result.PosterPath) Then
-                _sPoster = String.Concat(_client.Config.Images.BaseUrl, "w92", Result.PosterPath)
-            Else
-                _sPoster = String.Empty
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Premiered
-        If filteredOptions.bMainPremiered Then
-            Dim nDate As Date? = Nothing
-            If Result.FirstAirDate.HasValue Then
-                nDate = Result.FirstAirDate
-            ElseIf RunFallback_TVShow(Result.Id) AndAlso _Fallback_TVShow.FirstAirDate.HasValue Then
-                nDate = _Fallback_TVShow.FirstAirDate
-            End If
-            If nDate.HasValue Then
-                'always save date in same date format not depending on users language setting!
-                nTVShow.Premiered = nDate.Value.ToString("yyyy-MM-dd")
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Rating
-        If filteredOptions.bMainRating Then
-            nTVShow.Ratings.Add(New MediaContainers.RatingDetails With {
-                                    .Max = 10,
-                                    .Type = "themoviedb",
-                                    .Value = Result.VoteAverage,
-                                    .Votes = Result.VoteCount
-                                    })
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Runtime
-        If filteredOptions.bMainRuntime Then
-            If Result.EpisodeRunTime IsNot Nothing AndAlso Result.EpisodeRunTime.Count > 0 Then
-                nTVShow.Runtime = CStr(Result.EpisodeRunTime.Item(0))
-            ElseIf RunFallback_TVShow(Result.Id) AndAlso _Fallback_TVShow.EpisodeRunTime IsNot Nothing AndAlso _Fallback_TVShow.EpisodeRunTime.Count > 0 Then
-                nTVShow.Runtime = CStr(_Fallback_TVShow.EpisodeRunTime.Item(0))
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Status
-        If filteredOptions.bMainStatus Then
-            If Not String.IsNullOrEmpty(Result.Status) Then
-                nTVShow.Status = Result.Status
-            ElseIf RunFallback_TVShow(Result.Id) AndAlso Not String.IsNullOrEmpty(_Fallback_TVShow.Status) Then
-                nTVShow.Status = _Fallback_TVShow.Status
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Studios
-        If filteredOptions.bMainStudios Then
-            If Result.Networks.Count > 0 Then
-                nTVShow.Studios.AddRange(Result.Networks.Select(Function(f) f.Name))
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Tagline
-        If filteredOptions.bMainTagline Then
-            If Result.Tagline IsNot Nothing AndAlso Not String.IsNullOrEmpty(Result.Tagline) Then
-                nTVShow.Tagline = Result.Tagline
-            ElseIf RunFallback_TVShow(Result.Id) AndAlso _Fallback_TVShow.Tagline IsNot Nothing AndAlso Not String.IsNullOrEmpty(_Fallback_TVShow.Tagline) Then
-                nTVShow.Tagline = _Fallback_TVShow.Tagline
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Title
-        If filteredOptions.bMainTitle Then
-            If Not String.IsNullOrEmpty(Result.Name) Then
-                nTVShow.Title = Result.Name
-            ElseIf RunFallback_TVShow(Result.Id) AndAlso Not String.IsNullOrEmpty(_Fallback_TVShow.Name) Then
-                nTVShow.Title = _Fallback_TVShow.Name
-            End If
-        End If
-
-        If bwAEBN.CancellationPending Then Return Nothing
-
-        'Seasons and Episodes
-        If scrapeModifiers.withEpisodes OrElse scrapeModifiers.withSeasons Then
-            For Each aSeason As AEbnLib.Objects.Search.SearchTvSeason In Result.Seasons
-                GetInfo_TVSeason(nTVShow, Result.Id, aSeason.SeasonNumber, scrapeModifiers, filteredOptions)
-            Next
-        End If
-        _Fallback_TVShow = Nothing
-        Return nTVShow
-    End Function
-
-    Public Function GetAEBNbyIMDB(ByVal imdbId As String) As Integer
-        Try
-            Dim APIResult As Task(Of AEbnLib.Objects.Find.FindContainer)
-            APIResult = Task.Run(Function() _client.FindAsync(AEbnLib.Objects.Find.FindExternalSource.Imdb, imdbId))
-
-            If APIResult IsNot Nothing AndAlso APIResult.Exception Is Nothing AndAlso APIResult.Result IsNot Nothing AndAlso
-                    APIResult.Result.TvResults IsNot Nothing AndAlso APIResult.Result.TvResults.Count > 0 Then
-                Return APIResult.Result.TvResults.Item(0).Id
-            End If
-
-        Catch ex As Exception
-            _Logger.Error(ex, New StackFrame().GetMethod().Name)
-        End Try
-
-        Return -1
-    End Function
-
-    Public Function GetAEBNbyTVDB(ByVal tvdbId As Integer) As Integer
-        Try
-            Dim APIResult As Task(Of AEbnLib.Objects.Find.FindContainer)
-            APIResult = Task.Run(Function() _client.FindAsync(AEbnLib.Objects.Find.FindExternalSource.TvDb, tvdbId.ToString))
-
-            If APIResult IsNot Nothing AndAlso APIResult.Exception Is Nothing AndAlso APIResult.Result IsNot Nothing AndAlso
-                    APIResult.Result.TvResults IsNot Nothing AndAlso APIResult.Result.TvResults.Count > 0 Then
-                Return APIResult.Result.TvResults.Item(0).Id
-            End If
-
-        Catch ex As Exception
-            _Logger.Error(ex, New StackFrame().GetMethod().Name)
-        End Try
-
-        Return -1
-    End Function
-
-    Public Function GetMovieStudios(ByVal imdbIdOrTmdbId As String) As List(Of String)
-        If String.IsNullOrEmpty(imdbIdOrTmdbId) Then Return New List(Of String)
-
-        Dim alStudio As New List(Of String)
-        Dim Movie As AEbnLib.Objects.Movies.Movie = Nothing
-
-        Dim APIResult As Task(Of AEbnLib.Objects.Movies.Movie) = Nothing
-
-        If imdbIdOrTmdbId.ToLower.StartsWith("tt") Then
-            APIResult = Task.Run(Function() _client.GetMovieAsync(imdbIdOrTmdbId))
-        ElseIf Integer.TryParse(imdbIdOrTmdbId, 0) Then
-            APIResult = Task.Run(Function() _client.GetMovieAsync(CInt(imdbIdOrTmdbId)))
-        End If
-
-        If APIResult IsNot Nothing AndAlso APIResult.Result IsNot Nothing Then
-            Movie = APIResult.Result
-        End If
-
-        If Movie IsNot Nothing AndAlso Movie.ProductionCompanies IsNot Nothing AndAlso Movie.ProductionCompanies.Count > 0 Then
-            For Each cStudio In Movie.ProductionCompanies
-                alStudio.Add(cStudio.Name)
-            Next
-        End If
-
-        Return alStudio
-    End Function
-
-    Public Function GetSearchMovieInfo(ByVal strMovieName As String, ByRef oDBMovie As Database.DBElement, ByVal eType As Enums.ScrapeType, ByVal FilteredOptions As Structures.ScrapeOptions) As MediaContainers.Movie
-        Dim r As SearchResults_Movie = SearchMovie(strMovieName, CInt(If(Not String.IsNullOrEmpty(oDBMovie.Movie.Year), oDBMovie.Movie.Year, Nothing)))
-
-        Select Case eType
-            Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
-                If r.Matches.Count = 1 Then
-                    Return GetInfo_Movie(r.Matches.Item(0).UniqueIDs.AEbnId.ToString, FilteredOptions, False)
-                Else
-                    Using dlgSearch As New dlgAEBNSearchResults_Movie(_addonSettings, Me)
-                        If dlgSearch.ShowDialog(r, strMovieName, oDBMovie.Filename) = DialogResult.OK Then
-                            If dlgSearch.Result.UniqueIDs.AEbnIdSpecified Then
-                                Return GetInfo_Movie(dlgSearch.Result.UniqueIDs.AEbnId.ToString, FilteredOptions, False)
-                            End If
+                    Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
+                        If r.ExactMatches.Count = 1 Then
+                            Return GetMovieInfo(r.ExactMatches.Item(0).AEBN, False, FilteredOptions)
                         End If
-                    End Using
-                End If
 
-            Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
-                If r.Matches.Count = 1 Then
-                    Return GetInfo_Movie(r.Matches.Item(0).UniqueIDs.AEbnId.ToString, FilteredOptions, False)
-                End If
-
-            Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
-                If r.Matches.Count > 0 Then
-                    Return GetInfo_Movie(r.Matches.Item(0).UniqueIDs.AEbnId.ToString, FilteredOptions, False)
-                End If
-        End Select
-
-        Return Nothing
-    End Function
-
-    Public Function GetSearchMovieSetInfo(ByVal title As String, ByRef oDBMovieSet As Database.DBElement, ByVal eType As Enums.ScrapeType, ByVal FilteredOptions As Structures.ScrapeOptions) As MediaContainers.Movieset
-        Dim r As SearchResults_MovieSet = SearchMovieSet(title)
-
-        Select Case eType
-            Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
-                If r.Matches.Count = 1 Then
-                    Return GetInfo_Movieset(r.Matches.Item(0).UniqueIDs.AEbnId, FilteredOptions, False)
-                Else
-                    Using dlgSearch As New dlgAEBNSearchResults_MovieSet(_addonSettings, Me)
-                        If dlgSearch.ShowDialog(r, title) = DialogResult.OK Then
-                            If dlgSearch.Result.UniqueIDs.AEbnIdSpecified Then
-                                Return GetInfo_Movieset(dlgSearch.Result.UniqueIDs.AEbnId, FilteredOptions, False)
-                            End If
+                    Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
+                        'check if ALL results are over lev value
+                        Dim useAnyway As Boolean = False
+                        If ((r.PopularTitles.Count > 0 AndAlso r.PopularTitles(0).Lev > 5) OrElse r.PopularTitles.Count = 0) AndAlso
+                        ((r.ExactMatches.Count > 0 AndAlso r.ExactMatches(0).Lev > 5) OrElse r.ExactMatches.Count = 0) AndAlso
+                        ((r.PartialMatches.Count > 0 AndAlso r.PartialMatches(0).Lev > 5) OrElse r.PartialMatches.Count = 0) Then
+                            useAnyway = True
                         End If
-                    End Using
-                End If
-
-            Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
-                If r.Matches.Count = 1 Then
-                    Return GetInfo_Movieset(r.Matches.Item(0).UniqueIDs.AEbnId, FilteredOptions, False)
-                End If
-
-            Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
-                If r.Matches.Count > 0 Then
-                    Return GetInfo_Movieset(r.Matches.Item(0).UniqueIDs.AEbnId, FilteredOptions, False)
-                End If
-        End Select
-
-        Return Nothing
-    End Function
-
-    Public Function GetSearchTVShowInfo(ByVal strShowName As String, ByRef oDBTV As Database.DBElement, ByVal eType As Enums.ScrapeType, ByRef ScrapeModifiers As Structures.ScrapeModifiers, ByRef FilteredOptions As Structures.ScrapeOptions) As MediaContainers.TVShow
-        Dim r As SearchResults_TVShow = SearchTVShow(strShowName)
-
-        Select Case eType
-            Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
-                If r.Matches.Count = 1 Then
-                    Return GetInfo_TVShow(r.Matches.Item(0).UniqueIDs.AEbnId, ScrapeModifiers, FilteredOptions, False)
-                Else
-                    Using dlgSearch As New dlgAEBNSearchResults_TV(_addonSettings, Me)
-                        If dlgSearch.ShowDialog(r, strShowName, oDBTV.ShowPath) = DialogResult.OK Then
-                            If dlgSearch.Result.UniqueIDs.AEbnIdSpecified Then
-                                Return GetInfo_TVShow(dlgSearch.Result.UniqueIDs.AEbnId, ScrapeModifiers, FilteredOptions, False)
-                            End If
-                        End If
-                    End Using
-                End If
-
-            Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
-                If r.Matches.Count = 1 Then
-                    Return GetInfo_TVShow(r.Matches.Item(0).UniqueIDs.AEbnId, ScrapeModifiers, FilteredOptions, False)
-                End If
-
-            Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
-                If r.Matches.Count > 0 Then
-                    Return GetInfo_TVShow(r.Matches.Item(0).UniqueIDs.AEbnId, ScrapeModifiers, FilteredOptions, False)
-                End If
-        End Select
-
-        Return Nothing
-    End Function
-
-    Public Sub GetSearchMovieInfoAsync(ByVal tmdbID As String, ByRef FilteredOptions As Structures.ScrapeOptions)
-        '' The rule is that if there is a tt is an IMDB otherwise is a AEBN
-        If Not bwAEBN.IsBusy Then
-            bwAEBN.WorkerReportsProgress = False
-            bwAEBN.WorkerSupportsCancellation = True
-            bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.SearchDetails_Movie,
-                  .Parameter = tmdbID, .ScrapeOptions = FilteredOptions})
-        End If
-    End Sub
-
-    Public Sub GetSearchMovieSetInfoAsync(ByVal tmdbColID As String, ByRef FilteredOptions As Structures.ScrapeOptions)
-        '' The rule is that if there is a tt is an IMDB otherwise is a AEBN
-        If Not bwAEBN.IsBusy Then
-            bwAEBN.WorkerReportsProgress = False
-            bwAEBN.WorkerSupportsCancellation = True
-            bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.SearchDetails_MovieSet,
-                  .Parameter = tmdbColID, .ScrapeOptions = FilteredOptions})
-        End If
-    End Sub
-
-    Public Sub GetSearchTVShowInfoAsync(ByVal tmdbID As String, ByRef FilteredOptions As Structures.ScrapeOptions)
-        '' The rule is that if there is a tt is an IMDB otherwise is a AEBN
-        If Not bwAEBN.IsBusy Then
-            bwAEBN.WorkerReportsProgress = False
-            bwAEBN.WorkerSupportsCancellation = True
-            bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.SearchDetails_TVShow,
-                  .Parameter = tmdbID, .ScrapeOptions = FilteredOptions})
-        End If
-    End Sub
-
-    Private Function RunFallback_Movie(ByVal tmdbId As Integer) As Boolean
-        If Not _addonSettings.FallBackEng Then Return False
-        If _Fallback_Movie Is Nothing Then
-            Dim APIResultE = Task.Run(Function() _clientE.GetMovieAsync(tmdbId, AEbnLib.Objects.Movies.MovieMethods.Credits Or AEbnLib.Objects.Movies.MovieMethods.Releases Or AEbnLib.Objects.Movies.MovieMethods.Videos))
-            _Fallback_Movie = APIResultE.Result
-            Return _Fallback_Movie IsNot Nothing
-        Else
-            Return True
-        End If
-    End Function
-
-    Private Function RunFallback_Movieset(ByVal tmdbId As Integer) As Boolean
-        If Not _addonSettings.FallBackEng Then Return False
-        If _Fallback_Movieset Is Nothing Then
-            Dim APIResultE = Task.Run(Function() _clientE.GetCollectionAsync(tmdbId))
-            _Fallback_Movieset = APIResultE.Result
-            Return _Fallback_Movieset IsNot Nothing
-        Else
-            Return True
-        End If
-    End Function
-
-    Private Function RunFallback_TVEpisode(ByVal showId As Integer, ByVal seasonNumber As Integer, ByVal episodeNumber As Integer) As Boolean
-        If Not _addonSettings.FallBackEng Then Return False
-        If _Fallback_TVEpisode Is Nothing Then
-            Dim APIResultE = Task.Run(Function() _clientE.GetTvEpisodeAsync(showId, seasonNumber, episodeNumber, AEbnLib.Objects.TvShows.TvEpisodeMethods.Credits Or AEbnLib.Objects.TvShows.TvEpisodeMethods.ExternalIds))
-            _Fallback_TVEpisode = APIResultE.Result
-            Return _Fallback_TVEpisode IsNot Nothing
-        Else
-            Return True
-        End If
-    End Function
-
-    Private Function RunFallback_TVSeason(ByVal showId As Integer, ByVal seasonNumber As Integer) As Boolean
-        If Not _addonSettings.FallBackEng Then Return False
-        If _Fallback_TVSeason Is Nothing Then
-            Dim APIResultE = Task.Run(Function() _clientE.GetTvSeasonAsync(showId, seasonNumber, AEbnLib.Objects.TvShows.TvSeasonMethods.Credits Or AEbnLib.Objects.TvShows.TvSeasonMethods.ExternalIds))
-            _Fallback_TVSeason = APIResultE.Result
-            Return _Fallback_TVSeason IsNot Nothing
-        Else
-            Return True
-        End If
-    End Function
-
-    Private Function RunFallback_TVShow(ByVal showId As Integer) As Boolean
-        If Not _addonSettings.FallBackEng Then Return False
-        If _Fallback_TVShow Is Nothing Then
-            Dim APIResultE = Task.Run(Function() _clientE.GetTvShowAsync(showId, AEbnLib.Objects.TvShows.TvShowMethods.ContentRatings Or AEbnLib.Objects.TvShows.TvShowMethods.Credits Or AEbnLib.Objects.TvShows.TvShowMethods.ExternalIds))
-            _Fallback_TVShow = APIResultE.Result
-            Return _Fallback_TVShow IsNot Nothing
-        Else
-            Return True
-        End If
-    End Function
-
-    Public Sub SearchAsync_Movie(ByVal sMovie As String, ByRef filterOptions As Structures.ScrapeOptions, Optional ByVal sYear As String = "")
-        '' The rule is that if there is a tt is an IMDB otherwise is a AEBN
-        Dim intYear As Integer
-
-        Integer.TryParse(sYear, intYear)
-
-        If Not bwAEBN.IsBusy Then
-            bwAEBN.WorkerReportsProgress = False
-            bwAEBN.WorkerSupportsCancellation = True
-            bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.Movies,
-                  .Parameter = sMovie, .ScrapeOptions = filterOptions, .Year = intYear})
-        End If
-    End Sub
-
-    Public Sub SearchAsync_MovieSet(ByVal sMovieSet As String, ByRef filterOptions As Structures.ScrapeOptions)
-        '' The rule is that if there is a tt is an IMDB otherwise is a AEBN
-        If Not bwAEBN.IsBusy Then
-            bwAEBN.WorkerReportsProgress = False
-            bwAEBN.WorkerSupportsCancellation = True
-            bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.MovieSets,
-                  .Parameter = sMovieSet, .ScrapeOptions = filterOptions})
-        End If
-    End Sub
-
-    Public Sub SearchAsync_TVShow(ByVal sShow As String, ByRef filterOptions As Structures.ScrapeOptions)
-
-        If Not bwAEBN.IsBusy Then
-            bwAEBN.WorkerReportsProgress = False
-            bwAEBN.WorkerSupportsCancellation = True
-            bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.TVShows,
-                  .Parameter = sShow, .ScrapeOptions = filterOptions})
-        End If
-    End Sub
-
-    Private Function SearchMovie(ByVal strMovie As String, Optional ByVal iYear As Integer = 0) As SearchResults_Movie
-        If String.IsNullOrEmpty(strMovie) Then Return New SearchResults_Movie
-
-        Dim R As New SearchResults_Movie
-        Dim Page As Integer = 1
-        Dim Movies As AEbnLib.Objects.General.SearchContainer(Of AEbnLib.Objects.Search.SearchMovie)
-        Dim TotP As Integer
-        Dim aE As Boolean
-
-        Dim APIResult As Task(Of AEbnLib.Objects.General.SearchContainer(Of AEbnLib.Objects.Search.SearchMovie))
-        APIResult = Task.Run(Function() _client.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
-
-        Movies = APIResult.Result
-
-        If Movies.TotalResults = 0 AndAlso _addonSettings.FallBackEng Then
-            APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
-            Movies = APIResult.Result
-            aE = True
-        End If
-
-        'try -1 year if no search result was found
-        If Movies.TotalResults = 0 AndAlso iYear > 0 AndAlso _addonSettings.SearchDeviant Then
-            APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear - 1))
-            Movies = APIResult.Result
-
-            If Movies.TotalResults = 0 AndAlso _addonSettings.FallBackEng Then
-                APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear - 1))
-                Movies = APIResult.Result
-                aE = True
-            End If
-
-            'still no search result, try +1 year
-            If Movies.TotalResults = 0 Then
-                APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear + 1))
-                Movies = APIResult.Result
-
-                If Movies.TotalResults = 0 AndAlso _addonSettings.FallBackEng Then
-                    APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear + 1))
-                    Movies = APIResult.Result
-                    aE = True
-                End If
-            End If
-        End If
-
-        If Movies.TotalResults > 0 Then
-            TotP = Movies.TotalPages
-            While Page <= TotP AndAlso Page <= 3
-                If Movies.Results IsNot Nothing Then
-                    For Each aMovie In Movies.Results
-                        Dim tOriginalTitle As String = String.Empty
-                        Dim tPlot As String = String.Empty
-                        Dim tThumbPoster As MediaContainers.Image = New MediaContainers.Image
-                        Dim tTitle As String = String.Empty
-                        Dim tYear As String = String.Empty
-
-                        If aMovie.OriginalTitle IsNot Nothing Then tOriginalTitle = aMovie.OriginalTitle
-                        If aMovie.Overview IsNot Nothing Then tPlot = aMovie.Overview
-                        If aMovie.PosterPath IsNot Nothing Then
-                            tThumbPoster.URLOriginal = _client.Config.Images.BaseUrl & "original" & aMovie.PosterPath
-                            tThumbPoster.URLThumb = _client.Config.Images.BaseUrl & "w185" & aMovie.PosterPath
-                        End If
-                        If aMovie.ReleaseDate IsNot Nothing AndAlso Not String.IsNullOrEmpty(CStr(aMovie.ReleaseDate)) Then tYear = CStr(aMovie.ReleaseDate.Value.Year)
-                        If aMovie.Title IsNot Nothing Then tTitle = aMovie.Title
-
-                        Dim lNewMovie As MediaContainers.Movie = New MediaContainers.Movie With {
-                        .OriginalTitle = tOriginalTitle,
-                        .Plot = tPlot,
-                        .Title = tTitle,
-                        .ThumbPoster = tThumbPoster,
-                        .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.AEbnId = aMovie.Id},
-                        .Year = tYear
-                        }
-                        R.Matches.Add(lNewMovie)
-                    Next
-                End If
-                Page = Page + 1
-                If aE Then
-                    APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
-                    Movies = APIResult.Result
-                Else
-                    APIResult = Task.Run(Function() _client.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
-                    Movies = APIResult.Result
-                End If
-            End While
-        End If
-
-        Return R
-    End Function
-
-    Private Function SearchMovieSet(ByVal strMovieSet As String) As SearchResults_MovieSet
-        If String.IsNullOrEmpty(strMovieSet) Then Return New SearchResults_MovieSet
-
-        Dim R As New SearchResults_MovieSet
-        Dim Page As Integer = 1
-        Dim MovieSets As AEbnLib.Objects.General.SearchContainer(Of AEbnLib.Objects.Search.SearchCollection)
-        Dim TotP As Integer
-        Dim aE As Boolean
-
-        Dim APIResult As Task(Of AEbnLib.Objects.General.SearchContainer(Of AEbnLib.Objects.Search.SearchCollection))
-        APIResult = Task.Run(Function() _client.SearchCollectionAsync(strMovieSet, Page))
-
-        MovieSets = APIResult.Result
-
-        If MovieSets.TotalResults = 0 AndAlso _addonSettings.FallBackEng Then
-            APIResult = Task.Run(Function() _clientE.SearchCollectionAsync(strMovieSet, Page))
-            MovieSets = APIResult.Result
-            aE = True
-        End If
-
-        If MovieSets.TotalResults > 0 Then
-            Dim strTitle As String = String.Empty
-            Dim strPlot As String = String.Empty
-            TotP = MovieSets.TotalPages
-            While Page <= TotP AndAlso Page <= 3
-                If MovieSets.Results IsNot Nothing Then
-                    For Each aMovieSet In MovieSets.Results
-                        If aMovieSet.Name IsNot Nothing AndAlso Not String.IsNullOrEmpty(aMovieSet.Name) Then
-                            strTitle = aMovieSet.Name
-                        End If
-                        'If aMovieSet.overview IsNot Nothing AndAlso Not String.IsNullOrEmpty(aMovieSet.overview) Then
-                        '    strPlot = aMovieSet.overview
+                        Dim exactHaveYear As Integer = FindYear(oDBElement.Filename, r.ExactMatches)
+                        Dim popularHaveYear As Integer = FindYear(oDBElement.Filename, r.PopularTitles)
+                        'it seems "popular matches" is a better result than "exact matches" ..... nope
+                        'If r.ExactMatches.Count = 1 AndAlso r.PopularTitles.Count = 0 AndAlso r.PartialMatches.Count = 0 Then 'redirected to AEBN info page
+                        '    b = GetMovieInfo(r.ExactMatches.Item(0).ID, AEBNMovie, Master.eSettings.FullCrew, Master.eSettings.FullCast, False, Options, True)
+                        'ElseIf (popularHaveYear >= 0 OrElse exactHaveYear = -1) AndAlso r.PopularTitles.Count > 0 AndAlso (r.PopularTitles(If(popularHaveYear >= 0, popularHaveYear, 0)).Lev <= 5 OrElse useAnyway) Then
+                        '    b = GetMovieInfo(r.PopularTitles.Item(If(popularHaveYear >= 0, popularHaveYear, 0)).ID, AEBNMovie, Master.eSettings.FullCrew, Master.eSettings.FullCast, False, Options, True)
+                        'ElseIf r.ExactMatches.Count > 0 AndAlso (r.ExactMatches(If(exactHaveYear >= 0, exactHaveYear, 0)).Lev <= 5 OrElse useAnyway) Then
+                        '    b = GetMovieInfo(r.ExactMatches.Item(If(exactHaveYear >= 0, exactHaveYear, 0)).ID, AEBNMovie, Master.eSettings.FullCrew, Master.eSettings.FullCast, False, Options, True)
+                        'ElseIf r.PartialMatches.Count > 0 Then
+                        '    b = GetMovieInfo(r.PartialMatches.Item(0).ID, AEBNMovie, Master.eSettings.FullCrew, Master.eSettings.FullCast, False, Options, True)
                         'End If
-                        R.Matches.Add(New MediaContainers.Movieset With {
-                                      .Title = strTitle,
-                                      .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.MovieSet) With {.AEbnId = aMovieSet.Id}
-                                      })
+                        If r.ExactMatches.Count = 1 Then
+                            Return GetMovieInfo(r.ExactMatches.Item(0).AEBN, False, FilteredOptions)
+                        ElseIf r.ExactMatches.Count > 1 AndAlso exactHaveYear >= 0 Then
+                            Return GetMovieInfo(r.ExactMatches.Item(exactHaveYear).AEBN, False, FilteredOptions)
+                        ElseIf r.PopularTitles.Count > 0 AndAlso popularHaveYear >= 0 Then
+                            Return GetMovieInfo(r.PopularTitles.Item(popularHaveYear).AEBN, False, FilteredOptions)
+                        ElseIf r.ExactMatches.Count > 0 AndAlso (r.ExactMatches(0).Lev <= 5 OrElse useAnyway) Then
+                            Return GetMovieInfo(r.ExactMatches.Item(0).AEBN, False, FilteredOptions)
+                        ElseIf r.PopularTitles.Count > 0 AndAlso (r.PopularTitles(0).Lev <= 5 OrElse useAnyway) Then
+                            Return GetMovieInfo(r.PopularTitles.Item(0).AEBN, False, FilteredOptions)
+                        ElseIf r.PartialMatches.Count > 0 AndAlso (r.PartialMatches(0).Lev <= 5 OrElse useAnyway) Then
+                            Return GetMovieInfo(r.PartialMatches.Item(0).AEBN, False, FilteredOptions)
+                        End If
+                End Select
+
+                Return Nothing
+            Catch ex As Exception
+                logger.Error(ex, New StackFrame().GetMethod().Name)
+                Return Nothing
+            End Try
+        End Function
+
+        Public Function GetSearchTVShowInfo(ByVal sShowName As String, ByRef oDBElement As Database.DBElement, ByVal ScrapeType As Enums.ScrapeType, ByVal ScrapeModifiers As Structures.ScrapeModifiers, ByVal FilteredOptions As Structures.ScrapeOptions) As MediaContainers.TVShow
+            Dim r As SearchResults_TVShow = SearchTVShow(sShowName)
+
+            'Select Case ScrapeType
+            '    Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
+            '        If r.Matches.Count = 1 Then
+            '            Return GetTVShowInfo(r.Matches.Item(0).AEBN, ScrapeModifiers, FilteredOptions, False)
+            '        Else
+            '            Using dlgSearch As New dlgAEBNSearchResults_TV(_SpecialSettings, Me)
+            '                If dlgSearch.ShowDialog(r, sShowName, oDBElement.ShowPath) = DialogResult.OK Then
+            '                    If Not String.IsNullOrEmpty(dlgSearch.Result.AEBN) Then
+            '                        Return GetTVShowInfo(dlgSearch.Result.AEBN, ScrapeModifiers, FilteredOptions, False)
+            '                    End If
+            '                End If
+            '            End Using
+            '        End If
+
+            '    Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
+            '        If r.Matches.Count = 1 Then
+            '            Return GetTVShowInfo(r.Matches.Item(0).AEBN, ScrapeModifiers, FilteredOptions, False)
+            '        End If
+
+            '    Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
+            '        If r.Matches.Count > 0 Then
+            '            Return GetTVShowInfo(r.Matches.Item(0).AEBN, ScrapeModifiers, FilteredOptions, False)
+            '        End If
+
+            '        ''check if ALL results are over lev value
+            '        'Dim useAnyway As Boolean = False
+            '        'If ((r.PopularTitles.Count > 0 AndAlso r.PopularTitles(0).Lev > 5) OrElse r.PopularTitles.Count = 0) AndAlso _
+            '        '((r.ExactMatches.Count > 0 AndAlso r.ExactMatches(0).Lev > 5) OrElse r.ExactMatches.Count = 0) AndAlso _
+            '        '((r.PartialMatches.Count > 0 AndAlso r.PartialMatches(0).Lev > 5) OrElse r.PartialMatches.Count = 0) Then
+            '        '    useAnyway = True
+            '        'End If
+            '        'Dim exactHaveYear As Integer = FindYear(oDBMovie.Filename, r.ExactMatches)
+            '        'Dim popularHaveYear As Integer = FindYear(oDBMovie.Filename, r.PopularTitles)
+            '        ''it seems "popular matches" is a better result than "exact matches" ..... nope
+            '        ''If r.ExactMatches.Count = 1 AndAlso r.PopularTitles.Count = 0 AndAlso r.PartialMatches.Count = 0 Then 'redirected to AEBN info page
+            '        ''    b = GetMovieInfo(r.ExactMatches.Item(0).ID, AEBNMovie, Master.eSettings.FullCrew, Master.eSettings.FullCast, False, Options, True)
+            '        ''ElseIf (popularHaveYear >= 0 OrElse exactHaveYear = -1) AndAlso r.PopularTitles.Count > 0 AndAlso (r.PopularTitles(If(popularHaveYear >= 0, popularHaveYear, 0)).Lev <= 5 OrElse useAnyway) Then
+            '        ''    b = GetMovieInfo(r.PopularTitles.Item(If(popularHaveYear >= 0, popularHaveYear, 0)).ID, AEBNMovie, Master.eSettings.FullCrew, Master.eSettings.FullCast, False, Options, True)
+            '        ''ElseIf r.ExactMatches.Count > 0 AndAlso (r.ExactMatches(If(exactHaveYear >= 0, exactHaveYear, 0)).Lev <= 5 OrElse useAnyway) Then
+            '        ''    b = GetMovieInfo(r.ExactMatches.Item(If(exactHaveYear >= 0, exactHaveYear, 0)).ID, AEBNMovie, Master.eSettings.FullCrew, Master.eSettings.FullCast, False, Options, True)
+            '        ''ElseIf r.PartialMatches.Count > 0 Then
+            '        ''    b = GetMovieInfo(r.PartialMatches.Item(0).ID, AEBNMovie, Master.eSettings.FullCrew, Master.eSettings.FullCast, False, Options, True)
+            '        ''End If
+            '        'If r.ExactMatches.Count = 1 Then
+            '        '    b = GetMovieInfo(r.ExactMatches.Item(0).ID, nMovie, FullCrew, False, Options, True, WorldWideTitleFallback, ForceTitleLanguage, CountryAbbreviation)
+            '        'ElseIf r.ExactMatches.Count > 1 AndAlso exactHaveYear >= 0 Then
+            '        '    b = GetMovieInfo(r.ExactMatches.Item(exactHaveYear).ID, nMovie, FullCrew, False, Options, True, WorldWideTitleFallback, ForceTitleLanguage, CountryAbbreviation)
+            '        'ElseIf r.PopularTitles.Count > 0 AndAlso popularHaveYear >= 0 Then
+            '        '    b = GetMovieInfo(r.PopularTitles.Item(popularHaveYear).ID, nMovie, FullCrew, False, Options, True, WorldWideTitleFallback, ForceTitleLanguage, CountryAbbreviation)
+            '        'ElseIf r.ExactMatches.Count > 0 AndAlso (r.ExactMatches(0).Lev <= 5 OrElse useAnyway) Then
+            '        '    b = GetMovieInfo(r.ExactMatches.Item(0).ID, nMovie, FullCrew, False, Options, True, WorldWideTitleFallback, ForceTitleLanguage, CountryAbbreviation)
+            '        'ElseIf r.PopularTitles.Count > 0 AndAlso (r.PopularTitles(0).Lev <= 5 OrElse useAnyway) Then
+            '        '    b = GetMovieInfo(r.PopularTitles.Item(0).ID, nMovie, FullCrew, False, Options, True, WorldWideTitleFallback, ForceTitleLanguage, CountryAbbreviation)
+            '        'ElseIf r.PartialMatches.Count > 0 AndAlso (r.PartialMatches(0).Lev <= 5 OrElse useAnyway) Then
+            '        '    b = GetMovieInfo(r.PartialMatches.Item(0).ID, nMovie, FullCrew, False, Options, True, WorldWideTitleFallback, ForceTitleLanguage, CountryAbbreviation)
+            '        'End If
+            'End Select
+
+            Return Nothing
+        End Function
+
+        Private Function FindYear(ByVal tmpname As String, ByVal lst As List(Of MediaContainers.Movie)) As Integer
+            Dim tmpyear As String = ""
+            Dim i As Integer
+            Dim ret As Integer = -1
+            tmpname = Path.GetFileNameWithoutExtension(tmpname)
+            tmpname = tmpname.Replace(".", " ").Trim.Replace("(", " ").Replace(")", "").Trim
+            i = tmpname.LastIndexOf(" ")
+            If i >= 0 Then
+                tmpyear = tmpname.Substring(i + 1, tmpname.Length - i - 1)
+                If Integer.TryParse(tmpyear, 0) AndAlso Convert.ToInt32(tmpyear) > 1950 Then 'let's assume there are no movies older then 1950
+                    For c = 0 To lst.Count - 1
+                        If lst(c).Year = tmpyear Then
+                            ret = c
+                            Exit For
+                        End If
                     Next
                 End If
-                Page = Page + 1
-                If aE Then
-                    APIResult = Task.Run(Function() _clientE.SearchCollectionAsync(strMovieSet, Page))
-                    MovieSets = APIResult.Result
-                Else
-                    APIResult = Task.Run(Function() _client.SearchCollectionAsync(strMovieSet, Page))
-                    MovieSets = APIResult.Result
+            End If
+            Return ret
+        End Function
+
+        Public Sub GetSearchMovieInfoAsync(ByVal AEBNID As String, ByVal nMovie As MediaContainers.Movie, ByVal FilteredOptions As Structures.ScrapeOptions)
+            Try
+                If Not bwAEBN.IsBusy Then
+                    bwAEBN.WorkerReportsProgress = False
+                    bwAEBN.WorkerSupportsCancellation = True
+                    bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.SearchDetails_Movie,
+                                           .Parameter = AEBNID, .Movie = nMovie, .Options_Movie = FilteredOptions})
                 End If
-            End While
-        End If
+            Catch ex As Exception
+                logger.Error(ex, New StackFrame().GetMethod().Name)
+            End Try
+        End Sub
 
-        Return R
-    End Function
+        Public Sub GetSearchTVShowInfoAsync(ByVal AEBNID As String, ByVal nShow As MediaContainers.TVShow, ByVal Options As Structures.ScrapeOptions)
+            Try
+                If Not bwAEBN.IsBusy Then
+                    bwAEBN.WorkerReportsProgress = False
+                    bwAEBN.WorkerSupportsCancellation = True
+                    bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.SearchDetails_TVShow,
+                                           .Parameter = AEBNID, .TVShow = nShow, .Options_TV = Options})
+                End If
+            Catch ex As Exception
+                logger.Error(ex, New StackFrame().GetMethod().Name)
+            End Try
+        End Sub
 
-    Private Function SearchTVShow(ByVal showName As String) As SearchResults_TVShow
-        If String.IsNullOrEmpty(showName) Then Return New SearchResults_TVShow
+        Public Sub SearchMovieAsync(ByVal sMovieTitle As String, ByVal sMovieYear As String, ByVal FilteredOptions As Structures.ScrapeOptions)
+            Try
+                If Not bwAEBN.IsBusy Then
+                    bwAEBN.WorkerReportsProgress = False
+                    bwAEBN.WorkerSupportsCancellation = True
+                    bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.Movies, .Parameter = sMovieTitle, .Year = sMovieYear, .Options_Movie = FilteredOptions})
+                End If
+            Catch ex As Exception
+                logger.Error(ex, New StackFrame().GetMethod().Name)
+            End Try
+        End Sub
 
-        Dim R As New SearchResults_TVShow
-        Dim Page As Integer = 1
-        Dim Shows As AEbnLib.Objects.General.SearchContainer(Of AEbnLib.Objects.Search.SearchTv)
-        Dim TotP As Integer
-        Dim aE As Boolean
+        Public Sub SearchTVShowAsync(ByVal sShow As String, ByVal ScrapeModifiers As Structures.ScrapeModifiers, ByVal FilteredOptions As Structures.ScrapeOptions)
 
-        Dim APIResult As Task(Of AEbnLib.Objects.General.SearchContainer(Of AEbnLib.Objects.Search.SearchTv))
-        APIResult = Task.Run(Function() _client.SearchTvShowAsync(showName, Page))
+            If Not bwAEBN.IsBusy Then
+                bwAEBN.WorkerReportsProgress = False
+                bwAEBN.WorkerSupportsCancellation = True
+                bwAEBN.RunWorkerAsync(New Arguments With {.Search = SearchType.TVShows,
+                  .Parameter = sShow, .Options_TV = FilteredOptions, .ScrapeModifiers = ScrapeModifiers})
+            End If
+        End Sub
 
-        Shows = APIResult.Result
+        Private Sub bwAEBN_DoWork(ByVal sender As Object, ByVal e As System.ComponentModel.DoWorkEventArgs) Handles bwAEBN.DoWork
+            Dim Args As Arguments = DirectCast(e.Argument, Arguments)
 
-        If Shows.TotalResults = 0 AndAlso _addonSettings.FallBackEng Then
-            APIResult = Task.Run(Function() _clientE.SearchTvShowAsync(showName, Page))
-            Shows = APIResult.Result
-            aE = True
-        End If
+            Select Case Args.Search
+                Case SearchType.Movies
+                    Dim r As SearchResults_Movie = SearchMovie(Args.Parameter, Args.Year)
+                    e.Result = New Results With {.ResultType = SearchType.Movies, .Result = r}
 
-        If Shows.TotalResults > 0 Then
-            Dim strTitle As String = String.Empty
-            Dim strYear As String = String.Empty
-            TotP = Shows.TotalPages
-            While Page <= TotP AndAlso Page <= 3
-                If Shows.Results IsNot Nothing Then
-                    For Each aShow In Shows.Results
-                        If aShow.Name Is Nothing OrElse (aShow.Name IsNot Nothing AndAlso String.IsNullOrEmpty(aShow.Name)) Then
-                            If aShow.OriginalName IsNot Nothing AndAlso Not String.IsNullOrEmpty(aShow.OriginalName) Then
-                                strTitle = aShow.OriginalName
-                            End If
-                        Else
-                            strTitle = aShow.Name
+                Case SearchType.TVShows
+                    Dim r As SearchResults_TVShow = SearchTVShow(Args.Parameter)
+                    e.Result = New Results With {.ResultType = SearchType.TVShows, .Result = r}
+
+                Case SearchType.SearchDetails_Movie
+                    Dim r As MediaContainers.Movie = GetMovieInfo(Args.Parameter, True, Args.Options_Movie)
+                    e.Result = New Results With {.ResultType = SearchType.SearchDetails_Movie, .Result = r}
+
+                Case SearchType.SearchDetails_TVShow
+                    Dim r As MediaContainers.TVShow = GetTVShowInfo(Args.Parameter, Args.ScrapeModifiers, Args.Options_TV, True)
+                    e.Result = New Results With {.ResultType = SearchType.SearchDetails_TVShow, .Result = r}
+            End Select
+        End Sub
+
+        Private Sub bwAEBN_RunWorkerCompleted(ByVal sender As Object, ByVal e As System.ComponentModel.RunWorkerCompletedEventArgs) Handles bwAEBN.RunWorkerCompleted
+            Dim Res As Results = DirectCast(e.Result, Results)
+
+            Select Case Res.ResultType
+                Case SearchType.Movies
+                    RaiseEvent SearchResultsDownloaded_Movie(DirectCast(Res.Result, SearchResults_Movie))
+
+                Case SearchType.TVShows
+                    RaiseEvent SearchResultsDownloaded_TV(DirectCast(Res.Result, SearchResults_TVShow))
+
+                Case SearchType.SearchDetails_Movie
+                    Dim movieInfo As MediaContainers.Movie = DirectCast(Res.Result, MediaContainers.Movie)
+                    RaiseEvent SearchInfoDownloaded_Movie(sPoster, movieInfo)
+
+                Case SearchType.SearchDetails_TVShow
+                    Dim showInfo As MediaContainers.TVShow = DirectCast(Res.Result, MediaContainers.TVShow)
+                    RaiseEvent SearchInfoDownloaded_TV(sPoster, showInfo)
+            End Select
+        End Sub
+
+        Private Function CleanTitle(ByVal sString As String) As String
+            Dim CleanString As String = sString
+
+            If sString.StartsWith("""") Then CleanString = sString.Remove(0, 1)
+
+            If sString.EndsWith("""") Then CleanString = CleanString.Remove(CleanString.Length - 1, 1)
+
+            Return CleanString
+        End Function
+
+        Private Function CleanTitle_TVEpisode(ByVal sString As String) As String
+            Dim CleanString As String = sString.Trim
+
+            If sString.StartsWith("""") Then CleanString = sString.Remove(0, 1)
+            If sString.EndsWith("""") Then CleanString = CleanString.Remove(CleanString.Length - 1, 1)
+            CleanString = Regex.Replace(sString, "\(\d+\)", String.Empty)
+
+            Return CleanString.Trim
+        End Function
+
+        Private Function CleanRole(ByVal strRole As String) As String
+            Dim CleanString As String = strRole
+
+            CleanString = Regex.Replace(CleanString, "\/ \.\.\..*", String.Empty).Trim
+            CleanString = Regex.Replace(CleanString, "\(\d.*", String.Empty).Trim
+
+            If Not String.IsNullOrEmpty(CleanString) Then
+                Return CleanString
+            Else
+                Return strRole
+            End If
+        End Function
+
+        Private Function GetForcedTitle(ByVal strID As String, ByVal oTitle As String) As String
+            Dim fTitle As String = oTitle
+
+            If bwAEBN.CancellationPending Then Return Nothing
+            Dim HTML As String
+            intHTTP = New HTTP
+            HTML = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/title/", strID, "/releaseinfo#akas"))
+            intHTTP.Dispose()
+            intHTTP = Nothing
+
+            Dim D, W As Integer
+
+            D = HTML.IndexOf("<h4 class=""li_group"">Also Known As (AKA)&nbsp;</h4>")
+
+            If D > 0 Then
+                W = HTML.IndexOf("</table>", D)
+                Dim rTitles As MatchCollection = Regex.Matches(HTML.Substring(D, W - D), TD_PATTERN_4, RegexOptions.Multiline Or RegexOptions.IgnorePatternWhitespace)
+
+                If rTitles.Count > 0 Then
+                    For i As Integer = 0 To rTitles.Count - 1 Step 2
+                        If rTitles(i).Value.ToString.Contains(_SpecialSettings.ForceTitleLanguage) AndAlso Not rTitles(i).Value.ToString.Contains(String.Concat(_SpecialSettings.ForceTitleLanguage, " (working title)")) AndAlso Not rTitles(i).Value.ToString.Contains(String.Concat(_SpecialSettings.ForceTitleLanguage, " (fake working title)")) Then
+                            fTitle = CleanTitle(HttpUtility.HtmlDecode(rTitles(i + 1).Groups("title").Value.ToString.Trim))
+                            Exit For
+                            'if Setting WorldWide Title Fallback is enabled then instead of returning originaltitle (when force title language isn't found), use english/worldwide title instead (i.e. avoid asian original titles)
+                        ElseIf _SpecialSettings.FallBackWorldwide AndAlso (rTitles(i).Value.ToString.ToUpper.Contains("WORLD-WIDE") OrElse rTitles(i).Value.ToString.ToUpper.Contains("ENGLISH")) Then
+                            fTitle = CleanTitle(HttpUtility.HtmlDecode(rTitles(i + 1).Groups("title").Value.ToString.Trim))
                         End If
-                        If aShow.FirstAirDate IsNot Nothing AndAlso Not String.IsNullOrEmpty(CStr(aShow.FirstAirDate)) Then
-                            strYear = CStr(aShow.FirstAirDate.Value.Year)
-                        End If
-                        R.Matches.Add(New MediaContainers.TVShow With {
-                                      .Premiered = strYear,
-                                      .Title = strTitle,
-                                      .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.TVShow) With {.AEbnId = aShow.Id}
-                                      })
                     Next
                 End If
-                Page = Page + 1
-                If aE Then
-                    APIResult = Task.Run(Function() _clientE.SearchTvShowAsync(showName, Page))
-                    Shows = APIResult.Result
-                Else
-                    APIResult = Task.Run(Function() _client.SearchTvShowAsync(showName, Page))
-                    Shows = APIResult.Result
-                End If
-            End While
-        End If
+            End If
 
-        Return R
-    End Function
+            Return fTitle
+        End Function
+
+        Private Function GetMovieID(ByVal strObj As String) As String
+            Return Regex.Match(strObj, AEBN_ID_REGEX).ToString
+        End Function
+
+        Private Function SearchMovie(ByVal sMovieTitle As String, ByVal sMovieYear As String) As SearchResults_Movie
+
+            Dim sMovie As String = String.Concat(sMovieTitle, " ", If(Not String.IsNullOrEmpty(sMovieYear), String.Concat("(", sMovieYear, ")"), String.Empty))
+
+            Dim D, W As Integer
+            Dim R As New SearchResults_Movie
+
+            Dim HTML As String = String.Empty
+            Dim HTMLt As String = String.Empty
+            Dim HTMLp As String = String.Empty
+            Dim HTMLm As String = String.Empty
+            Dim HTMLe As String = String.Empty
+            Dim HTMLv As String = String.Empty
+            Dim HTMLs As String = String.Empty
+            Dim rUri As String = String.Empty
+
+            intHTTP = New HTTP
+            HTML = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/find?q=", HttpUtility.UrlEncode(sMovie), "&s=tt&ttype=ft"))
+            HTMLe = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/find?q=", HttpUtility.UrlEncode(sMovie), "&s=tt&ttype=ft&exact=true&ref_=fn_tt_ex"))
+            rUri = intHTTP.ResponseUri
+
+            If _SpecialSettings.SearchTvTitles Then
+                HTMLt = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/search/title?title=", HttpUtility.UrlEncode(sMovie), "&title_type=tv_movie"))
+            End If
+            If _SpecialSettings.SearchVideoTitles Then
+                HTMLv = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/search/title?title=", HttpUtility.UrlEncode(sMovie), "&title_type=video"))
+            End If
+            If _SpecialSettings.SearchShortTitles Then
+                HTMLs = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/search/title?title=", HttpUtility.UrlEncode(sMovie), "&title_type=short"))
+            End If
+            If _SpecialSettings.SearchPartialTitles Then
+                HTMLm = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/find?q=", HttpUtility.UrlEncode(sMovie), "&s=tt&ttype=ft&ref_=fn_ft"))
+            End If
+            If _SpecialSettings.SearchPopularTitles Then
+                HTMLp = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/find?q=", HttpUtility.UrlEncode(sMovie), "&s=tt&ttype=ft&ref_=fn_tt_pop"))
+            End If
+            intHTTP.Dispose()
+            intHTTP = Nothing
+
+            'Check if we've been redirected straight to the movie page
+            If Regex.IsMatch(rUri, AEBN_ID_REGEX) Then
+                Dim lNewMovie As MediaContainers.Movie = New MediaContainers.Movie(Regex.Match(rUri, AEBN_ID_REGEX).ToString,
+                    StringUtils.ConvertToProperCase(sMovie), Regex.Match(Regex.Match(HTML, MOVIE_TITLE_PATTERN).ToString, "(?<=\()\d+(?=.*\))").ToString, 0)
+                R.ExactMatches.Add(lNewMovie)
+                Return R
+            End If
+
+            'popular titles
+            D = HTMLp.IndexOf("</a>Titles</h3>")
+            If Not D <= 0 Then
+                W = HTMLp.IndexOf("</table>", D) + 8
+
+                Dim Table As String = Regex.Match(HTML.Substring(D, W - D), TABLE_PATTERN).ToString
+                Dim qPopular = From Mtr In Regex.Matches(Table, TITLE_PATTERN)
+                               Where Not DirectCast(Mtr, Match).Groups("name").ToString.Contains("<img") AndAlso Not DirectCast(Mtr, Match).Groups("type").ToString.Contains("VG")
+                               Select New MediaContainers.Movie(GetMovieID(DirectCast(Mtr, Match).Groups("url").ToString),
+                                                HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("name").ToString), HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("year").ToString), StringUtils.ComputeLevenshtein(StringUtils.FilterYear(sMovie).ToLower, StringUtils.FilterYear(HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("name").ToString)).ToLower))
+
+                R.PopularTitles = qPopular.ToList
+            End If
+
+            'partial titles
+            D = HTMLm.IndexOf("</a>Titles</h3>")
+            If Not D <= 0 Then
+                W = HTMLm.IndexOf("</table>", D) + 8
+
+                Dim Table As String = Regex.Match(HTMLm.Substring(D, W - D), TABLE_PATTERN).ToString
+                Dim qpartial = From Mtr In Regex.Matches(Table, TITLE_PATTERN)
+                               Where Not DirectCast(Mtr, Match).Groups("name").ToString.Contains("<img") AndAlso Not DirectCast(Mtr, Match).Groups("type").ToString.Contains("VG")
+                               Select New MediaContainers.Movie(GetMovieID(DirectCast(Mtr, Match).Groups("url").ToString),
+                                                HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("name").ToString), HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("year").ToString), StringUtils.ComputeLevenshtein(StringUtils.FilterYear(sMovie).ToLower, StringUtils.FilterYear(HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("name").ToString)).ToLower))
+
+                R.PartialMatches = qpartial.ToList
+            End If
+
+            'tv titles
+            D = HTMLt.IndexOf("<table class=""results"">")
+            If Not D <= 0 Then
+                W = HTMLt.IndexOf("</table>", D) + 8
+
+                Dim Table As String = HTMLt.Substring(D, W - D).ToString
+                Dim qtvmovie = From Mtr In Regex.Matches(Table, TvTITLE_PATTERN)
+                               Where Not DirectCast(Mtr, Match).Groups("name").ToString.Contains("<img") AndAlso Not DirectCast(Mtr, Match).Groups("type").ToString.Contains("VG")
+                               Select New MediaContainers.Movie(GetMovieID(DirectCast(Mtr, Match).Groups("url").ToString),
+                                                HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("name").ToString), HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("year").ToString), StringUtils.ComputeLevenshtein(StringUtils.FilterYear(sMovie).ToLower, StringUtils.FilterYear(HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("name").ToString)).ToLower))
+
+                R.TvTitles = qtvmovie.ToList
+            End If
+
+            'video titles
+            D = HTMLv.IndexOf("<table class=""results"">")
+            If Not D <= 0 Then
+                W = HTMLv.IndexOf("</table>", D) + 8
+
+                Dim Table As String = HTMLv.Substring(D, W - D).ToString
+                Dim qvideo = From Mtr In Regex.Matches(Table, TvTITLE_PATTERN)
+                             Where Not DirectCast(Mtr, Match).Groups("name").ToString.Contains("<img") AndAlso Not DirectCast(Mtr, Match).Groups("type").ToString.Contains("VG")
+                             Select New MediaContainers.Movie(GetMovieID(DirectCast(Mtr, Match).Groups("url").ToString),
+                                              HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("name").ToString), HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("year").ToString), StringUtils.ComputeLevenshtein(StringUtils.FilterYear(sMovie).ToLower, StringUtils.FilterYear(HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("name").ToString)).ToLower))
+
+                R.VideoTitles = qvideo.ToList
+            End If
+
+            'short titles
+            D = HTMLs.IndexOf("<table class=""results"">")
+            If Not D <= 0 Then
+                W = HTMLs.IndexOf("</table>", D) + 8
+
+                Dim Table As String = HTMLs.Substring(D, W - D).ToString
+                Dim qshort = From Mtr In Regex.Matches(Table, TvTITLE_PATTERN)
+                             Where Not DirectCast(Mtr, Match).Groups("name").ToString.Contains("<img") AndAlso Not DirectCast(Mtr, Match).Groups("type").ToString.Contains("VG")
+                             Select New MediaContainers.Movie(GetMovieID(DirectCast(Mtr, Match).Groups("url").ToString),
+                                              HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("name").ToString), HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("year").ToString), StringUtils.ComputeLevenshtein(StringUtils.FilterYear(sMovie).ToLower, StringUtils.FilterYear(HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("name").ToString)).ToLower))
+
+                R.ShortTitles = qshort.ToList
+            End If
+
+            'exact titles
+            D = HTMLe.IndexOf("</a>Titles</h3>")
+            If Not D <= 0 Then
+                W = HTMLe.IndexOf("</table>", D) + 8
+
+                Dim Table As String = Regex.Match(HTMLe.Substring(D, W - D), TABLE_PATTERN).ToString
+                Dim qExact = From Mtr In Regex.Matches(Table, TITLE_PATTERN)
+                             Where Not DirectCast(Mtr, Match).Groups("name").ToString.Contains("<img") AndAlso Not DirectCast(Mtr, Match).Groups("type").ToString.Contains("VG")
+                             Select New MediaContainers.Movie(GetMovieID(DirectCast(Mtr, Match).Groups("url").ToString),
+                          HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("name").ToString.ToString), HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("year").ToString), StringUtils.ComputeLevenshtein(StringUtils.FilterYear(sMovie).ToLower, StringUtils.FilterYear(HttpUtility.HtmlDecode(DirectCast(Mtr, Match).Groups("name").ToString)).ToLower))
+
+                R.ExactMatches = qExact.ToList
+            End If
+
+            Return R
+        End Function
+
+        Private Function SearchTVShow(ByVal sShowTitle As String) As SearchResults_TVShow
+            'Dim sShow As String = sShowTitle
+
+            'Dim R As New SearchResults_TVShow
+
+            'Dim HTML As String = String.Empty
+            'Dim rUri As String = String.Empty
+
+            'intHTTP = New HTTP
+            'HTML = intHTTP.DownloadData(String.Concat("http://", Master.eSettings.MovieAEBNURL, "/search/title?title=", HttpUtility.UrlEncode(sShow), "&title_type=tv_series"))
+            'rUri = intHTTP.ResponseUri
+
+            'intHTTP.Dispose()
+            'intHTTP = Nothing
+
+            ''search results
+            'Dim Table As String = Regex.Match(HTML, TABLE_PATTERN_TV, RegexOptions.Singleline).ToString
+            'For Each sResult As Match In Regex.Matches(Table, TVSHOWTITLE_PATTERN, RegexOptions.Singleline)
+            '    R.Matches.Add(New MediaContainers.TVShow With {.AEBN = sResult.Groups("AEBN").ToString, .Title = HttpUtility.HtmlDecode(sResult.Groups("TITLE").ToString)})
+            'Next
+
+            'Return R
+            Return Nothing
+        End Function
 
 #End Region 'Methods
 
 #Region "Nested Types"
 
-    Private Structure Arguments
+        Private Structure Arguments
 
 #Region "Fields"
 
-        Dim FullCast As Boolean
-        Dim FullCrew As Boolean
-        Dim Parameter As String
-        Dim ScrapeModifiers As Structures.ScrapeModifiers
-        Dim ScrapeOptions As Structures.ScrapeOptions
-        Dim Search As SearchType
-        Dim Year As Integer
+            Dim FullCast As Boolean
+            Dim FullCrew As Boolean
+            Dim Movie As MediaContainers.Movie
+            Dim Options_Movie As Structures.ScrapeOptions
+            Dim Options_TV As Structures.ScrapeOptions
+            Dim Parameter As String
+            Dim ScrapeModifiers As Structures.ScrapeModifiers
+            Dim Search As SearchType
+            Dim TVShow As MediaContainers.TVShow
+            Dim Year As String
 
 #End Region 'Fields
 
-    End Structure
+        End Structure
 
-    Private Structure Results
+        Private Structure Results
 
 #Region "Fields"
 
-        Dim Result As Object
-        Dim ResultType As SearchType
+            Dim Result As Object
+            Dim ResultType As SearchType
 
 #End Region 'Fields
 
-    End Structure
+        End Structure
 
 #End Region 'Nested Types
 
-End Class
+    End Class
+
+End Namespace
+

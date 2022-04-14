@@ -1,5 +1,5 @@
 ﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
-Partial Class dlgTMDBSearchResults_TV
+Partial Class dlgAEBNSearchResults_TV
     Inherits System.Windows.Forms.Form
 
     'Form overrides dispose to clean up the component list.
@@ -22,7 +22,7 @@ Partial Class dlgTMDBSearchResults_TV
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(dlgTMDBSearchResults_TV))
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(dlgAEBNSearchResults_TV))
         Me.OK_Button = New System.Windows.Forms.Button()
         Me.Cancel_Button = New System.Windows.Forms.Button()
         Me.tvResults = New System.Windows.Forms.TreeView()
@@ -30,31 +30,31 @@ Partial Class dlgTMDBSearchResults_TV
         Me.lblTitle = New System.Windows.Forms.Label()
         Me.lblTagline = New System.Windows.Forms.Label()
         Me.txtPlot = New System.Windows.Forms.TextBox()
-        Me.lblYear = New System.Windows.Forms.Label()
-        Me.lblCreator = New System.Windows.Forms.Label()
+        Me.lblPremiered = New System.Windows.Forms.Label()
+        Me.lblCreators = New System.Windows.Forms.Label()
         Me.lblGenre = New System.Windows.Forms.Label()
-        Me.txtTMDBID = New System.Windows.Forms.TextBox()
+        Me.txtAEBNID = New System.Windows.Forms.TextBox()
         Me.pnlTop = New System.Windows.Forms.Panel()
         Me.Label2 = New System.Windows.Forms.Label()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.PictureBox1 = New System.Windows.Forms.PictureBox()
         Me.chkManual = New System.Windows.Forms.CheckBox()
         Me.btnVerify = New System.Windows.Forms.Button()
-        Me.lblTMDBID = New System.Windows.Forms.Label()
-        Me.lblAiredHeader = New System.Windows.Forms.Label()
+        Me.lblAEBNID = New System.Windows.Forms.Label()
+        Me.lblPremieredHeader = New System.Windows.Forms.Label()
         Me.lblCreatorsHeader = New System.Windows.Forms.Label()
         Me.lblGenreHeader = New System.Windows.Forms.Label()
-        Me.lblTMDBHeader = New System.Windows.Forms.Label()
+        Me.lblAEBNHeader = New System.Windows.Forms.Label()
         Me.lblPlotHeader = New System.Windows.Forms.Label()
         Me.btnSearch = New System.Windows.Forms.Button()
         Me.txtSearch = New System.Windows.Forms.TextBox()
         Me.pnlLoading = New System.Windows.Forms.Panel()
-        Me.lblLoading = New System.Windows.Forms.Label()
-        Me.pbLoading = New System.Windows.Forms.ProgressBar()
+        Me.Label3 = New System.Windows.Forms.Label()
+        Me.ProgressBar1 = New System.Windows.Forms.ProgressBar()
         Me.pnlPicStatus = New System.Windows.Forms.Panel()
         Me.Label4 = New System.Windows.Forms.Label()
-        Me.btnOpenFolder = New System.Windows.Forms.Button()
         Me.txtFileName = New System.Windows.Forms.TextBox()
+        Me.btnOpenFolder = New System.Windows.Forms.Button()
         CType(Me.pbPoster, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.pnlTop.SuspendLayout()
         CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -88,9 +88,6 @@ Partial Class dlgTMDBSearchResults_TV
         Me.tvResults.HideSelection = False
         Me.tvResults.Location = New System.Drawing.Point(8, 126)
         Me.tvResults.Name = "tvResults"
-        Me.tvResults.ShowLines = False
-        Me.tvResults.ShowPlusMinus = False
-        Me.tvResults.ShowRootLines = False
         Me.tvResults.Size = New System.Drawing.Size(281, 299)
         Me.tvResults.TabIndex = 5
         '
@@ -130,6 +127,7 @@ Partial Class dlgTMDBSearchResults_TV
         Me.txtPlot.Location = New System.Drawing.Point(298, 325)
         Me.txtPlot.Multiline = True
         Me.txtPlot.Name = "txtPlot"
+        Me.txtPlot.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
         Me.txtPlot.Size = New System.Drawing.Size(343, 100)
         Me.txtPlot.TabIndex = 22
         Me.txtPlot.TabStop = False
@@ -137,43 +135,43 @@ Partial Class dlgTMDBSearchResults_TV
         '
         'lblYear
         '
-        Me.lblYear.AutoSize = True
-        Me.lblYear.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblYear.Location = New System.Drawing.Point(476, 160)
-        Me.lblYear.Name = "lblYear"
-        Me.lblYear.Size = New System.Drawing.Size(31, 13)
-        Me.lblYear.TabIndex = 13
-        Me.lblYear.Text = "0000"
-        Me.lblYear.Visible = False
+        Me.lblPremiered.AutoSize = True
+        Me.lblPremiered.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblPremiered.Location = New System.Drawing.Point(476, 160)
+        Me.lblPremiered.Name = "lblYear"
+        Me.lblPremiered.Size = New System.Drawing.Size(31, 13)
+        Me.lblPremiered.TabIndex = 13
+        Me.lblPremiered.Text = "0000"
+        Me.lblPremiered.Visible = False
         '
-        'lblCreator
+        'lblCreators
         '
-        Me.lblCreator.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblCreator.Location = New System.Drawing.Point(476, 186)
-        Me.lblCreator.Name = "lblCreator"
-        Me.lblCreator.Size = New System.Drawing.Size(165, 54)
-        Me.lblCreator.TabIndex = 15
-        Me.lblCreator.Text = "Creator"
-        Me.lblCreator.Visible = False
+        Me.lblCreators.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblCreators.Location = New System.Drawing.Point(476, 186)
+        Me.lblCreators.Name = "lblCreators"
+        Me.lblCreators.Size = New System.Drawing.Size(165, 16)
+        Me.lblCreators.TabIndex = 15
+        Me.lblCreators.Text = "Creators"
+        Me.lblCreators.Visible = False
         '
         'lblGenre
         '
         Me.lblGenre.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblGenre.Location = New System.Drawing.Point(476, 240)
+        Me.lblGenre.Location = New System.Drawing.Point(476, 213)
         Me.lblGenre.Name = "lblGenre"
-        Me.lblGenre.Size = New System.Drawing.Size(165, 37)
+        Me.lblGenre.Size = New System.Drawing.Size(165, 52)
         Me.lblGenre.TabIndex = 17
         Me.lblGenre.Text = "Genre"
         Me.lblGenre.Visible = False
         '
-        'txtTMDBID
+        'txtAEBNID
         '
-        Me.txtTMDBID.Enabled = False
-        Me.txtTMDBID.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtTMDBID.Location = New System.Drawing.Point(143, 429)
-        Me.txtTMDBID.Name = "txtTMDBID"
-        Me.txtTMDBID.Size = New System.Drawing.Size(100, 22)
-        Me.txtTMDBID.TabIndex = 7
+        Me.txtAEBNID.Enabled = False
+        Me.txtAEBNID.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtAEBNID.Location = New System.Drawing.Point(143, 429)
+        Me.txtAEBNID.Name = "txtAEBNID"
+        Me.txtAEBNID.Size = New System.Drawing.Size(100, 22)
+        Me.txtAEBNID.TabIndex = 7
         '
         'pnlTop
         '
@@ -186,7 +184,7 @@ Partial Class dlgTMDBSearchResults_TV
         Me.pnlTop.Location = New System.Drawing.Point(0, 0)
         Me.pnlTop.Name = "pnlTop"
         Me.pnlTop.Size = New System.Drawing.Size(664, 64)
-        Me.pnlTop.TabIndex = 8
+        Me.pnlTop.TabIndex = 2
         '
         'Label2
         '
@@ -196,9 +194,9 @@ Partial Class dlgTMDBSearchResults_TV
         Me.Label2.ForeColor = System.Drawing.Color.White
         Me.Label2.Location = New System.Drawing.Point(61, 38)
         Me.Label2.Name = "Label2"
-        Me.Label2.Size = New System.Drawing.Size(288, 13)
+        Me.Label2.Size = New System.Drawing.Size(276, 13)
         Me.Label2.TabIndex = 1
-        Me.Label2.Text = "View details of each result to find the proper TV show."
+        Me.Label2.Text = "View details of each result to find the proper movie."
         '
         'Label1
         '
@@ -229,9 +227,9 @@ Partial Class dlgTMDBSearchResults_TV
         Me.chkManual.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.chkManual.Location = New System.Drawing.Point(8, 433)
         Me.chkManual.Name = "chkManual"
-        Me.chkManual.Size = New System.Drawing.Size(130, 17)
+        Me.chkManual.Size = New System.Drawing.Size(128, 17)
         Me.chkManual.TabIndex = 6
-        Me.chkManual.Text = "Manual TMDB Entry:"
+        Me.chkManual.Text = "Manual AEBN Entry:"
         Me.chkManual.UseVisualStyleBackColor = True
         '
         'btnVerify
@@ -245,27 +243,27 @@ Partial Class dlgTMDBSearchResults_TV
         Me.btnVerify.Text = "Verify"
         Me.btnVerify.UseVisualStyleBackColor = True
         '
-        'lblTMDBID
+        'lblAEBNID
         '
-        Me.lblTMDBID.AutoSize = True
-        Me.lblTMDBID.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblTMDBID.Location = New System.Drawing.Point(476, 277)
-        Me.lblTMDBID.Name = "lblTMDBID"
-        Me.lblTMDBID.Size = New System.Drawing.Size(37, 13)
-        Me.lblTMDBID.TabIndex = 20
-        Me.lblTMDBID.Text = "TMDB"
-        Me.lblTMDBID.Visible = False
+        Me.lblAEBNID.AutoSize = True
+        Me.lblAEBNID.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblAEBNID.Location = New System.Drawing.Point(476, 277)
+        Me.lblAEBNID.Name = "lblAEBNID"
+        Me.lblAEBNID.Size = New System.Drawing.Size(35, 13)
+        Me.lblAEBNID.TabIndex = 19
+        Me.lblAEBNID.Text = "AEBN"
+        Me.lblAEBNID.Visible = False
         '
-        'lblAiredHeader
+        'lblPremieredHeader
         '
-        Me.lblAiredHeader.AutoSize = True
-        Me.lblAiredHeader.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(238, Byte))
-        Me.lblAiredHeader.Location = New System.Drawing.Point(414, 160)
-        Me.lblAiredHeader.Name = "lblAiredHeader"
-        Me.lblAiredHeader.Size = New System.Drawing.Size(38, 13)
-        Me.lblAiredHeader.TabIndex = 12
-        Me.lblAiredHeader.Text = "Aired:"
-        Me.lblAiredHeader.Visible = False
+        Me.lblPremieredHeader.AutoSize = True
+        Me.lblPremieredHeader.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(238, Byte))
+        Me.lblPremieredHeader.Location = New System.Drawing.Point(414, 160)
+        Me.lblPremieredHeader.Name = "lblPremieredHeader"
+        Me.lblPremieredHeader.Size = New System.Drawing.Size(63, 13)
+        Me.lblPremieredHeader.TabIndex = 12
+        Me.lblPremieredHeader.Text = "Premiered:"
+        Me.lblPremieredHeader.Visible = False
         '
         'lblCreatorsHeader
         '
@@ -282,23 +280,23 @@ Partial Class dlgTMDBSearchResults_TV
         '
         Me.lblGenreHeader.AutoSize = True
         Me.lblGenreHeader.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(238, Byte))
-        Me.lblGenreHeader.Location = New System.Drawing.Point(416, 240)
+        Me.lblGenreHeader.Location = New System.Drawing.Point(414, 213)
         Me.lblGenreHeader.Name = "lblGenreHeader"
-        Me.lblGenreHeader.Size = New System.Drawing.Size(46, 13)
+        Me.lblGenreHeader.Size = New System.Drawing.Size(54, 13)
         Me.lblGenreHeader.TabIndex = 16
-        Me.lblGenreHeader.Text = "Genres:"
+        Me.lblGenreHeader.Text = "Genre(s):"
         Me.lblGenreHeader.Visible = False
         '
-        'lblTMDBHeader
+        'lblAEBNHeader
         '
-        Me.lblTMDBHeader.AutoSize = True
-        Me.lblTMDBHeader.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(238, Byte))
-        Me.lblTMDBHeader.Location = New System.Drawing.Point(414, 277)
-        Me.lblTMDBHeader.Name = "lblTMDBHeader"
-        Me.lblTMDBHeader.Size = New System.Drawing.Size(56, 13)
-        Me.lblTMDBHeader.TabIndex = 19
-        Me.lblTMDBHeader.Text = "TMDB ID:"
-        Me.lblTMDBHeader.Visible = False
+        Me.lblAEBNHeader.AutoSize = True
+        Me.lblAEBNHeader.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(238, Byte))
+        Me.lblAEBNHeader.Location = New System.Drawing.Point(414, 277)
+        Me.lblAEBNHeader.Name = "lblAEBNHeader"
+        Me.lblAEBNHeader.Size = New System.Drawing.Size(53, 13)
+        Me.lblAEBNHeader.TabIndex = 18
+        Me.lblAEBNHeader.Text = "AEBN ID:"
+        Me.lblAEBNHeader.Visible = False
         '
         'lblPlotHeader
         '
@@ -306,9 +304,9 @@ Partial Class dlgTMDBSearchResults_TV
         Me.lblPlotHeader.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(238, Byte))
         Me.lblPlotHeader.Location = New System.Drawing.Point(295, 309)
         Me.lblPlotHeader.Name = "lblPlotHeader"
-        Me.lblPlotHeader.Size = New System.Drawing.Size(83, 13)
+        Me.lblPlotHeader.Size = New System.Drawing.Size(31, 13)
         Me.lblPlotHeader.TabIndex = 21
-        Me.lblPlotHeader.Text = "Plot Summary:"
+        Me.lblPlotHeader.Text = "Plot:"
         Me.lblPlotHeader.Visible = False
         '
         'btnSearch
@@ -325,37 +323,37 @@ Partial Class dlgTMDBSearchResults_TV
         Me.txtSearch.Location = New System.Drawing.Point(8, 101)
         Me.txtSearch.Name = "txtSearch"
         Me.txtSearch.Size = New System.Drawing.Size(252, 22)
-        Me.txtSearch.TabIndex = 2
+        Me.txtSearch.TabIndex = 3
         '
         'pnlLoading
         '
         Me.pnlLoading.BackColor = System.Drawing.Color.White
         Me.pnlLoading.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-        Me.pnlLoading.Controls.Add(Me.lblLoading)
-        Me.pnlLoading.Controls.Add(Me.pbLoading)
+        Me.pnlLoading.Controls.Add(Me.Label3)
+        Me.pnlLoading.Controls.Add(Me.ProgressBar1)
         Me.pnlLoading.Location = New System.Drawing.Point(368, 213)
         Me.pnlLoading.Name = "pnlLoading"
         Me.pnlLoading.Size = New System.Drawing.Size(200, 54)
-        Me.pnlLoading.TabIndex = 18
+        Me.pnlLoading.TabIndex = 20
         '
-        'lblLoading
+        'Label3
         '
-        Me.lblLoading.AutoSize = True
-        Me.lblLoading.Location = New System.Drawing.Point(3, 10)
-        Me.lblLoading.Name = "lblLoading"
-        Me.lblLoading.Size = New System.Drawing.Size(73, 13)
-        Me.lblLoading.TabIndex = 0
-        Me.lblLoading.Text = "Please wait..."
-        Me.lblLoading.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.Label3.AutoSize = True
+        Me.Label3.Location = New System.Drawing.Point(3, 10)
+        Me.Label3.Name = "Label3"
+        Me.Label3.Size = New System.Drawing.Size(98, 13)
+        Me.Label3.TabIndex = 0
+        Me.Label3.Text = "Searching AEBN..."
+        Me.Label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
-        'pbLoading
+        'ProgressBar1
         '
-        Me.pbLoading.Location = New System.Drawing.Point(3, 32)
-        Me.pbLoading.MarqueeAnimationSpeed = 25
-        Me.pbLoading.Name = "pbLoading"
-        Me.pbLoading.Size = New System.Drawing.Size(192, 17)
-        Me.pbLoading.Style = System.Windows.Forms.ProgressBarStyle.Marquee
-        Me.pbLoading.TabIndex = 1
+        Me.ProgressBar1.Location = New System.Drawing.Point(3, 32)
+        Me.ProgressBar1.MarqueeAnimationSpeed = 25
+        Me.ProgressBar1.Name = "ProgressBar1"
+        Me.ProgressBar1.Size = New System.Drawing.Size(192, 17)
+        Me.ProgressBar1.Style = System.Windows.Forms.ProgressBarStyle.Marquee
+        Me.ProgressBar1.TabIndex = 1
         '
         'pnlPicStatus
         '
@@ -376,24 +374,24 @@ Partial Class dlgTMDBSearchResults_TV
         Me.Label4.Text = "Fetching Poster..."
         Me.Label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
         '
-        'btnOpenFolder
-        '
-        Me.btnOpenFolder.Location = New System.Drawing.Point(612, 73)
-        Me.btnOpenFolder.Name = "btnOpenFolder"
-        Me.btnOpenFolder.Size = New System.Drawing.Size(29, 23)
-        Me.btnOpenFolder.TabIndex = 25
-        Me.btnOpenFolder.Text = "..."
-        Me.btnOpenFolder.UseVisualStyleBackColor = True
-        '
         'txtFileName
         '
         Me.txtFileName.Enabled = False
         Me.txtFileName.Location = New System.Drawing.Point(8, 73)
         Me.txtFileName.Name = "txtFileName"
         Me.txtFileName.Size = New System.Drawing.Size(598, 22)
-        Me.txtFileName.TabIndex = 24
+        Me.txtFileName.TabIndex = 3
         '
-        'dlgTMDBSearchResults_TV
+        'btnOpenFolder
+        '
+        Me.btnOpenFolder.Location = New System.Drawing.Point(612, 73)
+        Me.btnOpenFolder.Name = "btnOpenFolder"
+        Me.btnOpenFolder.Size = New System.Drawing.Size(29, 23)
+        Me.btnOpenFolder.TabIndex = 23
+        Me.btnOpenFolder.Text = "..."
+        Me.btnOpenFolder.UseVisualStyleBackColor = True
+        '
+        'dlgAEBNSearchResults_TV
         '
         Me.AcceptButton = Me.OK_Button
         Me.AutoScaleDimensions = New System.Drawing.SizeF(96.0!, 96.0!)
@@ -410,18 +408,18 @@ Partial Class dlgTMDBSearchResults_TV
         Me.Controls.Add(Me.btnSearch)
         Me.Controls.Add(Me.txtSearch)
         Me.Controls.Add(Me.lblPlotHeader)
-        Me.Controls.Add(Me.lblTMDBHeader)
+        Me.Controls.Add(Me.lblAEBNHeader)
         Me.Controls.Add(Me.lblGenreHeader)
         Me.Controls.Add(Me.lblCreatorsHeader)
-        Me.Controls.Add(Me.lblAiredHeader)
-        Me.Controls.Add(Me.lblTMDBID)
+        Me.Controls.Add(Me.lblPremieredHeader)
+        Me.Controls.Add(Me.lblAEBNID)
         Me.Controls.Add(Me.btnVerify)
         Me.Controls.Add(Me.chkManual)
         Me.Controls.Add(Me.pnlTop)
-        Me.Controls.Add(Me.txtTMDBID)
+        Me.Controls.Add(Me.txtAEBNID)
         Me.Controls.Add(Me.lblGenre)
-        Me.Controls.Add(Me.lblCreator)
-        Me.Controls.Add(Me.lblYear)
+        Me.Controls.Add(Me.lblCreators)
+        Me.Controls.Add(Me.lblPremiered)
         Me.Controls.Add(Me.txtPlot)
         Me.Controls.Add(Me.lblTagline)
         Me.Controls.Add(Me.lblTitle)
@@ -433,7 +431,7 @@ Partial Class dlgTMDBSearchResults_TV
         Me.MaximizeBox = False
         Me.MinimizeBox = False
         Me.MinimumSize = New System.Drawing.Size(670, 500)
-        Me.Name = "dlgTMDBSearchResults_TV"
+        Me.Name = "dlgAEBNSearchResults_TV"
         Me.Text = "Search Results"
         CType(Me.pbPoster, System.ComponentModel.ISupportInitialize).EndInit()
         Me.pnlTop.ResumeLayout(False)
@@ -453,30 +451,30 @@ Partial Class dlgTMDBSearchResults_TV
     Friend WithEvents lblTitle As System.Windows.Forms.Label
     Friend WithEvents lblTagline As System.Windows.Forms.Label
     Friend WithEvents txtPlot As System.Windows.Forms.TextBox
-    Friend WithEvents lblYear As System.Windows.Forms.Label
-    Friend WithEvents lblCreator As System.Windows.Forms.Label
+    Friend WithEvents lblPremiered As System.Windows.Forms.Label
+    Friend WithEvents lblCreators As System.Windows.Forms.Label
     Friend WithEvents lblGenre As System.Windows.Forms.Label
-    Friend WithEvents txtTMDBID As System.Windows.Forms.TextBox
+    Friend WithEvents txtAEBNID As System.Windows.Forms.TextBox
     Friend WithEvents pnlTop As System.Windows.Forms.Panel
     Friend WithEvents Label2 As System.Windows.Forms.Label
     Friend WithEvents Label1 As System.Windows.Forms.Label
     Friend WithEvents PictureBox1 As System.Windows.Forms.PictureBox
     Friend WithEvents chkManual As System.Windows.Forms.CheckBox
     Friend WithEvents btnVerify As System.Windows.Forms.Button
-    Friend WithEvents lblTMDBID As System.Windows.Forms.Label
-    Friend WithEvents lblAiredHeader As System.Windows.Forms.Label
+    Friend WithEvents lblAEBNID As System.Windows.Forms.Label
+    Friend WithEvents lblPremieredHeader As System.Windows.Forms.Label
     Friend WithEvents lblCreatorsHeader As System.Windows.Forms.Label
     Friend WithEvents lblGenreHeader As System.Windows.Forms.Label
-    Friend WithEvents lblTMDBHeader As System.Windows.Forms.Label
+    Friend WithEvents lblAEBNHeader As System.Windows.Forms.Label
     Friend WithEvents lblPlotHeader As System.Windows.Forms.Label
     Friend WithEvents btnSearch As System.Windows.Forms.Button
     Friend WithEvents txtSearch As System.Windows.Forms.TextBox
     Friend WithEvents pnlLoading As System.Windows.Forms.Panel
-    Friend WithEvents lblLoading As System.Windows.Forms.Label
-    Friend WithEvents pbLoading As System.Windows.Forms.ProgressBar
+    Friend WithEvents Label3 As System.Windows.Forms.Label
+    Friend WithEvents ProgressBar1 As System.Windows.Forms.ProgressBar
     Friend WithEvents pnlPicStatus As System.Windows.Forms.Panel
     Friend WithEvents Label4 As System.Windows.Forms.Label
-    Friend WithEvents btnOpenFolder As System.Windows.Forms.Button
     Friend WithEvents txtFileName As System.Windows.Forms.TextBox
+    Friend WithEvents btnOpenFolder As System.Windows.Forms.Button
 
 End Class

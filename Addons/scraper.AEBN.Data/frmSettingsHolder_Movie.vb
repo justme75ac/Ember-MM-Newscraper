@@ -26,20 +26,10 @@ Public Class frmSettingsHolder_Movie
 
     Public Event ModuleSettingsChanged()
     Public Event SetupScraperChanged(ByVal state As Boolean, ByVal difforder As Integer)
-    Public Event SetupNeedsRestart()
 
 #End Region 'Events
 
 #Region "Methods"
-
-    Public Sub New()
-        InitializeComponent()
-        Setup()
-    End Sub
-
-    Private Sub pbAEBNApiKeyInfo_Click(sender As Object, e As EventArgs) Handles pbAEBNApiKeyInfo.Click
-        Functions.Launch(My.Resources.urlAPIKey)
-    End Sub
 
     Private Sub btnDown_Click(ByVal sender As Object, ByVal e As EventArgs) Handles btnDown.Click
         Dim order As Integer = ModulesManager.Instance.externalScrapersModules_Data_Movie.FirstOrDefault(Function(p) p.AssemblyName = AEBN_Data._AssemblyName).ModuleOrder
@@ -61,36 +51,27 @@ Public Class frmSettingsHolder_Movie
         End If
     End Sub
 
-    Private Sub btnUnlockAPI_Click(sender As Object, e As EventArgs) Handles btnUnlockAPI.Click
-        If btnUnlockAPI.Text = Master.eLang.GetString(1188, "Use my own API key") Then
-            btnUnlockAPI.Text = Master.eLang.GetString(443, "Use embedded API Key")
-            lblEMMAPI.Visible = False
-            txtApiKey.Enabled = True
-        Else
-            btnUnlockAPI.Text = Master.eLang.GetString(1188, "Use my own API key")
-            lblEMMAPI.Visible = True
-            txtApiKey.Enabled = False
-            txtApiKey.Text = String.Empty
-        End If
-    End Sub
-
     Private Sub cbEnabled_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkEnabled.CheckedChanged
         RaiseEvent SetupScraperChanged(chkEnabled.Checked, 0)
-    End Sub
-
-    Private Sub chkWriters_CheckedChanged(sender As Object, e As EventArgs) Handles chkWriters.CheckedChanged
-        RaiseEvent ModuleSettingsChanged()
-    End Sub
-
-    Private Sub chkDirector_CheckedChanged(sender As Object, e As EventArgs) Handles chkDirectors.CheckedChanged
-        RaiseEvent ModuleSettingsChanged()
     End Sub
 
     Private Sub chkCast_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkActors.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
-    Private Sub chkCollectionID_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkCollectionID.CheckedChanged
+    Private Sub chkCertification_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkCertifications.CheckedChanged
+        RaiseEvent ModuleSettingsChanged()
+    End Sub
+
+    Private Sub chkMPAA_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkMPAA.CheckedChanged
+        RaiseEvent ModuleSettingsChanged()
+    End Sub
+
+    Private Sub chkWriters_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkWriters.CheckedChanged
+        RaiseEvent ModuleSettingsChanged()
+    End Sub
+
+    Private Sub chkDirector_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkDirectors.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
@@ -98,19 +79,11 @@ Public Class frmSettingsHolder_Movie
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
-    Private Sub chkGetAdult_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkGetAdultItems.CheckedChanged
+    Private Sub chkOutline_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkOutline.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
-    Private Sub chkSearchDeviant_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkSearchDeviant.CheckedChanged
-        RaiseEvent ModuleSettingsChanged()
-    End Sub
-
-    Private Sub chkMPAA_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkCertifications.CheckedChanged
-        RaiseEvent ModuleSettingsChanged()
-    End Sub
-
-    Private Sub chkOriginalTitle_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkOriginalTitle.CheckedChanged
+    Private Sub chkPartialTitles_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkPartialTitles.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
@@ -118,11 +91,15 @@ Public Class frmSettingsHolder_Movie
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
-    Private Sub chkPremiered_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkPremiered.CheckedChanged
+    Private Sub chkPopularTitles_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkPopularTitles.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
     Private Sub chkRating_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkRating.CheckedChanged
+        RaiseEvent ModuleSettingsChanged()
+    End Sub
+
+    Private Sub chkRelease_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkRelease.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
@@ -131,6 +108,16 @@ Public Class frmSettingsHolder_Movie
     End Sub
 
     Private Sub chkStudio_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkStudios.CheckedChanged
+        RaiseEvent ModuleSettingsChanged()
+        If chkStudios.Checked = False Then
+            chkStudiowithDistributors.Checked = False
+            chkStudiowithDistributors.Enabled = False
+        Else
+            chkStudiowithDistributors.Enabled = True
+        End If
+    End Sub
+
+    Private Sub chkStudiowithDistributors_CheckedChanged(sender As Object, e As EventArgs) Handles chkStudiowithDistributors.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
@@ -142,6 +129,18 @@ Public Class frmSettingsHolder_Movie
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
+    Private Sub chkOriginalTitle_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkOriginalTitle.CheckedChanged
+        RaiseEvent ModuleSettingsChanged()
+    End Sub
+
+    Private Sub chkTop250_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkTop250.CheckedChanged
+        RaiseEvent ModuleSettingsChanged()
+    End Sub
+
+    Private Sub chkTvTiles_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkTvTitles.CheckedChanged
+        RaiseEvent ModuleSettingsChanged()
+    End Sub
+
     Private Sub chkCountry_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkCountries.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
@@ -150,12 +149,40 @@ Public Class frmSettingsHolder_Movie
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
-    Private Sub chkFallBackEng_CheckedChanged(sender As Object, e As EventArgs) Handles chkFallBackEng.CheckedChanged
+    Private Sub chkVideoTitles_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkVideoTitles.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
-    Private Sub txtAEBNApiKey_TextChanged(ByVal sender As Object, ByVal e As EventArgs) Handles txtApiKey.TextChanged
+    Private Sub chkShortTitles_CheckedChanged(sender As Object, e As EventArgs) Handles chkShortTitles.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
+    End Sub
+
+    Private Sub chkYear_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkYear.CheckedChanged
+        RaiseEvent ModuleSettingsChanged()
+    End Sub
+
+    Private Sub chkFallBackworldwide_CheckedChanged(sender As Object, e As EventArgs) Handles chkFallBackworldwide.CheckedChanged
+        RaiseEvent ModuleSettingsChanged()
+    End Sub
+
+    Private Sub cbForceTitleLanguage_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cbForceTitleLanguage.SelectedIndexChanged
+        If cbForceTitleLanguage.SelectedIndex = -1 OrElse cbForceTitleLanguage.Text = "" Then
+            chkFallBackworldwide.Checked = False
+            chkFallBackworldwide.Enabled = False
+        Else
+            chkFallBackworldwide.Enabled = True
+        End If
+
+        RaiseEvent ModuleSettingsChanged()
+    End Sub
+
+    Private Sub chkCountryAbbreviation_CheckedChanged(sender As Object, e As EventArgs) Handles chkCountryAbbreviation.CheckedChanged
+        RaiseEvent ModuleSettingsChanged()
+    End Sub
+
+    Public Sub New()
+        InitializeComponent()
+        SetUp()
     End Sub
 
     Sub orderChanged()
@@ -169,34 +196,40 @@ Public Class frmSettingsHolder_Movie
         End If
     End Sub
 
-    Private Sub Setup()
-        btnUnlockAPI.Text = Master.eLang.GetString(1188, "Use my own API key")
+    Private Sub SetUp()
         chkActors.Text = Master.eLang.GetString(231, "Actors")
         chkCertifications.Text = Master.eLang.GetString(56, "Certifications")
-        chkCollectionID.Text = Master.eLang.GetString(1135, "Collection ID")
         chkCountries.Text = Master.eLang.GetString(237, "Countries")
+        chkCountryAbbreviation.Text = Master.eLang.GetString(1257, "Country-Tag: Save country abbreviation(s) instead of full name(s)")
         chkDirectors.Text = Master.eLang.GetString(940, "Directors")
         chkEnabled.Text = Master.eLang.GetString(774, "Enabled")
-        chkFallBackEng.Text = Master.eLang.GetString(922, "Fallback to english")
+        chkFallBackworldwide.Text = Master.eLang.GetString(984, "Worldwide title as fallback")
         chkGenres.Text = Master.eLang.GetString(725, "Genres")
-        chkGetAdultItems.Text = Master.eLang.GetString(1046, "Include Adult Items")
+        chkMPAA.Text = Master.eLang.GetString(401, "MPAA")
         chkOriginalTitle.Text = Master.eLang.GetString(302, "Original Title")
+        chkOutline.Text = Master.eLang.GetString(64, "Plot Outline")
         chkPlot.Text = Master.eLang.GetString(65, "Plot")
-        chkPremiered.Text = Master.eLang.GetString(724, "Premiered")
+        chkPartialTitles.Text = Master.eLang.GetString(1183, "Partial Titles")
+        chkPopularTitles.Text = Master.eLang.GetString(1182, "Popular Titles")
         chkRating.Text = Master.eLang.GetString(400, "Rating")
-        chkRuntime.Text = Master.eLang.GetString(238, "Runtime")
-        chkSearchDeviant.Text = Master.eLang.GetString(98, "Search -/+ 1 year if no search result was found")
+        chkRelease.Text = Master.eLang.GetString(57, "Release Date")
+        chkRuntime.Text = Master.eLang.GetString(396, "Runtime")
+        chkShortTitles.Text = Master.eLang.GetString(837, "Short Titles")
         chkStudios.Text = Master.eLang.GetString(226, "Studios")
         chkTagline.Text = Master.eLang.GetString(397, "Tagline")
         chkTitle.Text = Master.eLang.GetString(21, "Title")
+        chkTop250.Text = Master.eLang.GetString(591, "Top250")
         chkTrailer.Text = Master.eLang.GetString(151, "Trailer")
+        chkTvTitles.Text = Master.eLang.GetString(1184, "TV Movie Titles")
+        chkVideoTitles.Text = Master.eLang.GetString(1185, "Video Titles")
         chkWriters.Text = Master.eLang.GetString(394, "Writers")
+        chkYear.Text = Master.eLang.GetString(278, "Year")
         gbScraperFieldsOpts.Text = Master.eLang.GetString(791, "Scraper Fields - Scraper specific")
         gbScraperOpts.Text = Master.eLang.GetString(1186, "Scraper Options")
-        lblApiKey.Text = String.Concat(Master.eLang.GetString(870, "AEBN API Key"), ":")
-        lblEMMAPI.Text = Master.eLang.GetString(1189, "Ember Media Manager Embedded API Key")
+        lblForceTitleLanguage.Text = Master.eLang.GetString(710, "Force Title Language:")
         lblInfoBottom.Text = String.Format(Master.eLang.GetString(790, "These settings are specific to this module.{0}Please refer to the global settings for more options."), Environment.NewLine)
         lblScraperOrder.Text = Master.eLang.GetString(168, "Scrape Order")
+        chkStudiowithDistributors.Text = Master.eLang.GetString(1456, "Include Distributors")
     End Sub
 
 #End Region 'Methods
