@@ -20,7 +20,9 @@
 
 Imports System.IO
 Imports EmberAPI
+Imports ScraperModule.AEBN
 Imports NLog
+Imports System.Diagnostics
 
 ''' <summary>
 ''' Native Scraper
@@ -28,6 +30,7 @@ Imports NLog
 ''' <remarks></remarks>
 Public Class AEBN_Image
     Implements Interfaces.ScraperModule_Image_Movie
+    Implements Interfaces.ScraperModule_Image_MovieSet
 
 
 #Region "Fields"
