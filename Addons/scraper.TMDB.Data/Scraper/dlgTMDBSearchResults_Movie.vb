@@ -23,13 +23,13 @@ Imports NLog
 Imports System.Diagnostics
 Imports System.IO
 
-Public Class dlgTMDBSearchResults_Movie
+Public Class DlgTMDBSearchResults_Movie
 
 #Region "Fields"
 
     Shared logger As Logger = LogManager.GetCurrentClassLogger()
 
-    Friend WithEvents bwDownloadPic As New ComponentModel.BackgroundWorker
+    Friend WithEvents BwDownloadPic As New ComponentModel.BackgroundWorker
     Friend WithEvents tmrLoad As New Timer
     Friend WithEvents tmrWait As New Timer
 

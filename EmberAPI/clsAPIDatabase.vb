@@ -5185,7 +5185,7 @@ Public Class Database
 
 #Region "Database upgrade Methods"
 
-    Private Sub bwPatchDB_DoWork(ByVal sender As Object, ByVal e As System.ComponentModel.DoWorkEventArgs) Handles bwPatchDB.DoWork
+    Private Sub BwPatchDB_DoWork(ByVal sender As Object, ByVal e As System.ComponentModel.DoWorkEventArgs) Handles bwPatchDB.DoWork
         Dim Args As Arguments = DirectCast(e.Argument, Arguments)
 
         Dim xmlSer As XmlSerializer
@@ -5212,18 +5212,18 @@ Public Class Database
                     _cmds = DirectCast(xmlSer.Deserialize(xmlSW), Containers.InstallCommands)
                 End Using
 
-                For Each Trans In _cmds.transaction
+                For Each Trans In _cmds.Transaction
                     TransOk = True
                     Using SQLtransaction As SQLiteTransaction = _myvideosDBConn.BeginTransaction()
-                        For Each _cmd As Containers.CommandsTransactionCommand In Trans.command
-                            If _cmd.type = "DB" Then
+                        For Each _cmd As Containers.CommandsTransactionCommand In Trans.Command
+                            If _cmd.Type = "DB" Then
                                 Using SQLcommand As SQLiteCommand = _myvideosDBConn.CreateCommand()
-                                    SQLcommand.CommandText = _cmd.execute
+                                    SQLcommand.CommandText = _cmd.Execute
                                     Try
                                         SQLcommand.ExecuteNonQuery()
-                                        logger.Info(String.Concat(Trans.name, ": ", _cmd.description))
+                                        logger.Info(String.Concat(Trans.Name, ": ", _cmd.Description))
                                     Catch ex As Exception
-                                        logger.Error(New StackFrame().GetMethod().Name, ex, Trans.name, _cmd.description)
+                                        logger.Error(New StackFrame().GetMethod().Name, ex, Trans.Name, _cmd.Description)
                                         TransOk = False
                                         Exit For
                                     End Try
@@ -5231,7 +5231,7 @@ Public Class Database
                             End If
                         Next
                         If TransOk Then
-                            logger.Trace(String.Format("Transaction {0} Commit Done", Trans.name))
+                            logger.Trace(String.Format("Transaction {0} Commit Done", Trans.Name))
                             SQLtransaction.Commit()
                             ' Housekeeping - consolidate and pack database using vacuum command http://www.sqlite.org/lang_vacuum.html
                             Using SQLcommand As SQLiteCommand = _myvideosDBConn.CreateCommand()
@@ -5239,15 +5239,15 @@ Public Class Database
                                 SQLcommand.ExecuteNonQuery()
                             End Using
                         Else
-                            logger.Trace(New StackFrame().GetMethod().Name, String.Format("Transaction {0} RollBack", Trans.name))
+                            logger.Trace(New StackFrame().GetMethod().Name, String.Format("Transaction {0} RollBack", Trans.Name))
                             SQLtransaction.Rollback()
                         End If
                     End Using
                 Next
-                For Each _cmd As Containers.CommandsNoTransactionCommand In _cmds.noTransaction
-                    If _cmd.type = "DB" Then
+                For Each _cmd As Containers.CommandsNoTransactionCommand In _cmds.NoTransaction
+                    If _cmd.Type = "DB" Then
                         Using SQLnotransaction As SQLiteCommand = _myvideosDBConn.CreateCommand()
-                            SQLnotransaction.CommandText = _cmd.execute
+                            SQLnotransaction.CommandText = _cmd.Execute
                             Try
                                 SQLnotransaction.ExecuteNonQuery()
                                 ' Housekeeping - consolidate and pack database using vacuum command http://www.sqlite.org/lang_vacuum.html
@@ -5256,7 +5256,7 @@ Public Class Database
                                     SQLcommand.ExecuteNonQuery()
                                 End Using
                             Catch ex As Exception
-                                logger.Info(New StackFrame().GetMethod().Name, ex, SQLnotransaction, _cmd.description, _cmd.execute)
+                                logger.Info(New StackFrame().GetMethod().Name, ex, SQLnotransaction, _cmd.Description, _cmd.Execute)
                             End Try
                         End Using
                     End If
@@ -5406,14 +5406,14 @@ Public Class Database
         End Try
     End Sub
 
-    Private Sub bwPatchDB_ProgressChanged(ByVal sender As Object, ByVal e As System.ComponentModel.ProgressChangedEventArgs) Handles bwPatchDB.ProgressChanged
+    Private Sub BwPatchDB_ProgressChanged(ByVal sender As Object, ByVal e As System.ComponentModel.ProgressChangedEventArgs) Handles bwPatchDB.ProgressChanged
         If e.ProgressPercentage = -1 Then
             logger.Info(e.UserState.ToString)
             Master.fLoading.SetLoadingMesg(e.UserState.ToString)
         End If
     End Sub
 
-    Private Sub bwPatchDB_RunWorkerCompleted(ByVal sender As Object, ByVal e As System.ComponentModel.RunWorkerCompletedEventArgs) Handles bwPatchDB.RunWorkerCompleted
+    Private Sub BwPatchDB_RunWorkerCompleted(ByVal sender As Object, ByVal e As System.ComponentModel.RunWorkerCompletedEventArgs) Handles bwPatchDB.RunWorkerCompleted
         Return
     End Sub
     ''' <summary>

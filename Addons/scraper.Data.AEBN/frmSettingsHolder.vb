@@ -32,7 +32,7 @@ Public Class frmSettingsHolder
 
 #Region "Methods"
 
-    Private Sub btnDown_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDown.Click
+    Private Sub BtnDown_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDown.Click
         Dim order As Integer = ModulesManager.Instance.externalScrapersModules_Data_Movie.FirstOrDefault(Function(p) p.AssemblyName = AEBN_Data._AssemblyName).ModuleOrder
         If order < ModulesManager.Instance.externalScrapersModules_Data_Movie.Count - 1 Then
             ModulesManager.Instance.externalScrapersModules_Data_Movie.FirstOrDefault(Function(p) p.ModuleOrder = order + 1).ModuleOrder = order
@@ -42,7 +42,7 @@ Public Class frmSettingsHolder
         End If
     End Sub
 
-    Private Sub btnUp_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnUp.Click
+    Private Sub BtnUp_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnUp.Click
         Dim order As Integer = ModulesManager.Instance.externalScrapersModules_Data_Movie.FirstOrDefault(Function(p) p.AssemblyName = AEBN_Data._AssemblyName).ModuleOrder
         If order > 0 Then
             ModulesManager.Instance.externalScrapersModules_Data_Movie.FirstOrDefault(Function(p) p.ModuleOrder = order - 1).ModuleOrder = order
@@ -56,19 +56,19 @@ Public Class frmSettingsHolder
         RaiseEvent SetupScraperChanged(chkEnabled.Checked, 0)
     End Sub
 
-    Private Sub chkAEBNGenre_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs)
+    Private Sub ChkAEBNGenre_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs)
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
-    Private Sub chkAEBNOutline_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkOutline.CheckedChanged
+    Private Sub ChkAEBNOutline_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkOutline.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
-    Private Sub chkAEBNPlot_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkPlot.CheckedChanged
+    Private Sub ChkAEBNPlot_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkPlot.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
-    Private Sub chkkAEBNRating_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkCertifications.CheckedChanged
+    Private Sub ChkkAEBNRating_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkCertifications.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
@@ -77,7 +77,7 @@ Public Class frmSettingsHolder
         Me.SetUp()
     End Sub
 
-    Sub orderChanged()
+    Sub OrderChanged()
         Dim order As Integer = ModulesManager.Instance.externalScrapersModules_Data_Movie.FirstOrDefault(Function(p) p.AssemblyName = AEBN_Data._AssemblyName).ModuleOrder
         If ModulesManager.Instance.externalScrapersModules_Data_Movie.Count > 1 Then
             btnDown.Enabled = (order < ModulesManager.Instance.externalScrapersModules_Data_Movie.Count - 1)

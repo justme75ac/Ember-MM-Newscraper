@@ -49,7 +49,7 @@ Public Class ModulesManager
 
     Private moduleLocation As String = Path.Combine(Functions.AppPath, "Modules")
 
-    Friend WithEvents bwLoadModules As New System.ComponentModel.BackgroundWorker
+    Friend WithEvents BwLoadModules As New System.ComponentModel.BackgroundWorker
 
 #End Region 'Fields
 
@@ -138,11 +138,11 @@ Public Class ModulesManager
         Next
     End Sub
 
-    Private Sub bwLoadModules_DoWork(ByVal sender As Object, ByVal e As System.ComponentModel.DoWorkEventArgs) Handles bwLoadModules.DoWork
+    Private Sub BwLoadModules_DoWork(ByVal sender As Object, ByVal e As System.ComponentModel.DoWorkEventArgs) Handles BwLoadModules.DoWork
         LoadModules()
     End Sub
 
-    Private Sub bwLoadModules_RunWorkerCompleted(ByVal sender As Object, ByVal e As System.ComponentModel.RunWorkerCompletedEventArgs) Handles bwLoadModules.RunWorkerCompleted
+    Private Sub BwLoadModules_RunWorkerCompleted(ByVal sender As Object, ByVal e As System.ComponentModel.RunWorkerCompletedEventArgs) Handles BwLoadModules.RunWorkerCompleted
         BuildVersionList()
     End Sub
 

@@ -77,19 +77,19 @@ Public Class HTTP
         End Get
     End Property
 
-    Public ReadOnly Property isJPG() As Boolean
+    Public ReadOnly Property IsJPG() As Boolean
         Get
             Return _isJPG
         End Get
     End Property
 
-    Public ReadOnly Property isPNG() As Boolean
+    Public ReadOnly Property IsPNG() As Boolean
         Get
             Return _isPNG
         End Get
     End Property
 
-    Public ReadOnly Property ms() As MemoryStream
+    Public ReadOnly Property Ms() As MemoryStream
         Get
             Return _ms
         End Get

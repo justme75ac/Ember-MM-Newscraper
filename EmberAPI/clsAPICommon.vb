@@ -47,7 +47,7 @@ Public Class Containers
 
         '''<remarks/>
         <XmlElement("transaction")>
-        Public Property transaction() As List(Of CommandsTransaction)
+        Public Property Transaction() As List(Of CommandsTransaction)
             Get
                 Return transactionField
             End Get
@@ -58,7 +58,7 @@ Public Class Containers
 
         '''<remarks/>
         <XmlElement("noTransaction")>
-        Public Property noTransaction() As List(Of CommandsNoTransactionCommand)
+        Public Property NoTransaction() As List(Of CommandsNoTransactionCommand)
             Get
                 Return noTransactionField
             End Get
@@ -99,7 +99,7 @@ Public Class Containers
 
         '''<remarks/>
         <XmlElement("command")>
-        Public Property command() As List(Of CommandsTransactionCommand)
+        Public Property Command() As List(Of CommandsTransactionCommand)
             Get
                 Return commandField
             End Get
@@ -110,7 +110,7 @@ Public Class Containers
 
         '''<remarks/>
         <XmlAttribute()>
-        Public Property name() As String
+        Public Property Name() As String
             Get
                 Return nameField
             End Get
@@ -131,7 +131,7 @@ Public Class Containers
         Private typeField As String
 
         '''<remarks/>
-        Public Property description() As String
+        Public Property Description() As String
             Get
                 Return descriptionField
             End Get
@@ -141,7 +141,7 @@ Public Class Containers
         End Property
 
         '''<remarks/>
-        Public Property execute() As String
+        Public Property Execute() As String
             Get
                 Return executeField
             End Get
@@ -152,7 +152,7 @@ Public Class Containers
 
         '''<remarks/>
         <XmlAttribute()>
-        Public Property type() As String
+        Public Property Type() As String
             Get
                 Return typeField
             End Get
@@ -174,7 +174,7 @@ Public Class Containers
         Private typeField As String
 
         '''<remarks/>
-        Public Property description() As String
+        Public Property Description() As String
             Get
                 Return descriptionField
             End Get
@@ -184,7 +184,7 @@ Public Class Containers
         End Property
 
         '''<remarks/>
-        Public Property execute() As String
+        Public Property Execute() As String
             Get
                 Return executeField
             End Get
@@ -195,7 +195,7 @@ Public Class Containers
 
         '''<remarks/>
         <XmlAttribute()>
-        Public Property type() As String
+        Public Property Type() As String
             Get
                 Return typeField
             End Get

@@ -1965,17 +1965,17 @@ Public Class Settings
 
     End Class
 
-    Public Class regexp
+    Public Class RegExp
 
 #Region "Properties"
 
-        Public Property byDate As Boolean = False
+        Public Property ByDate As Boolean = False
 
-        Public Property defaultSeason As Integer = -2 '-1 is reserved for "* All Seasons" entry 
+        Public Property DefaultSeason As Integer = -2 '-1 is reserved for "* All Seasons" entry 
 
         Public Property ID As Integer = -1
 
-        Public Property Regexp As String = String.Empty
+        Public Property RegExp As String = String.Empty
 
 #End Region 'Properties
 
