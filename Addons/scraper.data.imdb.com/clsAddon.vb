@@ -1,4 +1,4 @@
-﻿' ################################################################################
+' ################################################################################
 ' #                             EMBER MEDIA MANAGER                              #
 ' ################################################################################
 ' ################################################################################
@@ -139,23 +139,23 @@ Public Class Addon
         LoadSettings_Movie()
         _setup_Movie.chkEnabled.Checked = _ScraperEnabled_Movie
 
-        _setup_Movie.chkActors.Checked = ConfigScrapeOptions_Movie.bMainActors
-        _setup_Movie.chkCertifications.Checked = ConfigScrapeOptions_Movie.bMainCertifications
-        _setup_Movie.chkCountries.Checked = ConfigScrapeOptions_Movie.bMainCountries
-        _setup_Movie.chkDirectors.Checked = ConfigScrapeOptions_Movie.bMainDirectors
-        _setup_Movie.chkGenres.Checked = ConfigScrapeOptions_Movie.bMainGenres
-        _setup_Movie.chkMPAA.Checked = ConfigScrapeOptions_Movie.bMainMPAA
-        _setup_Movie.chkOriginalTitle.Checked = ConfigScrapeOptions_Movie.bMainOriginalTitle
-        _setup_Movie.chkOutline.Checked = ConfigScrapeOptions_Movie.bMainOutline
-        _setup_Movie.chkPlot.Checked = ConfigScrapeOptions_Movie.bMainPlot
-        _setup_Movie.chkPremiered.Checked = ConfigScrapeOptions_Movie.bMainPremiered
-        _setup_Movie.chkRating.Checked = ConfigScrapeOptions_Movie.bMainRating
-        _setup_Movie.chkRuntime.Checked = ConfigScrapeOptions_Movie.bMainRuntime
-        _setup_Movie.chkStudios.Checked = ConfigScrapeOptions_Movie.bMainStudios
-        _setup_Movie.chkTagline.Checked = ConfigScrapeOptions_Movie.bMainTagline
-        _setup_Movie.chkTitle.Checked = ConfigScrapeOptions_Movie.bMainTitle
-        _setup_Movie.chkTop250.Checked = ConfigScrapeOptions_Movie.bMainTop250
-        _setup_Movie.chkWriters.Checked = ConfigScrapeOptions_Movie.bMainWriters
+        _setup_Movie.chkActors.Checked = ConfigScrapeOptions_Movie.Actors
+        _setup_Movie.chkCertifications.Checked = ConfigScrapeOptions_Movie.Certifications
+        _setup_Movie.chkCountries.Checked = ConfigScrapeOptions_Movie.Countries
+        _setup_Movie.chkDirectors.Checked = ConfigScrapeOptions_Movie.Directors
+        _setup_Movie.chkGenres.Checked = ConfigScrapeOptions_Movie.Genres
+        _setup_Movie.chkMPAA.Checked = ConfigScrapeOptions_Movie.MPAA
+        _setup_Movie.chkOriginalTitle.Checked = ConfigScrapeOptions_Movie.OriginalTitle
+        _setup_Movie.chkOutline.Checked = ConfigScrapeOptions_Movie.Outline
+        _setup_Movie.chkPlot.Checked = ConfigScrapeOptions_Movie.Plot
+        _setup_Movie.chkPremiered.Checked = ConfigScrapeOptions_Movie.Premiered
+        _setup_Movie.chkRating.Checked = ConfigScrapeOptions_Movie.Ratings
+        _setup_Movie.chkRuntime.Checked = ConfigScrapeOptions_Movie.Runtime
+        _setup_Movie.chkStudios.Checked = ConfigScrapeOptions_Movie.Studios
+        _setup_Movie.chkTagline.Checked = ConfigScrapeOptions_Movie.Tagline
+        _setup_Movie.chkTitle.Checked = ConfigScrapeOptions_Movie.Title
+        _setup_Movie.chkTop250.Checked = ConfigScrapeOptions_Movie.Top250
+        _setup_Movie.chkWriters.Checked = ConfigScrapeOptions_Movie.Credits
 
         _setup_Movie.cbForceTitleLanguage.Text = _SpecialSettings_Movie.ForceTitleLanguage
         _setup_Movie.chkFallBackworldwide.Checked = _SpecialSettings_Movie.FallBackWorldwide
@@ -169,7 +169,7 @@ Public Class Addon
 
         _setup_Movie.orderChanged()
 
-        SPanel.UniqueId = String.Concat(_Name, "_Movie")
+        SPanel.UniqueName = String.Concat(_Name, "_Movie")
         SPanel.Title = "IMDb.com"
         SPanel.Order = 110
         SPanel.Parent = "pnlMovieData"
@@ -192,32 +192,32 @@ Public Class Addon
         LoadSettings_TV()
         _setup_TV.chkEnabled.Checked = _ScraperEnabled_TV
 
-        _setup_TV.chkScraperEpActors.Checked = ConfigScrapeOptions_TV.bEpisodeActors
-        _setup_TV.chkScraperEpAired.Checked = ConfigScrapeOptions_TV.bEpisodeAired
-        _setup_TV.chkScraperEpCredits.Checked = ConfigScrapeOptions_TV.bEpisodeCredits
-        _setup_TV.chkScraperEpDirectors.Checked = ConfigScrapeOptions_TV.bEpisodeDirectors
-        _setup_TV.chkScraperEpPlot.Checked = ConfigScrapeOptions_TV.bEpisodePlot
-        _setup_TV.chkScraperEpRating.Checked = ConfigScrapeOptions_TV.bEpisodeRating
-        _setup_TV.chkScraperEpTitle.Checked = ConfigScrapeOptions_TV.bEpisodeTitle
-        _setup_TV.chkScraperShowActors.Checked = ConfigScrapeOptions_TV.bMainActors
-        _setup_TV.chkScraperShowCertifications.Checked = ConfigScrapeOptions_TV.bMainCertifications
-        _setup_TV.chkScraperShowCountries.Checked = ConfigScrapeOptions_TV.bMainCountries
-        _setup_TV.chkScraperShowCreators.Checked = ConfigScrapeOptions_TV.bMainCreators
-        _setup_TV.chkScraperShowGenres.Checked = ConfigScrapeOptions_TV.bMainGenres
-        _setup_TV.chkScraperShowOriginalTitle.Checked = ConfigScrapeOptions_TV.bMainOriginalTitle
-        _setup_TV.chkScraperShowPlot.Checked = ConfigScrapeOptions_TV.bMainPlot
-        _setup_TV.chkScraperShowPremiered.Checked = ConfigScrapeOptions_TV.bMainPremiered
-        _setup_TV.chkScraperShowRating.Checked = ConfigScrapeOptions_TV.bMainRating
-        _setup_TV.chkScraperShowRuntime.Checked = ConfigScrapeOptions_TV.bMainRuntime
-        _setup_TV.chkScraperShowStudios.Checked = ConfigScrapeOptions_TV.bMainStudios
-        _setup_TV.chkScraperShowTitle.Checked = ConfigScrapeOptions_TV.bMainTitle
+        _setup_TV.chkScraperEpActors.Checked = ConfigScrapeOptions_TV.Episodes.Actors
+        _setup_TV.chkScraperEpAired.Checked = ConfigScrapeOptions_TV.Episodes.Aired
+        _setup_TV.chkScraperEpCredits.Checked = ConfigScrapeOptions_TV.Episodes.Credits
+        _setup_TV.chkScraperEpDirectors.Checked = ConfigScrapeOptions_TV.Episodes.Directors
+        _setup_TV.chkScraperEpPlot.Checked = ConfigScrapeOptions_TV.Episodes.Plot
+        _setup_TV.chkScraperEpRating.Checked = ConfigScrapeOptions_TV.Episodes.Ratings
+        _setup_TV.chkScraperEpTitle.Checked = ConfigScrapeOptions_TV.Episodes.Title
+        _setup_TV.chkScraperShowActors.Checked = ConfigScrapeOptions_TV.Actors
+        _setup_TV.chkScraperShowCertifications.Checked = ConfigScrapeOptions_TV.Certifications
+        _setup_TV.chkScraperShowCountries.Checked = ConfigScrapeOptions_TV.Countries
+        _setup_TV.chkScraperShowCreators.Checked = ConfigScrapeOptions_TV.Creators
+        _setup_TV.chkScraperShowGenres.Checked = ConfigScrapeOptions_TV.Genres
+        _setup_TV.chkScraperShowOriginalTitle.Checked = ConfigScrapeOptions_TV.OriginalTitle
+        _setup_TV.chkScraperShowPlot.Checked = ConfigScrapeOptions_TV.Plot
+        _setup_TV.chkScraperShowPremiered.Checked = ConfigScrapeOptions_TV.Premiered
+        _setup_TV.chkScraperShowRating.Checked = ConfigScrapeOptions_TV.Ratings
+        _setup_TV.chkScraperShowRuntime.Checked = ConfigScrapeOptions_TV.Runtime
+        _setup_TV.chkScraperShowStudios.Checked = ConfigScrapeOptions_TV.Studios
+        _setup_TV.chkScraperShowTitle.Checked = ConfigScrapeOptions_TV.Title
 
         _setup_TV.cbForceTitleLanguage.Text = _SpecialSettings_TV.ForceTitleLanguage
         _setup_TV.chkFallBackworldwide.Checked = _SpecialSettings_TV.FallBackWorldwide
 
         _setup_TV.orderChanged()
 
-        SPanel.UniqueId = String.Concat(_Name, "_TV")
+        SPanel.UniqueName = String.Concat(_Name, "_TV")
         SPanel.Title = "IMDb.com"
         SPanel.Order = 110
         SPanel.Parent = "pnlTVData"
@@ -235,26 +235,26 @@ Public Class Addon
     End Function
 
     Sub LoadSettings_Movie()
-        ConfigScrapeOptions_Movie.bMainActors = Master.eAdvancedSettings.GetBooleanSetting("DoCast", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainCertifications = Master.eAdvancedSettings.GetBooleanSetting("DoCert", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainCountries = Master.eAdvancedSettings.GetBooleanSetting("DoCountry", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainDirectors = Master.eAdvancedSettings.GetBooleanSetting("DoDirector", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainGenres = Master.eAdvancedSettings.GetBooleanSetting("DoGenres", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainMPAA = Master.eAdvancedSettings.GetBooleanSetting("DoMPAA", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainOriginalTitle = Master.eAdvancedSettings.GetBooleanSetting("DoOriginalTitle", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainOutline = Master.eAdvancedSettings.GetBooleanSetting("DoOutline", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainPlot = Master.eAdvancedSettings.GetBooleanSetting("DoPlot", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainPremiered = Master.eAdvancedSettings.GetBooleanSetting("DoPremiered", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainRating = Master.eAdvancedSettings.GetBooleanSetting("DoRating", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainRuntime = Master.eAdvancedSettings.GetBooleanSetting("DoRuntime", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainStudios = Master.eAdvancedSettings.GetBooleanSetting("DoStudio", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainTagline = Master.eAdvancedSettings.GetBooleanSetting("DoTagline", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainTitle = Master.eAdvancedSettings.GetBooleanSetting("DoTitle", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainTop250 = Master.eAdvancedSettings.GetBooleanSetting("DoTop250", True, , Enums.ContentType.Movie)
-        ConfigScrapeOptions_Movie.bMainWriters = Master.eAdvancedSettings.GetBooleanSetting("DoWriters", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.Actors = Master.eAdvancedSettings.GetBooleanSetting("DoCast", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.Certifications = Master.eAdvancedSettings.GetBooleanSetting("DoCert", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.Countries = Master.eAdvancedSettings.GetBooleanSetting("DoCountry", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.Directors = Master.eAdvancedSettings.GetBooleanSetting("DoDirector", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.Genres = Master.eAdvancedSettings.GetBooleanSetting("DoGenres", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.MPAA = Master.eAdvancedSettings.GetBooleanSetting("DoMPAA", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.OriginalTitle = Master.eAdvancedSettings.GetBooleanSetting("DoOriginalTitle", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.Outline = Master.eAdvancedSettings.GetBooleanSetting("DoOutline", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.Plot = Master.eAdvancedSettings.GetBooleanSetting("DoPlot", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.Premiered = Master.eAdvancedSettings.GetBooleanSetting("DoPremiered", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.Ratings = Master.eAdvancedSettings.GetBooleanSetting("DoRating", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.Runtime = Master.eAdvancedSettings.GetBooleanSetting("DoRuntime", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.Studios = Master.eAdvancedSettings.GetBooleanSetting("DoStudio", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.Tagline = Master.eAdvancedSettings.GetBooleanSetting("DoTagline", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.Title = Master.eAdvancedSettings.GetBooleanSetting("DoTitle", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.Top250 = Master.eAdvancedSettings.GetBooleanSetting("DoTop250", True, , Enums.ContentType.Movie)
+        ConfigScrapeOptions_Movie.Credits = Master.eAdvancedSettings.GetBooleanSetting("DoWriters", True, , Enums.ContentType.Movie)
 
         _SpecialSettings_Movie.FallBackWorldwide = Master.eAdvancedSettings.GetBooleanSetting("FallBackWorldwide", False, , Enums.ContentType.Movie)
-        _SpecialSettings_Movie.ForceTitleLanguage = Master.eAdvancedSettings.GetSetting("ForceTitleLanguage", String.Empty, , Enums.ContentType.Movie)
+        _SpecialSettings_Movie.ForceTitleLanguage = Master.eAdvancedSettings.GetStringSetting("ForceTitleLanguage", String.Empty, Enums.ContentType.Movie)
         _SpecialSettings_Movie.MPAADescription = Master.eAdvancedSettings.GetBooleanSetting("MPAADescription", False, , Enums.ContentType.Movie)
         _SpecialSettings_Movie.SearchPartialTitles = Master.eAdvancedSettings.GetBooleanSetting("SearchPartialTitles", True, , Enums.ContentType.Movie)
         _SpecialSettings_Movie.SearchPopularTitles = Master.eAdvancedSettings.GetBooleanSetting("SearchPopularTitles", True, , Enums.ContentType.Movie)
@@ -265,107 +265,102 @@ Public Class Addon
     End Sub
 
     Sub LoadSettings_TV()
-        ConfigScrapeOptions_TV.bEpisodeActors = Master.eAdvancedSettings.GetBooleanSetting("DoActors", True, , Enums.ContentType.TVEpisode)
-        ConfigScrapeOptions_TV.bEpisodeAired = Master.eAdvancedSettings.GetBooleanSetting("DoAired", True, , Enums.ContentType.TVEpisode)
-        ConfigScrapeOptions_TV.bEpisodeCredits = Master.eAdvancedSettings.GetBooleanSetting("DoCredits", True, , Enums.ContentType.TVEpisode)
-        ConfigScrapeOptions_TV.bEpisodeDirectors = Master.eAdvancedSettings.GetBooleanSetting("DoDirector", True, , Enums.ContentType.TVEpisode)
-        ConfigScrapeOptions_TV.bEpisodePlot = Master.eAdvancedSettings.GetBooleanSetting("DoPlot", True, , Enums.ContentType.TVEpisode)
-        ConfigScrapeOptions_TV.bEpisodeRating = Master.eAdvancedSettings.GetBooleanSetting("DoRating", True, , Enums.ContentType.TVEpisode)
-        ConfigScrapeOptions_TV.bEpisodeTitle = Master.eAdvancedSettings.GetBooleanSetting("DoTitle", True, , Enums.ContentType.TVEpisode)
-        ConfigScrapeOptions_TV.bMainActors = Master.eAdvancedSettings.GetBooleanSetting("DoActors", True, , Enums.ContentType.TVShow)
-        ConfigScrapeOptions_TV.bMainCertifications = Master.eAdvancedSettings.GetBooleanSetting("DoCert", True, , Enums.ContentType.TVShow)
-        ConfigScrapeOptions_TV.bMainCountries = Master.eAdvancedSettings.GetBooleanSetting("DoCountry", True, , Enums.ContentType.TVShow)
-        ConfigScrapeOptions_TV.bMainCreators = Master.eAdvancedSettings.GetBooleanSetting("DoCreator", True, , Enums.ContentType.TVShow)
-        ConfigScrapeOptions_TV.bMainGenres = Master.eAdvancedSettings.GetBooleanSetting("DoGenre", True, , Enums.ContentType.TVShow)
-        ConfigScrapeOptions_TV.bMainOriginalTitle = Master.eAdvancedSettings.GetBooleanSetting("DoOriginalTitle", True, , Enums.ContentType.TVShow)
-        ConfigScrapeOptions_TV.bMainPlot = Master.eAdvancedSettings.GetBooleanSetting("DoPlot", True, , Enums.ContentType.TVShow)
-        ConfigScrapeOptions_TV.bMainPremiered = Master.eAdvancedSettings.GetBooleanSetting("DoPremiered", True, , Enums.ContentType.TVShow)
-        ConfigScrapeOptions_TV.bMainRating = Master.eAdvancedSettings.GetBooleanSetting("DoRating", True, , Enums.ContentType.TVShow)
-        ConfigScrapeOptions_TV.bMainRuntime = Master.eAdvancedSettings.GetBooleanSetting("DoRuntime", True, , Enums.ContentType.TVShow)
-        ConfigScrapeOptions_TV.bMainStudios = Master.eAdvancedSettings.GetBooleanSetting("DoStudio", True, , Enums.ContentType.TVShow)
-        ConfigScrapeOptions_TV.bMainTitle = Master.eAdvancedSettings.GetBooleanSetting("DoTitle", True, , Enums.ContentType.TVShow)
+        ConfigScrapeOptions_TV.Episodes.Actors = Master.eAdvancedSettings.GetBooleanSetting("DoActors", True, , Enums.ContentType.TVEpisode)
+        ConfigScrapeOptions_TV.Episodes.Aired = Master.eAdvancedSettings.GetBooleanSetting("DoAired", True, , Enums.ContentType.TVEpisode)
+        ConfigScrapeOptions_TV.Episodes.Credits = Master.eAdvancedSettings.GetBooleanSetting("DoCredits", True, , Enums.ContentType.TVEpisode)
+        ConfigScrapeOptions_TV.Episodes.Directors = Master.eAdvancedSettings.GetBooleanSetting("DoDirector", True, , Enums.ContentType.TVEpisode)
+        ConfigScrapeOptions_TV.Episodes.Plot = Master.eAdvancedSettings.GetBooleanSetting("DoPlot", True, , Enums.ContentType.TVEpisode)
+        ConfigScrapeOptions_TV.Episodes.Ratings = Master.eAdvancedSettings.GetBooleanSetting("DoRating", True, , Enums.ContentType.TVEpisode)
+        ConfigScrapeOptions_TV.Episodes.Title = Master.eAdvancedSettings.GetBooleanSetting("DoTitle", True, , Enums.ContentType.TVEpisode)
+        ConfigScrapeOptions_TV.Actors = Master.eAdvancedSettings.GetBooleanSetting("DoActors", True, , Enums.ContentType.TVShow)
+        ConfigScrapeOptions_TV.Certifications = Master.eAdvancedSettings.GetBooleanSetting("DoCert", True, , Enums.ContentType.TVShow)
+        ConfigScrapeOptions_TV.Countries = Master.eAdvancedSettings.GetBooleanSetting("DoCountry", True, , Enums.ContentType.TVShow)
+        ConfigScrapeOptions_TV.Creators = Master.eAdvancedSettings.GetBooleanSetting("DoCreator", True, , Enums.ContentType.TVShow)
+        ConfigScrapeOptions_TV.Genres = Master.eAdvancedSettings.GetBooleanSetting("DoGenre", True, , Enums.ContentType.TVShow)
+        ConfigScrapeOptions_TV.OriginalTitle = Master.eAdvancedSettings.GetBooleanSetting("DoOriginalTitle", True, , Enums.ContentType.TVShow)
+        ConfigScrapeOptions_TV.Plot = Master.eAdvancedSettings.GetBooleanSetting("DoPlot", True, , Enums.ContentType.TVShow)
+        ConfigScrapeOptions_TV.Premiered = Master.eAdvancedSettings.GetBooleanSetting("DoPremiered", True, , Enums.ContentType.TVShow)
+        ConfigScrapeOptions_TV.Ratings = Master.eAdvancedSettings.GetBooleanSetting("DoRating", True, , Enums.ContentType.TVShow)
+        ConfigScrapeOptions_TV.Runtime = Master.eAdvancedSettings.GetBooleanSetting("DoRuntime", True, , Enums.ContentType.TVShow)
+        ConfigScrapeOptions_TV.Studios = Master.eAdvancedSettings.GetBooleanSetting("DoStudio", True, , Enums.ContentType.TVShow)
+        ConfigScrapeOptions_TV.Title = Master.eAdvancedSettings.GetBooleanSetting("DoTitle", True, , Enums.ContentType.TVShow)
 
         _SpecialSettings_TV.FallBackWorldwide = Master.eAdvancedSettings.GetBooleanSetting("FallBackWorldwide", False, , Enums.ContentType.TVShow)
-        _SpecialSettings_TV.ForceTitleLanguage = Master.eAdvancedSettings.GetSetting("ForceTitleLanguage", String.Empty, , Enums.ContentType.TVShow)
+        _SpecialSettings_TV.ForceTitleLanguage = Master.eAdvancedSettings.GetStringSetting("ForceTitleLanguage", String.Empty, Enums.ContentType.TVShow)
     End Sub
 
     Private Sub PersistSettings_Movie()
-        Using settings = New AdvancedSettings()
+        Master.eAdvancedSettings.SetBooleanSetting("DoCast", ConfigScrapeOptions_Movie.Actors, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoCert", ConfigScrapeOptions_Movie.Certifications, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoCountry", ConfigScrapeOptions_Movie.Countries, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoDirector", ConfigScrapeOptions_Movie.Directors, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoGenres", ConfigScrapeOptions_Movie.Genres, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoMPAA", ConfigScrapeOptions_Movie.MPAA, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoOriginalTitle", ConfigScrapeOptions_Movie.OriginalTitle, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoOutline", ConfigScrapeOptions_Movie.Outline, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoPlot", ConfigScrapeOptions_Movie.Plot, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoPremiered", ConfigScrapeOptions_Movie.Premiered, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoRating", ConfigScrapeOptions_Movie.Ratings, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoRuntime", ConfigScrapeOptions_Movie.Runtime, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoStudio", ConfigScrapeOptions_Movie.Studios, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoTagline", ConfigScrapeOptions_Movie.Tagline, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoTitle", ConfigScrapeOptions_Movie.Title, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoTop250", ConfigScrapeOptions_Movie.Top250, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("DoWriters", ConfigScrapeOptions_Movie.Credits, False, Enums.ContentType.Movie)
 
-            settings.SetBooleanSetting("DoCast", ConfigScrapeOptions_Movie.bMainActors, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoCert", ConfigScrapeOptions_Movie.bMainCertifications, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoCountry", ConfigScrapeOptions_Movie.bMainCountries, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoDirector", ConfigScrapeOptions_Movie.bMainDirectors, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoGenres", ConfigScrapeOptions_Movie.bMainGenres, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoMPAA", ConfigScrapeOptions_Movie.bMainMPAA, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoOriginalTitle", ConfigScrapeOptions_Movie.bMainOriginalTitle, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoOutline", ConfigScrapeOptions_Movie.bMainOutline, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoPlot", ConfigScrapeOptions_Movie.bMainPlot, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoPremiered", ConfigScrapeOptions_Movie.bMainPremiered, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoRating", ConfigScrapeOptions_Movie.bMainRating, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoRuntime", ConfigScrapeOptions_Movie.bMainRuntime, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoStudio", ConfigScrapeOptions_Movie.bMainStudios, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoTagline", ConfigScrapeOptions_Movie.bMainTagline, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoTitle", ConfigScrapeOptions_Movie.bMainTitle, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoTop250", ConfigScrapeOptions_Movie.bMainTop250, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("DoWriters", ConfigScrapeOptions_Movie.bMainWriters, , , Enums.ContentType.Movie)
-
-            settings.SetBooleanSetting("FallBackWorldwide", _SpecialSettings_Movie.FallBackWorldwide, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("MPAADescription", _SpecialSettings_Movie.MPAADescription, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("SearchPartialTitles", _SpecialSettings_Movie.SearchPartialTitles, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("SearchPopularTitles", _SpecialSettings_Movie.SearchPopularTitles, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("SearchTvTitles", _SpecialSettings_Movie.SearchTvTitles, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("SearchVideoTitles", _SpecialSettings_Movie.SearchVideoTitles, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("SearchShortTitles", _SpecialSettings_Movie.SearchShortTitles, , , Enums.ContentType.Movie)
-            settings.SetSetting("ForceTitleLanguage", _SpecialSettings_Movie.ForceTitleLanguage, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("StudiowithDistributors", _SpecialSettings_Movie.StudiowithDistributors, , , Enums.ContentType.Movie)
-        End Using
+        Master.eAdvancedSettings.SetBooleanSetting("FallBackWorldwide", _SpecialSettings_Movie.FallBackWorldwide, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("MPAADescription", _SpecialSettings_Movie.MPAADescription, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("SearchPartialTitles", _SpecialSettings_Movie.SearchPartialTitles, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("SearchPopularTitles", _SpecialSettings_Movie.SearchPopularTitles, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("SearchTvTitles", _SpecialSettings_Movie.SearchTvTitles, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("SearchVideoTitles", _SpecialSettings_Movie.SearchVideoTitles, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("SearchShortTitles", _SpecialSettings_Movie.SearchShortTitles, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetStringSetting("ForceTitleLanguage", _SpecialSettings_Movie.ForceTitleLanguage, False, Enums.ContentType.Movie)
+        Master.eAdvancedSettings.SetBooleanSetting("StudiowithDistributors", _SpecialSettings_Movie.StudiowithDistributors, False, Enums.ContentType.Movie)
     End Sub
 
     Private Sub PersistSettings_TV()
-        Using settings = New AdvancedSettings()
-            settings.SetBooleanSetting("DoActors", ConfigScrapeOptions_TV.bEpisodeActors, , , Enums.ContentType.TVEpisode)
-            settings.SetBooleanSetting("DoAired", ConfigScrapeOptions_TV.bEpisodeAired, , , Enums.ContentType.TVEpisode)
-            settings.SetBooleanSetting("DoCredits", ConfigScrapeOptions_TV.bEpisodeCredits, , , Enums.ContentType.TVEpisode)
-            settings.SetBooleanSetting("DoDirector", ConfigScrapeOptions_TV.bEpisodeDirectors, , , Enums.ContentType.TVEpisode)
-            settings.SetBooleanSetting("DoPlot", ConfigScrapeOptions_TV.bEpisodePlot, , , Enums.ContentType.TVEpisode)
-            settings.SetBooleanSetting("DoRating", ConfigScrapeOptions_TV.bEpisodeRating, , , Enums.ContentType.TVEpisode)
-            settings.SetBooleanSetting("DoTitle", ConfigScrapeOptions_TV.bEpisodeTitle, , , Enums.ContentType.TVEpisode)
-            settings.SetBooleanSetting("DoActors", ConfigScrapeOptions_TV.bMainActors, , , Enums.ContentType.TVShow)
-            settings.SetBooleanSetting("DoCert", ConfigScrapeOptions_TV.bMainCertifications, , , Enums.ContentType.TVShow)
-            settings.SetBooleanSetting("DoCountry", ConfigScrapeOptions_TV.bMainCountries, , , Enums.ContentType.TVShow)
-            settings.SetBooleanSetting("DoCreator", ConfigScrapeOptions_TV.bMainCreators, , , Enums.ContentType.TVShow)
-            settings.SetBooleanSetting("DoGenre", ConfigScrapeOptions_TV.bMainGenres, , , Enums.ContentType.TVShow)
-            settings.SetBooleanSetting("DoOriginalTitle", ConfigScrapeOptions_TV.bMainOriginalTitle, , , Enums.ContentType.TVShow)
-            settings.SetBooleanSetting("DoPlot", ConfigScrapeOptions_TV.bMainPlot, , , Enums.ContentType.TVShow)
-            settings.SetBooleanSetting("DoPremiered", ConfigScrapeOptions_TV.bMainPremiered, , , Enums.ContentType.TVShow)
-            settings.SetBooleanSetting("DoRating", ConfigScrapeOptions_TV.bMainRating, , , Enums.ContentType.TVShow)
-            settings.SetBooleanSetting("DoRuntime", ConfigScrapeOptions_TV.bMainRuntime, , , Enums.ContentType.TVShow)
-            settings.SetBooleanSetting("DoStudio", ConfigScrapeOptions_TV.bMainStudios, , , Enums.ContentType.TVShow)
-            settings.SetBooleanSetting("DoTitle", ConfigScrapeOptions_TV.bMainTitle, , , Enums.ContentType.TVShow)
-            settings.SetBooleanSetting("FallBackWorldwide", _SpecialSettings_TV.FallBackWorldwide, , , Enums.ContentType.TVShow)
-            settings.SetSetting("ForceTitleLanguage", _SpecialSettings_TV.ForceTitleLanguage, , , Enums.ContentType.TVShow)
-        End Using
+        Master.eAdvancedSettings.SetBooleanSetting("DoActors", ConfigScrapeOptions_TV.Episodes.Actors, False, Enums.ContentType.TVEpisode)
+        Master.eAdvancedSettings.SetBooleanSetting("DoAired", ConfigScrapeOptions_TV.Episodes.Aired, False, Enums.ContentType.TVEpisode)
+        Master.eAdvancedSettings.SetBooleanSetting("DoCredits", ConfigScrapeOptions_TV.Episodes.Credits, False, Enums.ContentType.TVEpisode)
+        Master.eAdvancedSettings.SetBooleanSetting("DoDirector", ConfigScrapeOptions_TV.Episodes.Directors, False, Enums.ContentType.TVEpisode)
+        Master.eAdvancedSettings.SetBooleanSetting("DoPlot", ConfigScrapeOptions_TV.Episodes.Plot, False, Enums.ContentType.TVEpisode)
+        Master.eAdvancedSettings.SetBooleanSetting("DoRating", ConfigScrapeOptions_TV.Episodes.Ratings, False, Enums.ContentType.TVEpisode)
+        Master.eAdvancedSettings.SetBooleanSetting("DoTitle", ConfigScrapeOptions_TV.Episodes.Title, False, Enums.ContentType.TVEpisode)
+        Master.eAdvancedSettings.SetBooleanSetting("DoActors", ConfigScrapeOptions_TV.Actors, False, Enums.ContentType.TVShow)
+        Master.eAdvancedSettings.SetBooleanSetting("DoCert", ConfigScrapeOptions_TV.Certifications, False, Enums.ContentType.TVShow)
+        Master.eAdvancedSettings.SetBooleanSetting("DoCountry", ConfigScrapeOptions_TV.Countries, False, Enums.ContentType.TVShow)
+        Master.eAdvancedSettings.SetBooleanSetting("DoCreator", ConfigScrapeOptions_TV.Creators, False, Enums.ContentType.TVShow)
+        Master.eAdvancedSettings.SetBooleanSetting("DoGenre", ConfigScrapeOptions_TV.Genres, False, Enums.ContentType.TVShow)
+        Master.eAdvancedSettings.SetBooleanSetting("DoOriginalTitle", ConfigScrapeOptions_TV.OriginalTitle, False, Enums.ContentType.TVShow)
+        Master.eAdvancedSettings.SetBooleanSetting("DoPlot", ConfigScrapeOptions_TV.Plot, False, Enums.ContentType.TVShow)
+        Master.eAdvancedSettings.SetBooleanSetting("DoPremiered", ConfigScrapeOptions_TV.Premiered, False, Enums.ContentType.TVShow)
+        Master.eAdvancedSettings.SetBooleanSetting("DoRating", ConfigScrapeOptions_TV.Ratings, False, Enums.ContentType.TVShow)
+        Master.eAdvancedSettings.SetBooleanSetting("DoRuntime", ConfigScrapeOptions_TV.Runtime, False, Enums.ContentType.TVShow)
+        Master.eAdvancedSettings.SetBooleanSetting("DoStudio", ConfigScrapeOptions_TV.Studios, False, Enums.ContentType.TVShow)
+        Master.eAdvancedSettings.SetBooleanSetting("DoTitle", ConfigScrapeOptions_TV.Title, False, Enums.ContentType.TVShow)
+        Master.eAdvancedSettings.SetBooleanSetting("FallBackWorldwide", _SpecialSettings_TV.FallBackWorldwide, False, Enums.ContentType.TVShow)
+        Master.eAdvancedSettings.SetStringSetting("ForceTitleLanguage", _SpecialSettings_TV.ForceTitleLanguage, False, Enums.ContentType.TVShow)
     End Sub
 
     Sub SaveSettings_Movie(ByVal DoDispose As Boolean) Implements Interfaces.IAddon_Data_Scraper_Movie.SaveSettings
-        ConfigScrapeOptions_Movie.bMainActors = _setup_Movie.chkActors.Checked
-        ConfigScrapeOptions_Movie.bMainCertifications = _setup_Movie.chkCertifications.Checked
-        ConfigScrapeOptions_Movie.bMainCountries = _setup_Movie.chkCountries.Checked
-        ConfigScrapeOptions_Movie.bMainDirectors = _setup_Movie.chkDirectors.Checked
-        ConfigScrapeOptions_Movie.bMainGenres = _setup_Movie.chkGenres.Checked
-        ConfigScrapeOptions_Movie.bMainMPAA = _setup_Movie.chkMPAA.Checked
-        ConfigScrapeOptions_Movie.bMainOriginalTitle = _setup_Movie.chkOriginalTitle.Checked
-        ConfigScrapeOptions_Movie.bMainOutline = _setup_Movie.chkOutline.Checked
-        ConfigScrapeOptions_Movie.bMainPlot = _setup_Movie.chkPlot.Checked
-        ConfigScrapeOptions_Movie.bMainPremiered = _setup_Movie.chkPremiered.Checked
-        ConfigScrapeOptions_Movie.bMainRating = _setup_Movie.chkRating.Checked
-        ConfigScrapeOptions_Movie.bMainRuntime = _setup_Movie.chkRuntime.Checked
-        ConfigScrapeOptions_Movie.bMainStudios = _setup_Movie.chkStudios.Checked
-        ConfigScrapeOptions_Movie.bMainTagline = _setup_Movie.chkTagline.Checked
-        ConfigScrapeOptions_Movie.bMainTitle = _setup_Movie.chkTitle.Checked
-        ConfigScrapeOptions_Movie.bMainTop250 = _setup_Movie.chkTop250.Checked
-        ConfigScrapeOptions_Movie.bMainWriters = _setup_Movie.chkWriters.Checked
+        ConfigScrapeOptions_Movie.Actors = _setup_Movie.chkActors.Checked
+        ConfigScrapeOptions_Movie.Certifications = _setup_Movie.chkCertifications.Checked
+        ConfigScrapeOptions_Movie.Countries = _setup_Movie.chkCountries.Checked
+        ConfigScrapeOptions_Movie.Directors = _setup_Movie.chkDirectors.Checked
+        ConfigScrapeOptions_Movie.Genres = _setup_Movie.chkGenres.Checked
+        ConfigScrapeOptions_Movie.MPAA = _setup_Movie.chkMPAA.Checked
+        ConfigScrapeOptions_Movie.OriginalTitle = _setup_Movie.chkOriginalTitle.Checked
+        ConfigScrapeOptions_Movie.Outline = _setup_Movie.chkOutline.Checked
+        ConfigScrapeOptions_Movie.Plot = _setup_Movie.chkPlot.Checked
+        ConfigScrapeOptions_Movie.Premiered = _setup_Movie.chkPremiered.Checked
+        ConfigScrapeOptions_Movie.Ratings = _setup_Movie.chkRating.Checked
+        ConfigScrapeOptions_Movie.Runtime = _setup_Movie.chkRuntime.Checked
+        ConfigScrapeOptions_Movie.Studios = _setup_Movie.chkStudios.Checked
+        ConfigScrapeOptions_Movie.Tagline = _setup_Movie.chkTagline.Checked
+        ConfigScrapeOptions_Movie.Title = _setup_Movie.chkTitle.Checked
+        ConfigScrapeOptions_Movie.Top250 = _setup_Movie.chkTop250.Checked
+        ConfigScrapeOptions_Movie.Credits = _setup_Movie.chkWriters.Checked
 
         _SpecialSettings_Movie.FallBackWorldwide = _setup_Movie.chkFallBackworldwide.Checked
         _SpecialSettings_Movie.ForceTitleLanguage = _setup_Movie.cbForceTitleLanguage.Text
@@ -387,25 +382,25 @@ Public Class Addon
     End Sub
 
     Sub SaveSettings_TV(ByVal DoDispose As Boolean) Implements Interfaces.IAddon_Data_Scraper_TV.SaveSettings
-        ConfigScrapeOptions_TV.bEpisodeActors = _setup_TV.chkScraperEpActors.Checked
-        ConfigScrapeOptions_TV.bEpisodeAired = _setup_TV.chkScraperEpAired.Checked
-        ConfigScrapeOptions_TV.bEpisodeCredits = _setup_TV.chkScraperEpCredits.Checked
-        ConfigScrapeOptions_TV.bEpisodeDirectors = _setup_TV.chkScraperEpDirectors.Checked
-        ConfigScrapeOptions_TV.bEpisodePlot = _setup_TV.chkScraperEpPlot.Checked
-        ConfigScrapeOptions_TV.bEpisodeRating = _setup_TV.chkScraperEpRating.Checked
-        ConfigScrapeOptions_TV.bEpisodeTitle = _setup_TV.chkScraperEpTitle.Checked
-        ConfigScrapeOptions_TV.bMainActors = _setup_TV.chkScraperShowActors.Checked
-        ConfigScrapeOptions_TV.bMainCertifications = _setup_TV.chkScraperShowCertifications.Checked
-        ConfigScrapeOptions_TV.bMainCountries = _setup_TV.chkScraperShowCountries.Checked
-        ConfigScrapeOptions_TV.bMainCreators = _setup_TV.chkScraperShowCreators.Checked
-        ConfigScrapeOptions_TV.bMainGenres = _setup_TV.chkScraperShowGenres.Checked
-        ConfigScrapeOptions_TV.bMainOriginalTitle = _setup_TV.chkScraperShowOriginalTitle.Checked
-        ConfigScrapeOptions_TV.bMainPlot = _setup_TV.chkScraperShowPlot.Checked
-        ConfigScrapeOptions_TV.bMainPremiered = _setup_TV.chkScraperShowPremiered.Checked
-        ConfigScrapeOptions_TV.bMainRating = _setup_TV.chkScraperShowRating.Checked
-        ConfigScrapeOptions_TV.bMainRuntime = _setup_TV.chkScraperShowRuntime.Checked
-        ConfigScrapeOptions_TV.bMainStudios = _setup_TV.chkScraperShowStudios.Checked
-        ConfigScrapeOptions_TV.bMainTitle = _setup_TV.chkScraperShowTitle.Checked
+        ConfigScrapeOptions_TV.Episodes.Actors = _setup_TV.chkScraperEpActors.Checked
+        ConfigScrapeOptions_TV.Episodes.Aired = _setup_TV.chkScraperEpAired.Checked
+        ConfigScrapeOptions_TV.Episodes.Credits = _setup_TV.chkScraperEpCredits.Checked
+        ConfigScrapeOptions_TV.Episodes.Directors = _setup_TV.chkScraperEpDirectors.Checked
+        ConfigScrapeOptions_TV.Episodes.Plot = _setup_TV.chkScraperEpPlot.Checked
+        ConfigScrapeOptions_TV.Episodes.Ratings = _setup_TV.chkScraperEpRating.Checked
+        ConfigScrapeOptions_TV.Episodes.Title = _setup_TV.chkScraperEpTitle.Checked
+        ConfigScrapeOptions_TV.Actors = _setup_TV.chkScraperShowActors.Checked
+        ConfigScrapeOptions_TV.Certifications = _setup_TV.chkScraperShowCertifications.Checked
+        ConfigScrapeOptions_TV.Countries = _setup_TV.chkScraperShowCountries.Checked
+        ConfigScrapeOptions_TV.Creators = _setup_TV.chkScraperShowCreators.Checked
+        ConfigScrapeOptions_TV.Genres = _setup_TV.chkScraperShowGenres.Checked
+        ConfigScrapeOptions_TV.OriginalTitle = _setup_TV.chkScraperShowOriginalTitle.Checked
+        ConfigScrapeOptions_TV.Plot = _setup_TV.chkScraperShowPlot.Checked
+        ConfigScrapeOptions_TV.Premiered = _setup_TV.chkScraperShowPremiered.Checked
+        ConfigScrapeOptions_TV.Ratings = _setup_TV.chkScraperShowRating.Checked
+        ConfigScrapeOptions_TV.Runtime = _setup_TV.chkScraperShowRuntime.Checked
+        ConfigScrapeOptions_TV.Studios = _setup_TV.chkScraperShowStudios.Checked
+        ConfigScrapeOptions_TV.Title = _setup_TV.chkScraperShowTitle.Checked
 
         _SpecialSettings_TV.FallBackWorldwide = _setup_TV.chkFallBackworldwide.Checked
         _SpecialSettings_TV.ForceTitleLanguage = _setup_TV.cbForceTitleLanguage.Text
@@ -435,9 +430,9 @@ Public Class Addon
         _SpecialSettings_Movie.PrefLanguage = oDBElement.Language
         Dim _scraper As New Scraper(_SpecialSettings_Movie)
 
-        If ScrapeModifiers.MainNFO AndAlso Not ScrapeModifiers.DoSearch Then
-            If Not String.IsNullOrEmpty(oDBElement.Movie.UniqueIDs.IMDbId) Then
-                Result = _scraper.GetInfo_Movie(oDBElement.Movie.UniqueIDs.IMDbId, FilteredOptions)
+        If ScrapeModifiers.Metadata AndAlso Not ScrapeModifiers.DoSearch Then
+            If Not String.IsNullOrEmpty(oDBElement.MainDetails.UniqueIDs.IMDbId) Then
+                Result = _scraper.GetInfo_Movie(oDBElement.MainDetails.UniqueIDs.IMDbId, FilteredOptions)
             Else
                 logger.Trace(String.Format("[IMDB_Data] [Scraper] [Abort] No search result found"))
                 Return New Interfaces.AddonResult_Data_Scraper_Movie(Interfaces.ResultStatus.NoResult)
@@ -461,7 +456,7 @@ Public Class Addon
 
     Function GetSearchResults_Movie(ByRef nMovie As Database.DBElement
                                     ) As Interfaces.AddonResult_Generic Implements Interfaces.IAddon_Data_Scraper_Movie.GetSearchResults
-        Return New Interfaces.AddonResult_Generic(Interfaces.ResultStatus.NoResult)
+        Return New Interfaces.AddonResult_Generic()
     End Function
 
     Function Scraper_TVShow(ByRef oDBElement As Database.DBElement,
@@ -478,8 +473,8 @@ Public Class Addon
         Dim _scraper As New Scraper(_SpecialSettings_TV)
 
         If Not ScrapeModifiers.DoSearch AndAlso _scraper IsNot Nothing Then
-            If oDBElement.TVShow.UniqueIDs.IMDbIdSpecified Then
-                Result = _scraper.GetInfo_TVShow(oDBElement.TVShow.UniqueIDs.IMDbId, FilteredOptions, ScrapeModifiers)
+            If oDBElement.TVShowDetails IsNot Nothing AndAlso oDBElement.TVShowDetails.UniqueIDs.IMDbIdSpecified Then
+                Result = _scraper.GetInfo_TVShow(oDBElement.TVShowDetails.UniqueIDs.IMDbId, FilteredOptions, ScrapeModifiers)
             Else
                 logger.Trace(String.Format("[IMDb_Data] [Scraper_TVShow] [Abort] No search result found"))
                 Return New Interfaces.AddonResult_Data_Scraper_TVShow(Interfaces.ResultStatus.NoResult)
@@ -497,7 +492,7 @@ Public Class Addon
 
     Function GetSearchResults_TV(ByRef nShow As Database.DBElement
                                  ) As Interfaces.AddonResult_Generic Implements Interfaces.IAddon_Data_Scraper_TV.GetSearchResults
-        Return New Interfaces.AddonResult_Generic(Interfaces.ResultStatus.NoResult)
+        Return New Interfaces.AddonResult_Generic()
     End Function
 
     Public Function Scraper_TVEpisode(ByRef oDBTVEpisode As Database.DBElement,
@@ -512,10 +507,10 @@ Public Class Addon
         _SpecialSettings_TV.PrefLanguage = oDBTVEpisode.Language
         Dim _scraper As New Scraper(_SpecialSettings_TV)
 
-        If oDBTVEpisode.TVEpisode.UniqueIDs.IMDbIdSpecified Then
-            Result = _scraper.GetInfo_TVEpisode(oDBTVEpisode.TVEpisode.UniqueIDs.IMDbId, FilteredOptions)
-        ElseIf oDBTVEpisode.TVShow.UniqueIDs.IMDbIdSpecified AndAlso oDBTVEpisode.TVEpisode.SeasonSpecified AndAlso oDBTVEpisode.TVEpisode.EpisodeSpecified Then
-            Result = _scraper.GetInfo_TVEpisode(oDBTVEpisode.TVShow.UniqueIDs.IMDbId, oDBTVEpisode.TVEpisode.Season, oDBTVEpisode.TVEpisode.Episode, FilteredOptions)
+        If oDBTVEpisode.MainDetails.UniqueIDs.IMDbIdSpecified Then
+            Result = _scraper.GetInfo_TVEpisode(oDBTVEpisode.MainDetails.UniqueIDs.IMDbId, FilteredOptions)
+        ElseIf oDBTVEpisode.TVShowDetails.UniqueIDs.IMDbIdSpecified AndAlso oDBTVEpisode.MainDetails.SeasonSpecified AndAlso oDBTVEpisode.MainDetails.EpisodeSpecified Then
+            Result = _scraper.GetInfo_TVEpisode(oDBTVEpisode.TVShowDetails.UniqueIDs.IMDbId, oDBTVEpisode.MainDetails.Season, oDBTVEpisode.MainDetails.Episode, FilteredOptions)
         Else
             logger.Trace("[IMDb_Data] [Scraper_TVEpisode] [Abort] No Episode and TV Show IMDB ID available")
             Return New Interfaces.AddonResult_Data_Scraper_TVEpisode(Interfaces.ResultStatus.NoResult)

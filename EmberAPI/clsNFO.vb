@@ -1,4 +1,4 @@
-﻿' ################################################################################
+' ################################################################################
 ' #                             EMBER MEDIA MANAGER                              #
 ' ################################################################################
 ' ################################################################################
@@ -945,7 +945,8 @@ Public Class NFO
 
                 'digit grouping symbol for Votes count
                 If Master.eSettings.Options.Global.DigitGrpSymbolVotesEnabled Then
-                    If tMovie.VotesSpecified Then
+                    Dim defaultRating = tMovie.Ratings.GetDefaultRating()
+                    If defaultRating IsNot Nothing AndAlso defaultRating.VotesSpecified Then
                         Dim vote As String = Double.Parse(tMovie.Votes, Globalization.CultureInfo.InvariantCulture).ToString("N0", Globalization.CultureInfo.CurrentCulture)
                         If vote IsNot Nothing Then tMovie.Votes = vote
                     End If
@@ -1081,7 +1082,8 @@ Public Class NFO
 
                                 'digit grouping symbol for Votes count
                                 If Master.eSettings.Options.Global.DigitGrpSymbolVotesEnabled Then
-                                    If tvEp.VotesSpecified Then
+                                    Dim defaultRating = tvEp.Ratings.GetDefaultRating()
+                                    If defaultRating IsNot Nothing AndAlso defaultRating.VotesSpecified Then
                                         Dim vote As String = Double.Parse(tvEp.Votes, Globalization.CultureInfo.InvariantCulture).ToString("N0", Globalization.CultureInfo.CurrentCulture)
                                         If vote IsNot Nothing Then tvEp.Votes = vote
                                     End If
@@ -1150,7 +1152,8 @@ Public Class NFO
 
                 'digit grouping symbol for Votes count
                 If Master.eSettings.Options.Global.DigitGrpSymbolVotesEnabled Then
-                    If tTVShow.VotesSpecified Then
+                    Dim defaultRating = tTVShow.Ratings.GetDefaultRating()
+                    If defaultRating IsNot Nothing AndAlso defaultRating.VotesSpecified Then
                         Dim vote As String = Double.Parse(tTVShow.Votes, Globalization.CultureInfo.InvariantCulture).ToString("N0", Globalization.CultureInfo.CurrentCulture)
                         If vote IsNot Nothing Then tTVShow.Votes = vote
                     End If

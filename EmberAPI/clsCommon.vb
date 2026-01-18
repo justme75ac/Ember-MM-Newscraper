@@ -1,4 +1,4 @@
-﻿' ################################################################################
+' ################################################################################
 ' #                             EMBER MEDIA MANAGER                              #
 ' ################################################################################
 ' ################################################################################
@@ -676,6 +676,27 @@ Public Class Enums
         ''' Safety trigger if no ScrapeType has been defined (default value for all processes)
         ''' </summary>
         None = 99
+        ' Legacy values for backwards compatibility
+        AllAsk
+        AllSkip
+        AllAuto
+        FilterAsk
+        FilterSkip
+        FilterAuto
+        MarkedAsk
+        MarkedSkip
+        MarkedAuto
+        MissingAsk
+        MissingSkip
+        MissingAuto
+        NewAsk
+        NewSkip
+        NewAuto
+        SelectedAsk
+        SelectedSkip
+        SelectedAuto
+        SingleField
+        SingleScrape
     End Enum
 
     Public Enum SelectionType As Integer

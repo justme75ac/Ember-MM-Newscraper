@@ -1,4 +1,4 @@
-﻿' ################################################################################
+' ################################################################################
 ' #                             EMBER MEDIA MANAGER                              #
 ' ################################################################################
 ' ################################################################################
@@ -134,6 +134,25 @@ Public Class dlgSearchResults
         SearchResults_Load(searchResults)
 
         Return ShowDialog()
+    End Function
+
+    Public Overloads Function ShowDialog(ByVal title As String, ByVal fileName As String, ByVal searchResults As MediaContainers.MovieSearchResults) As DialogResult
+        ' Convert MovieSearchResults to List(Of MainDetails) by combining all result lists
+        Dim combinedResults As New List(Of MediaContainers.MainDetails)
+        combinedResults.AddRange(searchResults.ExactMatches.Cast(Of MediaContainers.MainDetails))
+        combinedResults.AddRange(searchResults.PopularTitles.Cast(Of MediaContainers.MainDetails))
+        combinedResults.AddRange(searchResults.PartialMatches.Cast(Of MediaContainers.MainDetails))
+        combinedResults.AddRange(searchResults.TvTitles.Cast(Of MediaContainers.MainDetails))
+        combinedResults.AddRange(searchResults.VideoTitles.Cast(Of MediaContainers.MainDetails))
+        combinedResults.AddRange(searchResults.ShortTitles.Cast(Of MediaContainers.MainDetails))
+        Return ShowDialog(title, fileName, combinedResults)
+    End Function
+
+    Public Overloads Function ShowDialog(ByVal title As String, ByVal fileName As String, ByVal searchResults As MediaContainers.TVShowSearchResults) As DialogResult
+        ' Convert TVShowSearchResults to List(Of MainDetails)
+        Dim combinedResults As New List(Of MediaContainers.MainDetails)
+        combinedResults.AddRange(searchResults.Matches.Cast(Of MediaContainers.MainDetails))
+        Return ShowDialog(title, fileName, combinedResults)
     End Function
 
     Private Sub Setup()

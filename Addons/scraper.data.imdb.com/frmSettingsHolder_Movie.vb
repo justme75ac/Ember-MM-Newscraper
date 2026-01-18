@@ -1,4 +1,4 @@
-﻿' ################################################################################
+' ################################################################################
 ' #                             EMBER MEDIA MANAGER                              #
 ' ################################################################################
 ' ################################################################################
@@ -76,20 +76,20 @@ Public Class frmSettingsHolder_Movie
 #Region "Methods"
 
     Private Sub btnDown_Click(ByVal sender As Object, ByVal e As EventArgs) Handles btnDown.Click
-        Dim order As Integer = Addons.Instance.Data_Scrapers_Movie.FirstOrDefault(Function(p) p.AssemblyName = Addon._AssemblyName).Order
+        Dim order As Integer = Addons.Instance.Data_Scrapers_Movie.FirstOrDefault(Function(p) p.AssemblyFileName = Addon._AssemblyName).Order
         If order < Addons.Instance.Data_Scrapers_Movie.Count - 1 Then
             Addons.Instance.Data_Scrapers_Movie.FirstOrDefault(Function(p) p.Order = order + 1).Order = order
-            Addons.Instance.Data_Scrapers_Movie.FirstOrDefault(Function(p) p.AssemblyName = Addon._AssemblyName).Order = order + 1
+            Addons.Instance.Data_Scrapers_Movie.FirstOrDefault(Function(p) p.AssemblyFileName = Addon._AssemblyName).Order = order + 1
             RaiseEvent SetupScraperChanged(chkEnabled.Checked, 1)
             orderChanged()
         End If
     End Sub
 
     Private Sub btnUp_Click(ByVal sender As Object, ByVal e As EventArgs) Handles btnUp.Click
-        Dim order As Integer = Addons.Instance.Data_Scrapers_Movie.FirstOrDefault(Function(p) p.AssemblyName = Addon._AssemblyName).Order
+        Dim order As Integer = Addons.Instance.Data_Scrapers_Movie.FirstOrDefault(Function(p) p.AssemblyFileName = Addon._AssemblyName).Order
         If order > 0 Then
             Addons.Instance.Data_Scrapers_Movie.FirstOrDefault(Function(p) p.Order = order - 1).Order = order
-            Addons.Instance.Data_Scrapers_Movie.FirstOrDefault(Function(p) p.AssemblyName = Addon._AssemblyName).Order = order - 1
+            Addons.Instance.Data_Scrapers_Movie.FirstOrDefault(Function(p) p.AssemblyFileName = Addon._AssemblyName).Order = order - 1
             RaiseEvent SetupScraperChanged(chkEnabled.Checked, -1)
             orderChanged()
         End If
@@ -223,7 +223,7 @@ Public Class frmSettingsHolder_Movie
     End Sub
 
     Sub orderChanged()
-        Dim order As Integer = Addons.Instance.Data_Scrapers_Movie.FirstOrDefault(Function(p) p.AssemblyName = Addon._AssemblyName).Order
+        Dim order As Integer = Addons.Instance.Data_Scrapers_Movie.FirstOrDefault(Function(p) p.AssemblyFileName = Addon._AssemblyName).Order
         If Addons.Instance.Data_Scrapers_Movie.Count > 1 Then
             btnDown.Enabled = (order < Addons.Instance.Data_Scrapers_Movie.Count - 1)
             btnUp.Enabled = (order > 0)

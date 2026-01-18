@@ -1,4 +1,4 @@
-﻿' ################################################################################
+' ################################################################################
 ' #                             EMBER MEDIA MANAGER                              #
 ' ################################################################################
 ' ################################################################################
@@ -62,6 +62,18 @@ Public Class Addons
                 Singleton = New Addons()
             End If
             Return Singleton
+        End Get
+    End Property
+
+    Public ReadOnly Property Data_Scrapers_Movie() As List(Of AddonClass)
+        Get
+            Return Addons.Where(Function(a) TypeOf a.AddonInterface Is Interfaces.IAddon_Data_Scraper_Movie).OrderBy(Function(a) a.Order_Data_Movie).ToList
+        End Get
+    End Property
+
+    Public ReadOnly Property Data_Scrapers_TV() As List(Of AddonClass)
+        Get
+            Return Addons.Where(Function(a) TypeOf a.AddonInterface Is Interfaces.IAddon_Data_Scraper_TV).OrderBy(Function(a) a.Order_Data_TV).ToList
         End Get
     End Property
 

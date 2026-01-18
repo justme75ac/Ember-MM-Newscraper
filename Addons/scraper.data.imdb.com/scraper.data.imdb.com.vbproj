@@ -145,6 +145,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Import Include="EmberAPI" />
+    <Import Include="EmberAPI.AdvancedControls" />
+    <Import Include="EmberAPI.FFmpeg" />
+    <Import Include="EmberAPI.FileUtils" />
+    <Import Include="EmberAPI.MediaContainers" />
+    <Import Include="EmberAPI.YouTube" />
     <Import Include="System" />
     <Import Include="System.Collections" />
     <Import Include="System.Collections.Generic" />

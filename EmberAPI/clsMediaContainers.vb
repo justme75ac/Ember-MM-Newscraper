@@ -1,4 +1,4 @@
-﻿' ################################################################################
+' ################################################################################
 ' #                             EMBER MEDIA MANAGER                              #
 ' ################################################################################
 ' ################################################################################
@@ -5378,6 +5378,63 @@ Namespace MediaContainers
         End Function
 
 #End Region 'Methods
+
+    End Class
+
+    ' Type aliases for compatibility with scraper interfaces
+    ' In VB.NET, we use class inheritance to create type aliases
+    <Serializable()>
+    Public Class Movie
+        Inherits MainDetails
+    End Class
+
+    <Serializable()>
+    Public Class TVShow
+        Inherits MainDetails
+    End Class
+
+    <Serializable()>
+    Public Class Movieset
+        Inherits MainDetails
+    End Class
+
+    <Serializable()>
+    Public Class EpisodeDetails
+        Inherits MainDetails
+    End Class
+
+    <Serializable()>
+    Public Class MovieSearchResults
+        Inherits List(Of Movie)
+
+        Public Property ExactMatches As New List(Of Movie)
+        Public Property PopularTitles As New List(Of Movie)
+        Public Property PartialMatches As New List(Of Movie)
+        Public Property TvTitles As New List(Of Movie)
+        Public Property VideoTitles As New List(Of Movie)
+        Public Property ShortTitles As New List(Of Movie)
+
+    End Class
+
+    <Serializable()>
+    Public Class TVShowSearchResults
+        Inherits List(Of TVShow)
+
+        Public Property Matches As New List(Of TVShow)
+
+    End Class
+
+    <Serializable()>
+    Public Class SeasonDetails
+        Inherits MainDetails
+
+        Public Shadows Property Season As Integer = -1
+
+        Public Shadows ReadOnly Property SeasonSpecified As Boolean
+            Get
+                Return Not Season = -1
+            End Get
+        End Property
 
     End Class
 

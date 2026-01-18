@@ -1,4 +1,4 @@
-﻿' ################################################################################
+' ################################################################################
 ' #                             EMBER MEDIA MANAGER                              #
 ' ################################################################################
 ' ################################################################################
@@ -411,20 +411,36 @@ Public Class Interfaces
     Public Class AddonResult_Data_Scraper_Movie
         Public Sub New()
         End Sub
+        Public Sub New(ByVal resultStatus As ResultStatus)
+        End Sub
+        Public Sub New(ByVal result As MediaContainers.MainDetails)
+        End Sub
     End Class
 
     Public Class AddonResult_Data_Scraper_TVShow
         Public Sub New()
+        End Sub
+        Public Sub New(ByVal resultStatus As ResultStatus)
+        End Sub
+        Public Sub New(ByVal result As MediaContainers.MainDetails)
         End Sub
     End Class
 
     Public Class AddonResult_Data_Scraper_TVEpisode
         Public Sub New()
         End Sub
+        Public Sub New(ByVal resultStatus As ResultStatus)
+        End Sub
+        Public Sub New(ByVal result As MediaContainers.MainDetails)
+        End Sub
     End Class
 
     Public Class AddonResult_Data_Scraper_TVSeason
         Public Sub New()
+        End Sub
+        Public Sub New(ByVal resultStatus As ResultStatus)
+        End Sub
+        Public Sub New(ByVal result As MediaContainers.MainDetails)
         End Sub
     End Class
 
