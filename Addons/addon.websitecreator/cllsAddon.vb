@@ -47,7 +47,6 @@ Public Class Addon
 
 #Region "Events"
 
-    Public Event GenericEvent(ByVal eventType As Enums.AddonEventType, ByRef parameters As List(Of Object)) Implements Interfaces.IAddon_Generic.GenericEvent
     Public Event AddonSettingsChanged() Implements Interfaces.IAddon_Generic.AddonSettingsChanged
     Public Event AddonStateChanged(ByVal name As String, ByVal state As Boolean, ByVal diffOrder As Integer) Implements Interfaces.IAddon_Generic.AddonStateChanged
     Public Event AddonNeedsRestart() Implements Interfaces.IAddon_Generic.AddonNeedsRestart
@@ -56,7 +55,7 @@ Public Class Addon
 
 #Region "Properties"
 
-    Property Enabled() As Boolean Implements Interfaces.IAddon_Generic.Enabled
+    Property ScraperEnabled() As Boolean Implements Interfaces.IAddon_Generic.ScraperEnabled
         Get
             Return _enabled
         End Get
@@ -71,25 +70,13 @@ Public Class Addon
         End Set
     End Property
 
-    ReadOnly Property IsBusy() As Boolean Implements Interfaces.IAddon_Generic.IsBusy
-        Get
-            Return False
-        End Get
-    End Property
-
-    ReadOnly Property Name() As String Implements Interfaces.IAddon_Generic.Name
+    ReadOnly Property ModuleName() As String Implements Interfaces.IAddon_Generic.ModuleName
         Get
             Return _Name
         End Get
     End Property
 
-    Public ReadOnly Property EventType() As List(Of Enums.AddonEventType) Implements Interfaces.IAddon_Generic.EventType
-        Get
-            Return New List(Of Enums.AddonEventType)(New Enums.AddonEventType() {Enums.AddonEventType.Generic, Enums.AddonEventType.CommandLine})
-        End Get
-    End Property
-
-    ReadOnly Property Version() As String Implements Interfaces.IAddon_Generic.Version
+    ReadOnly Property ModuleVersion() As String Implements Interfaces.IAddon_Generic.ModuleVersion
         Get
             Return FileVersionInfo.GetVersionInfo(Reflection.Assembly.GetExecutingAssembly.Location).FileVersion.ToString
         End Get
@@ -98,80 +85,6 @@ Public Class Addon
 #End Region 'Properties
 
 #Region "Methods"
-
-    Public Function RunGeneric(ByVal eventType As Enums.AddonEventType, ByRef parameters As List(Of Object), ByRef singleObject As Object, ByRef dbElement As Database.DBElement) As Interfaces.AddonResult_Generic Implements Interfaces.IAddon_Generic.RunGeneric
-        Select Case eventType
-            Case Enums.AddonEventType.CommandLine
-                Dim strTemplatePath As String = String.Empty
-                Dim BuildPath As String = String.Empty
-
-                If parameters IsNot Nothing Then
-                    For Each tParameter In parameters
-                        'check if tParameter is a path or template name
-                        If Not String.IsNullOrEmpty(Path.GetPathRoot(tParameter.ToString)) Then
-                            BuildPath = tParameter.ToString
-                        Else
-                            'search in Ember custom templates
-                            Dim diCustom As DirectoryInfo = New DirectoryInfo(Path.Combine(Master.SettingsPath, "Templates"))
-                            If diCustom.Exists Then
-                                For Each i As DirectoryInfo In diCustom.GetDirectories
-                                    If Not (i.Attributes And FileAttributes.Hidden) = FileAttributes.Hidden AndAlso i.Name = tParameter.ToString Then
-                                        strTemplatePath = i.FullName
-                                    End If
-                                Next
-                            End If
-
-                            If String.IsNullOrEmpty(strTemplatePath) Then
-                                'search in Ember default templates
-                                Dim diDefault As DirectoryInfo = New DirectoryInfo(Path.Combine(Functions.AppPath, "Modules\generic.embercore.movieexporter", "Templates"))
-                                If diDefault.Exists Then
-                                    For Each i As DirectoryInfo In diDefault.GetDirectories
-                                        If Not (i.Attributes And FileAttributes.Hidden) = FileAttributes.Hidden AndAlso i.Name = tParameter.ToString Then
-                                            strTemplatePath = i.FullName
-                                        End If
-                                    Next
-                                End If
-                            End If
-                        End If
-                    Next
-                End If
-
-                If String.IsNullOrEmpty(BuildPath) Then
-                    BuildPath = MySettings.ExportPath
-                End If
-
-                If String.IsNullOrEmpty(strTemplatePath) Then
-                    strTemplatePath = MySettings.DefaultTemplate
-                End If
-
-                Dim MovieList As New List(Of Database.DBElement)
-                ' Load nfo movies using path from DB
-                Using SQLNewcommand As SQLite.SQLiteCommand = Master.DB.MyVideosDBConn.CreateCommand()
-                    SQLNewcommand.CommandText = String.Concat("SELECT idMovie FROM movielist ORDER BY SortedTitle COLLATE NOCASE;")
-                    Using SQLreader As SQLite.SQLiteDataReader = SQLNewcommand.ExecuteReader()
-                        While SQLreader.Read()
-                            MovieList.Add(Master.DB.Load_Movie(Convert.ToInt32(SQLreader("idMovie"))))
-                        End While
-                    End Using
-                End Using
-
-                Dim TVShowList As New List(Of Database.DBElement)
-                ' Load nfo tv shows using path from DB
-                Using SQLNewcommand As SQLite.SQLiteCommand = Master.DB.MyVideosDBConn.CreateCommand()
-                    SQLNewcommand.CommandText = String.Concat("SELECT idShow FROM tvshowlist ORDER BY SortedTitle COLLATE NOCASE;")
-                    Using SQLreader As SQLite.SQLiteDataReader = SQLNewcommand.ExecuteReader()
-                        While SQLreader.Read()
-                            TVShowList.Add(Master.DB.Load_TVShow(Convert.ToInt32(SQLreader("idShow")), True, True, MySettings.ExportMissingEpisodes))
-                        End While
-                    End Using
-                End Using
-
-                Dim MExporter As New WebsiteCreator
-                MExporter.CreateTemplate(strTemplatePath, MovieList, TVShowList, BuildPath, Nothing)
-        End Select
-
-        Return New Interfaces.AddonResult_Generic
-    End Function
 
     Sub Disable()
         Dim tsi As New ToolStripMenuItem
@@ -225,8 +138,8 @@ Public Class Addon
         RaiseEvent AddonSettingsChanged()
     End Sub
 
-    Public Sub Init(ByVal assemblyName As String, ByVal executable As String) Implements Interfaces.IAddon_Generic.Init
-        _AssemblyName = assemblyName
+    Public Sub Init(ByVal sAssemblyName As String) Implements Interfaces.IAddon_Generic.Init
+        _AssemblyName = sAssemblyName
         LoadSettings()
     End Sub
 
@@ -250,13 +163,13 @@ Public Class Addon
     End Function
 
     Private Sub MyMenuItem_Click(ByVal sender As Object, ByVal e As EventArgs) Handles mnuMainToolsExporter.Click, cmnuTrayToolsExporter.Click
-        RaiseEvent GenericEvent(Enums.AddonEventType.Generic, New List(Of Object)(New Object() {"controlsenabled", False}))
+        'RaiseEvent GenericEvent(Enums.AddonEventType.Generic, New List(Of Object)(New Object() {"controlsenabled", False}))
 
         Using dExportMovies As New dlgExportMovies
             dExportMovies.ShowDialog()
         End Using
 
-        RaiseEvent GenericEvent(Enums.AddonEventType.Generic, New List(Of Object)(New Object() {"controlsenabled", True}))
+        'RaiseEvent GenericEvent(Enums.AddonEventType.Generic, New List(Of Object)(New Object() {"controlsenabled", True}))
     End Sub
 
     Sub LoadSettings()
@@ -266,7 +179,7 @@ Public Class Addon
     End Sub
 
     Sub SaveSettings(ByVal doDispose As Boolean) Implements Interfaces.IAddon_Generic.SaveSettings
-        Enabled = _setup.cbEnabled.Checked
+        ScraperEnabled = _setup.cbEnabled.Checked
         MySettings.ExportPath = _setup.txtExportPath.Text
         MySettings.ExportMissingEpisodes = _setup.chkExportMissingEpisodes.Checked
         SaveSettings()
@@ -281,6 +194,9 @@ Public Class Addon
         _AddonSettings.SetStringSetting("DefaultTemplate", MySettings.DefaultTemplate)
         _AddonSettings.SetStringSetting("ExportPath", MySettings.ExportPath)
         _AddonSettings.SetBooleanSetting("ExportMissingEpisodes", MySettings.ExportMissingEpisodes)
+    End Sub
+
+    Public Sub ScraperOrderChanged() Implements Interfaces.IAddon_Generic.ScraperOrderChanged
     End Sub
 
 #End Region 'Methods

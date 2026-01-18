@@ -57,7 +57,6 @@ Public Class Addon
 
 #Region "Events"
 
-    Public Event GenericEvent(ByVal eventType As Enums.AddonEventType, ByRef parameters As List(Of Object)) Implements Interfaces.IAddon_Generic.GenericEvent
     Public Event AddonSettingsChanged() Implements Interfaces.IAddon_Generic.AddonSettingsChanged
     Public Event AddonStateChanged(ByVal name As String, ByVal state As Boolean, ByVal diffOrder As Integer) Implements Interfaces.IAddon_Generic.AddonStateChanged
     Public Event AddonNeedsRestart() Implements Interfaces.IAddon_Generic.AddonNeedsRestart
@@ -66,16 +65,7 @@ Public Class Addon
 
 #Region "Properties"
 
-    Public ReadOnly Property EventType() As List(Of Enums.AddonEventType) Implements Interfaces.IAddon_Generic.EventType
-        Get
-            Return New List(Of Enums.AddonEventType)(New Enums.AddonEventType() {Enums.AddonEventType.AfterEdit_Movie, Enums.AddonEventType.ScraperMulti_Movie, Enums.AddonEventType.ScraperSingle_Movie,
-                                                                                   Enums.AddonEventType.AfterEdit_TVEpisode, Enums.AddonEventType.ScraperMulti_TVEpisode, Enums.AddonEventType.ScraperSingle_TVEpisode,
-                                                                                   Enums.AddonEventType.AfterEdit_TVShow, Enums.AddonEventType.ScraperMulti_TVShow, Enums.AddonEventType.ScraperSingle_TVShow,
-                                                                                   Enums.AddonEventType.DuringUpdateDB_TV})
-        End Get
-    End Property
-
-    Property Enabled() As Boolean Implements Interfaces.IAddon_Generic.Enabled
+    Property ScraperEnabled() As Boolean Implements Interfaces.IAddon_Generic.ScraperEnabled
         Get
             Return _enabled
         End Get
@@ -90,19 +80,13 @@ Public Class Addon
         End Set
     End Property
 
-    ReadOnly Property IsBusy() As Boolean Implements Interfaces.IAddon_Generic.IsBusy
-        Get
-            Return False
-        End Get
-    End Property
-
-    ReadOnly Property Name() As String Implements Interfaces.IAddon_Generic.Name
+    ReadOnly Property ModuleName() As String Implements Interfaces.IAddon_Generic.ModuleName
         Get
             Return _Name
         End Get
     End Property
 
-    ReadOnly Property Version() As String Implements Interfaces.IAddon_Generic.Version
+    ReadOnly Property ModuleVersion() As String Implements Interfaces.IAddon_Generic.ModuleVersion
         Get
             Return FileVersionInfo.GetVersionInfo(Reflection.Assembly.GetExecutingAssembly.Location).FileVersion.ToString
         End Get
@@ -379,8 +363,8 @@ Public Class Addon
         RaiseEvent AddonStateChanged(_Name, State, 0)
     End Sub
 
-    Public Sub Init(ByVal assemblyName As String, ByVal executable As String) Implements Interfaces.IAddon_Generic.Init
-        _AssemblyName = assemblyName
+    Public Sub Init(ByVal sAssemblyName As String) Implements Interfaces.IAddon_Generic.Init
+        _AssemblyName = sAssemblyName
         LoadSettings()
     End Sub
 
@@ -492,6 +476,9 @@ Public Class Addon
             settings.SetBooleanSetting("RenameSingle", MySettings.RenameSingle_Shows, , , Enums.ContentType.TVShow)
             settings.SetBooleanSetting("RenameUpdate", MySettings.RenameUpdate_Episodes, , , Enums.ContentType.TVEpisode)
         End Using
+    End Sub
+
+    Public Sub ScraperOrderChanged() Implements Interfaces.IAddon_Generic.ScraperOrderChanged
     End Sub
 
 #End Region 'Methods

@@ -117,7 +117,7 @@ Public Class frmSettingsHolder_Movie
         End If
     End Sub
 
-    Private Sub ModuleSettingsChanged(sender As Object, e As EventArgs) Handles chkMPAADescription.CheckedChanged
+    Private Sub chkMPAADescription_CheckedChanged(sender As Object, e As EventArgs) Handles chkMPAADescription.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 

@@ -90,6 +90,167 @@ Public Class Interfaces
 
     End Interface
 
+    ' ========== OLD ADDON INTERFACES - For backwards compatibility ==========
+
+    Public Interface IAddon_Generic
+        Event AddonNeedsRestart()
+        Event AddonSettingsChanged()
+        Event AddonStateChanged(ByVal name As String, ByVal State As Boolean, ByVal difforder As Integer)
+        
+        ReadOnly Property ModuleName() As String
+        ReadOnly Property ModuleVersion() As String
+        Property ScraperEnabled() As Boolean
+        
+        Sub Init(ByVal sAssemblyName As String)
+        Function InjectSettingsPanel() As Containers.SettingsPanel
+        Sub SaveSettings(ByVal DoDispose As Boolean)
+        Sub ScraperOrderChanged()
+    End Interface
+
+    Public Interface IAddon_Trailer_Scraper_Movie
+        Event AddonNeedsRestart()
+        Event AddonSettingsChanged()
+        Event AddonStateChanged(ByVal name As String, ByVal State As Boolean, ByVal difforder As Integer)
+        
+        ReadOnly Property ModuleName() As String
+        ReadOnly Property ModuleVersion() As String
+        Property ScraperEnabled() As Boolean
+        
+        Sub Init(ByVal sAssemblyName As String)
+        Function InjectSettingsPanel() As Containers.SettingsPanel
+        Function Scraper(ByRef DBMovie As Database.DBElement, ByVal Type As Enums.ModifierType, ByRef TrailerList As List(Of MediaContainers.MediaFile)) As AddonResult_Generic
+        Sub SaveSettings(ByVal DoDispose As Boolean)
+        Sub ScraperOrderChanged()
+    End Interface
+
+    Public Interface IAddon_Data_Scraper_Movie
+        Event AddonNeedsRestart()
+        Event AddonSettingsChanged()
+        Event AddonStateChanged(ByVal name As String, ByVal State As Boolean, ByVal difforder As Integer)
+        
+        ReadOnly Property ModuleName() As String
+        ReadOnly Property ModuleVersion() As String
+        Property ScraperEnabled() As Boolean
+        
+        Sub Init(ByVal sAssemblyName As String)
+        Function InjectSettingsPanel() As Containers.SettingsPanel
+        Function GetMovieStudio(ByRef DBMovie As Database.DBElement, ByVal sStudio As List(Of String)) As AddonResult_Data_Scraper_Movie
+        Function GetSearchResults(ByRef nMovie As Database.DBElement) As AddonResult_Generic
+        Function Scraper(ByRef DBMovie As Database.DBElement, ByVal ScrapeModifiers As Structures.ScrapeModifiers, ByVal ScrapeOptions As Structures.ScrapeOptions) As AddonResult_Data_Scraper_Movie
+        Sub SaveSettings(ByVal DoDispose As Boolean)
+        Sub ScraperOrderChanged()
+    End Interface
+
+    Public Interface IAddon_Data_Scraper_TV
+        Event AddonNeedsRestart()
+        Event AddonSettingsChanged()
+        Event AddonStateChanged(ByVal name As String, ByVal State As Boolean, ByVal difforder As Integer)
+        
+        ReadOnly Property ModuleName() As String
+        ReadOnly Property ModuleVersion() As String
+        Property ScraperEnabled() As Boolean
+        
+        Sub Init(ByVal sAssemblyName As String)
+        Function InjectSettingsPanel() As Containers.SettingsPanel
+        Function GetSearchResults(ByRef nShow As Database.DBElement) As AddonResult_Generic
+        Function Scraper_TVEpisode(ByRef DBTVEpisode As Database.DBElement, ByVal ScrapeOptions As Structures.ScrapeOptions) As AddonResult_Data_Scraper_TVEpisode
+        Function Scraper_TVSeason(ByRef DBTVSeason As Database.DBElement, ByVal ScrapeOptions As Structures.ScrapeOptions) As AddonResult_Data_Scraper_TVSeason
+        Function Scraper_TVShow(ByRef DBTVShow As Database.DBElement, ByVal ScrapeModifiers As Structures.ScrapeModifiers, ByVal ScrapeOptions As Structures.ScrapeOptions) As AddonResult_Data_Scraper_TVShow
+        Sub SaveSettings(ByVal DoDispose As Boolean)
+        Sub ScraperOrderChanged()
+    End Interface
+
+    Public Interface IAddon_Image_Scraper_Movie
+        Event AddonNeedsRestart()
+        Event AddonSettingsChanged()
+        Event AddonStateChanged(ByVal name As String, ByVal State As Boolean, ByVal difforder As Integer)
+        
+        ReadOnly Property ModuleName() As String
+        ReadOnly Property ModuleVersion() As String
+        Property ScraperEnabled() As Boolean
+        ReadOnly Property ScraperSupportsExtraImages As Boolean
+        ReadOnly Property ScraperSupportsBackdropImages As Boolean
+        
+        Sub Init(ByVal sAssemblyName As String)
+        Function InjectSettingsPanel() As Containers.SettingsPanel
+        Function GetSearchResults(ByRef nMovie As Database.DBElement) As AddonResult_Generic
+        Function Scraper(ByRef DBMovie As Database.DBElement, ByVal ScrapeModifiers As Structures.ScrapeModifiers) As AddonResult_Generic
+        Sub SaveSettings(ByVal DoDispose As Boolean)
+        Sub ScraperOrderChanged()
+    End Interface
+
+    Public Interface IAddon_Image_Scraper_Movieset
+        Event AddonNeedsRestart()
+        Event AddonSettingsChanged()
+        Event AddonStateChanged(ByVal name As String, ByVal State As Boolean, ByVal difforder As Integer)
+        
+        ReadOnly Property ModuleName() As String
+        ReadOnly Property ModuleVersion() As String
+        Property ScraperEnabled() As Boolean
+        ReadOnly Property ScraperSupportsExtraImages As Boolean
+        ReadOnly Property ScraperSupportsBackdropImages As Boolean
+        
+        Sub Init(ByVal sAssemblyName As String)
+        Function InjectSettingsPanel() As Containers.SettingsPanel
+        Function GetSearchResults(ByRef nMovieset As Database.DBElement) As AddonResult_Generic
+        Function Scraper(ByRef DBMovieset As Database.DBElement, ByVal ScrapeModifiers As Structures.ScrapeModifiers) As AddonResult_Generic
+        Sub SaveSettings(ByVal DoDispose As Boolean)
+        Sub ScraperOrderChanged()
+    End Interface
+
+    Public Interface IAddon_Image_Scraper_TV
+        Event AddonNeedsRestart()
+        Event AddonSettingsChanged()
+        Event AddonStateChanged(ByVal name As String, ByVal State As Boolean, ByVal difforder As Integer)
+        
+        ReadOnly Property ModuleName() As String
+        ReadOnly Property ModuleVersion() As String
+        Property ScraperEnabled() As Boolean
+        ReadOnly Property ScraperSupportsExtraImages As Boolean
+        ReadOnly Property ScraperSupportsBackdropImages As Boolean
+        
+        Sub Init(ByVal sAssemblyName As String)
+        Function InjectSettingsPanel() As Containers.SettingsPanel
+        Function GetSearchResults(ByRef nShow As Database.DBElement) As AddonResult_Generic
+        Function Scraper(ByRef DBElement As Database.DBElement, ByVal ScrapeModifiers As Structures.ScrapeModifiers) As AddonResult_Generic
+        Sub SaveSettings(ByVal DoDispose As Boolean)
+        Sub ScraperOrderChanged()
+    End Interface
+
+    Public Interface IAddon_Theme_Scraper_Movie
+        Event AddonNeedsRestart()
+        Event AddonSettingsChanged()
+        Event AddonStateChanged(ByVal name As String, ByVal State As Boolean, ByVal difforder As Integer)
+        
+        ReadOnly Property ModuleName() As String
+        ReadOnly Property ModuleVersion() As String
+        Property ScraperEnabled() As Boolean
+        
+        Sub Init(ByVal sAssemblyName As String)
+        Function InjectSettingsPanel() As Containers.SettingsPanel
+        Function Scraper(ByRef DBMovie As Database.DBElement, ByVal Type As Enums.ModifierType, ByRef ThemeList As List(Of MediaContainers.MediaFile)) As AddonResult_Generic
+        Sub SaveSettings(ByVal DoDispose As Boolean)
+        Sub ScraperOrderChanged()
+    End Interface
+
+    Public Interface IAddon_Theme_Scraper_TV
+        Event AddonNeedsRestart()
+        Event AddonSettingsChanged()
+        Event AddonStateChanged(ByVal name As String, ByVal State As Boolean, ByVal difforder As Integer)
+        
+        ReadOnly Property ModuleName() As String
+        ReadOnly Property ModuleVersion() As String
+        Property ScraperEnabled() As Boolean
+        
+        Sub Init(ByVal sAssemblyName As String)
+        Function InjectSettingsPanel() As Containers.SettingsPanel
+        Function Scraper(ByRef DBElement As Database.DBElement, ByVal Type As Enums.ModifierType, ByRef ThemeList As List(Of MediaContainers.MediaFile)) As AddonResult_Generic
+        Sub SaveSettings(ByVal DoDispose As Boolean)
+        Sub ScraperOrderChanged()
+    End Interface
+
+    ' ========== END OLD ADDON INTERFACES ==========
+
     Public Interface ISettingsPanel
 
 #Region "Events"
@@ -239,6 +400,35 @@ Public Class Interfaces
 #End Region 'Methods
 
     End Class
+
+    ' ========== OLD ADDON RESULT TYPES - For backwards compatibility ==========
+
+    Public Class AddonResult_Generic
+        Public Sub New()
+        End Sub
+    End Class
+
+    Public Class AddonResult_Data_Scraper_Movie
+        Public Sub New()
+        End Sub
+    End Class
+
+    Public Class AddonResult_Data_Scraper_TVShow
+        Public Sub New()
+        End Sub
+    End Class
+
+    Public Class AddonResult_Data_Scraper_TVEpisode
+        Public Sub New()
+        End Sub
+    End Class
+
+    Public Class AddonResult_Data_Scraper_TVSeason
+        Public Sub New()
+        End Sub
+    End Class
+
+    ' ========== END OLD ADDON RESULT TYPES ==========
 
 #End Region 'Nested Types
 

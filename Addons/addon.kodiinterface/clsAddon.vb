@@ -92,7 +92,6 @@ Public Class Addon
 
 #Region "Events"
 
-    Public Event GenericEvent(ByVal eventType As Enums.AddonEventType, ByRef parameters As List(Of Object)) Implements Interfaces.IAddon_Generic.GenericEvent
     Public Event AddonSettingsChanged() Implements Interfaces.IAddon_Generic.AddonSettingsChanged
     Public Event AddonStateChanged(ByVal name As String, ByVal state As Boolean, ByVal diffOrder As Integer) Implements Interfaces.IAddon_Generic.AddonStateChanged
     Public Event AddonNeedsRestart() Implements Interfaces.IAddon_Generic.AddonNeedsRestart
@@ -100,34 +99,8 @@ Public Class Addon
 #End Region 'Events
 
 #Region "Properties"
-    ''' <summary>
-    ''' Subscribe to Eventtypes here
-    ''' </summary>
-    Public ReadOnly Property EventType() As List(Of Enums.AddonEventType) Implements Interfaces.IAddon_Generic.EventType
-        Get
-            Return New List(Of Enums.AddonEventType)(New Enums.AddonEventType() {
-                                                      Enums.AddonEventType.BeforeEdit_Movie,
-                                                      Enums.AddonEventType.BeforeEdit_TVEpisode,
-                                                      Enums.AddonEventType.Remove_Movie,
-                                                      Enums.AddonEventType.Remove_TVEpisode,
-                                                      Enums.AddonEventType.Remove_TVShow,
-                                                      Enums.AddonEventType.ScraperMulti_Movie,
-                                                      Enums.AddonEventType.ScraperMulti_TVEpisode,
-                                                      Enums.AddonEventType.ScraperMulti_TVSeason,
-                                                      Enums.AddonEventType.ScraperMulti_TVShow,
-                                                      Enums.AddonEventType.ScraperSingle_Movie,
-                                                      Enums.AddonEventType.ScraperSingle_TVEpisode,
-                                                      Enums.AddonEventType.ScraperSingle_TVSeason,
-                                                      Enums.AddonEventType.ScraperSingle_TVShow,
-                                                      Enums.AddonEventType.Sync_Movie,
-                                                      Enums.AddonEventType.Sync_MovieSet,
-                                                      Enums.AddonEventType.Sync_TVEpisode,
-                                                      Enums.AddonEventType.Sync_TVSeason,
-                                                      Enums.AddonEventType.Sync_TVShow})
-        End Get
-    End Property
 
-    Property Enabled() As Boolean Implements Interfaces.IAddon_Generic.Enabled
+    Property ScraperEnabled() As Boolean Implements Interfaces.IAddon_Generic.ScraperEnabled
         Get
             Return _Enabled
         End Get
@@ -142,19 +115,13 @@ Public Class Addon
         End Set
     End Property
 
-    ReadOnly Property IsBusy() As Boolean Implements Interfaces.IAddon_Generic.IsBusy
-        Get
-            Return Not TasksDone
-        End Get
-    End Property
-
-    ReadOnly Property Name() As String Implements Interfaces.IAddon_Generic.Name
+    ReadOnly Property ModuleName() As String Implements Interfaces.IAddon_Generic.ModuleName
         Get
             Return _Name
         End Get
     End Property
 
-    ReadOnly Property Version() As String Implements Interfaces.IAddon_Generic.Version
+    ReadOnly Property ModuleVersion() As String Implements Interfaces.IAddon_Generic.ModuleVersion
         Get
             Return FileVersionInfo.GetVersionInfo(Reflection.Assembly.GetExecutingAssembly.Location).FileVersion.ToString
         End Get
@@ -1331,7 +1298,7 @@ Public Class Addon
             Select Case tContentType
                 Case Enums.ContentType.Movie
                     AddHandler mnuHostSyncItem.Click, AddressOf Sync_Movie
-                Case Enums.ContentType.MovieSet
+                Case Enums.ContentType.Movieset
                     AddHandler mnuHostSyncItem.Click, AddressOf Sync_Movieset
                 Case Enums.ContentType.TVEpisode
                     AddHandler mnuHostSyncItem.Click, AddressOf Sync_TVEpisode
@@ -1405,7 +1372,7 @@ Public Class Addon
                 Select Case tContentType
                     Case Enums.ContentType.Movie
                         AddHandler mnuHostSyncItem.Click, AddressOf Sync_Movie
-                    Case Enums.ContentType.MovieSet
+                    Case Enums.ContentType.Movieset
                         AddHandler mnuHostSyncItem.Click, AddressOf Sync_Movieset
                     Case Enums.ContentType.TVEpisode
                         AddHandler mnuHostSyncItem.Click, AddressOf Sync_TVEpisode
@@ -1441,6 +1408,39 @@ Public Class Addon
                         Case Enums.ContentType.TVShow
                             AddHandler mnuHostRemoveItem.Click, AddressOf Remove_TVShow
                     End Select
+                    mnuHost.DropDownItems.Add(mnuHostRemoveItem)
+                End If
+                tMenu.DropDownItems.Add(mnuHost)
+            Next
+            If tContentType = Enums.ContentType.Movie OrElse tContentType = Enums.ContentType.TVEpisode OrElse tContentType = Enums.ContentType.TVSeason OrElse tContentType = Enums.ContentType.TVShow Then
+                If _SpecialSettings.GetWatchedState AndAlso Not String.IsNullOrEmpty(_SpecialSettings.GetWatchedStateHost) Then
+                    Dim mHost As Host = _SpecialSettings.Hosts.FirstOrDefault(Function(f) f.Label = _SpecialSettings.GetWatchedStateHost)
+                    If mHost IsNot Nothing Then
+                        Dim mnuHostGetPlaycount As New ToolStripMenuItem
+                        mnuHostGetPlaycount.Image = New Bitmap(My.Resources.menuWatchedState)
+                        mnuHostGetPlaycount.Tag = mHost
+                        mnuHostGetPlaycount.Text = String.Format("{0} ({1})", Localisation.GetString(11, "Get Watched-State"), _SpecialSettings.GetWatchedStateHost)
+                        Select Case tContentType
+                            Case Enums.ContentType.Movie
+                                AddHandler mnuHostGetPlaycount.Click, AddressOf GetPlaycount_Movie
+                            Case Enums.ContentType.TVEpisode
+                                AddHandler mnuHostGetPlaycount.Click, AddressOf GetPlaycount_TVEpisode
+                            Case Enums.ContentType.TVSeason
+                                AddHandler mnuHostGetPlaycount.Click, AddressOf GetPlaycount_TVSeason
+                            Case Enums.ContentType.TVShow
+                                AddHandler mnuHostGetPlaycount.Click, AddressOf GetPlaycount_TVShow
+                        End Select
+                        tMenu.DropDownItems.Add(mnuHostGetPlaycount)
+                    End If
+                End If
+            End If
+        Else
+            Dim mnuDummy As New ToolStripMenuItem
+            mnuDummy.Enabled = False
+            mnuDummy.Text = Localisation.GetString(12, "No Host configured")
+            tMenu.DropDownItems.Add(mnuDummy)
+            AddHandler mnuHostRemoveItem.Click, AddressOf Remove_TVShow
+            End Select
                     mnuHost.DropDownItems.Add(mnuHostRemoveItem)
                 End If
                 tMenu.DropDownItems.Add(mnuHost)

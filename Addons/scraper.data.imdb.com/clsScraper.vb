@@ -25,7 +25,6 @@ Imports System.IO
 Imports System.Text.RegularExpressions
 
 Public Class Scraper
-    Implements Interfaces.IScraper_Search
 
 #Region "Fields"
 
@@ -45,11 +44,10 @@ Public Class Scraper
 
 #Region "Properties"
 
-    Public ReadOnly Property SearchResults_Movie() As New List(Of MediaContainers.Movie) Implements Interfaces.IScraper_Search.SearchResults_Movie
-
-    Public ReadOnly Property SearchResults_Movieset() As New List(Of MediaContainers.Movieset) Implements Interfaces.IScraper_Search.SearchResults_Movieset
-
-    Public ReadOnly Property SearchResult_TVShow() As New List(Of MediaContainers.TVShow) Implements Interfaces.IScraper_Search.SearchResult_TVShow
+    ' Search result collections are kept for internal use only
+    Public ReadOnly Property SearchResults_Movie() As New List(Of EmberAPI.MediaContainers.Movie)
+    Public ReadOnly Property SearchResults_Movieset() As New List(Of EmberAPI.MediaContainers.Movieset)
+    Public ReadOnly Property SearchResult_TVShow() As New List(Of EmberAPI.MediaContainers.TVShow)
 
 #End Region 'Properties
 
@@ -71,13 +69,14 @@ Public Class Scraper
 
 #Region "Events"
 
-    Public Event GetInfoFinished_Movie(ByVal mainInfo As MediaContainers.Movie) Implements Interfaces.IScraper_Search.GetInfoFinished_Movie
-    Public Event GetInfoFinished_Movieset(ByVal mainInfo As MediaContainers.Movieset) Implements Interfaces.IScraper_Search.GetInfoFinished_Movieset
-    Public Event GetInfoFinished_TVShow(ByVal mainInfo As MediaContainers.TVShow) Implements Interfaces.IScraper_Search.GetInfoFinished_TVShow
+    ' Events are kept internal; external consumers use the Addon interface now
+    Public Event GetInfoFinished_Movie(ByVal mainInfo As EmberAPI.MediaContainers.Movie)
+    Public Event GetInfoFinished_Movieset(ByVal mainInfo As EmberAPI.MediaContainers.Movieset)
+    Public Event GetInfoFinished_TVShow(ByVal mainInfo As EmberAPI.MediaContainers.TVShow)
 
-    Public Event SearchFinished_Movie(ByVal searchResults As List(Of MediaContainers.Movie)) Implements Interfaces.IScraper_Search.SearchFinished_Movie
-    Public Event SearchFinished_Movieset(ByVal searchResults As List(Of MediaContainers.Movieset)) Implements Interfaces.IScraper_Search.SearchFinished_Movieset
-    Public Event SearchFinished_TVShow(ByVal searchResults As List(Of MediaContainers.TVShow)) Implements Interfaces.IScraper_Search.SearchFinished_TVShow
+    Public Event SearchFinished_Movie(ByVal searchResults As List(Of EmberAPI.MediaContainers.Movie))
+    Public Event SearchFinished_Movieset(ByVal searchResults As List(Of EmberAPI.MediaContainers.Movieset))
+    Public Event SearchFinished_TVShow(ByVal searchResults As List(Of EmberAPI.MediaContainers.TVShow))
 
 #End Region 'Events
 
@@ -87,7 +86,7 @@ Public Class Scraper
         _addonSettings = addonSettings
     End Sub
 
-    Public Sub CancelAsync() Implements Interfaces.IScraper_Search.CancelAsync
+    Public Sub CancelAsync()
         If _backgroundWorker.IsBusy Then _backgroundWorker.CancelAsync()
 
         While _backgroundWorker.IsBusy
@@ -143,26 +142,26 @@ Public Class Scraper
 
         Select Case Result.TaskType
             Case TaskType.GetInfo_Movie
-                RaiseEvent GetInfoFinished_Movie(DirectCast(Result.Result, MediaContainers.Movie))
+                RaiseEvent GetInfoFinished_Movie(DirectCast(Result.Result, EmberAPI.MediaContainers.Movie))
 
             Case TaskType.GetInfo_Movieset
-                RaiseEvent GetInfoFinished_Movieset(DirectCast(Result.Result, MediaContainers.Movieset))
+                RaiseEvent GetInfoFinished_Movieset(DirectCast(Result.Result, EmberAPI.MediaContainers.Movieset))
 
             Case TaskType.GetInfo_TVShow
-                RaiseEvent GetInfoFinished_TVShow(DirectCast(Result.Result, MediaContainers.TVShow))
+                RaiseEvent GetInfoFinished_TVShow(DirectCast(Result.Result, EmberAPI.MediaContainers.TVShow))
 
             Case TaskType.Search_By_Title_Movie, TaskType.Search_By_UniqueId_Movie
-                RaiseEvent SearchFinished_Movie(DirectCast(Result.Result, List(Of MediaContainers.Movie)))
+                RaiseEvent SearchFinished_Movie(DirectCast(Result.Result, List(Of EmberAPI.MediaContainers.Movie)))
 
             Case TaskType.Search_By_Title_Movieset, TaskType.Search_By_UniqueId_Movieset
-                RaiseEvent SearchFinished_Movieset(DirectCast(Result.Result, List(Of MediaContainers.Movieset)))
+                RaiseEvent SearchFinished_Movieset(DirectCast(Result.Result, List(Of EmberAPI.MediaContainers.Movieset)))
 
             Case TaskType.Search_By_Title_TVShow, TaskType.Search_By_UniqueId_TVShow
-                RaiseEvent SearchFinished_TVShow(DirectCast(Result.Result, List(Of MediaContainers.TVShow)))
+                RaiseEvent SearchFinished_TVShow(DirectCast(Result.Result, List(Of EmberAPI.MediaContainers.TVShow)))
         End Select
     End Sub
 
-    Private Function FindYear(ByVal tmpname As String, ByVal movies As List(Of MediaContainers.Movie)) As Integer
+    Private Function FindYear(ByVal tmpname As String, ByVal movies As List(Of EmberAPI.MediaContainers.Movie)) As Integer
         Dim tmpyear As String = String.Empty
         Dim i As Integer
         Dim ret As Integer = -1
@@ -185,7 +184,7 @@ Public Class Scraper
 
     Public Function GetInfo_Movie(ByVal imdbId As String,
                                   ByVal filteredOptions As Structures.ScrapeOptions
-                                  ) As MediaContainers.Movie Implements Interfaces.IScraper_Search.GetInfo_Movie
+                                  ) As EmberAPI.MediaContainers.Movie
         If String.IsNullOrEmpty(imdbId.Trim) Then Return Nothing
 
         Try
@@ -193,7 +192,7 @@ Public Class Scraper
 
             Dim bIsScraperLanguage As Boolean = _addonSettings.PrefLanguage.ToLower.StartsWith("en")
 
-            Dim nResult As New MediaContainers.Movie With {.Scrapersource = "IMDb"}
+            Dim nResult As New EmberAPI.MediaContainers.Movie With {.Scrapersource = "IMDb"}
 
             'reset all local objects
             htmldPlotSummary = Nothing
@@ -217,7 +216,7 @@ Public Class Scraper
                 'remove year in brakets
                 strOriginalTitle = HttpUtility.HtmlDecode(ndOriginalTitle.InnerText.Trim)
             Else
-                _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse Originaltitle", imdbId))
+                _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] can't parse Originaltitle", imdbId))
             End If
 
             'IDs
@@ -229,7 +228,7 @@ Public Class Scraper
                 If nActors IsNot Nothing Then
                     nResult.Actors = nActors
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse Actors", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] can't parse Actors", imdbId))
                 End If
             End If
 
@@ -241,7 +240,7 @@ Public Class Scraper
                 If lstCertifications IsNot Nothing Then
                     nResult.Certifications = lstCertifications
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse Certifications", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] can't parse Certifications", imdbId))
                 End If
             End If
 
@@ -253,7 +252,7 @@ Public Class Scraper
                 If lstCountries IsNot Nothing Then
                     nResult.Countries = lstCountries
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse Countries", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] can't parse Countries", imdbId))
                 End If
             End If
 
@@ -265,7 +264,7 @@ Public Class Scraper
                 If lstDirectors IsNot Nothing Then
                     nResult.Directors = lstDirectors
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse Directors", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] can't parse Directors", imdbId))
                 End If
             End If
 
@@ -277,7 +276,7 @@ Public Class Scraper
                 If strDuration IsNot Nothing Then
                     nResult.Runtime = strDuration
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse Runtime", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] can't parse Runtime", imdbId))
                 End If
             End If
 
@@ -289,7 +288,7 @@ Public Class Scraper
                 If lstGenres IsNot Nothing Then
                     nResult.Genres = lstGenres
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse Genres", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] can't parse Genres", imdbId))
                 End If
             End If
 
@@ -301,7 +300,7 @@ Public Class Scraper
                 If imdbId IsNot Nothing Then
                     nResult.MPAA = strMPAA
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse MPAA", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] can't parse MPAA", imdbId))
                 End If
             End If
 
@@ -320,7 +319,7 @@ Public Class Scraper
                 If strOutline IsNot Nothing Then
                     nResult.Outline = strOutline
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse Outline", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] can't parse Outline", imdbId))
                 End If
             End If
 
@@ -340,7 +339,7 @@ Public Class Scraper
                         If Not String.IsNullOrEmpty(strPlot) Then
                             nResult.Plot = strPlot
                         Else
-                            _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] no result from ""plotsummary"" page for Plot", imdbId))
+                            _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] no result from ""plotsummary"" page for Plot", imdbId))
                         End If
                     End If
                 End If
@@ -359,7 +358,7 @@ Public Class Scraper
                 If Parse_Premiered(htmldReference, datePremiered) Then
                     If filteredOptions.bMainPremiered Then nResult.Premiered = datePremiered.ToString("yyyy-MM-dd")
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse Premiered/Year", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] can't parse Premiered/Year", imdbId))
                 End If
             End If
 
@@ -371,7 +370,7 @@ Public Class Scraper
                 If nRating IsNot Nothing Then
                     nResult.Ratings.Add(nRating)
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse Rating", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] can't parse Rating", imdbId))
                 End If
             End If
 
@@ -383,7 +382,7 @@ Public Class Scraper
                 If lstStudios IsNot Nothing Then
                     nResult.Studios = lstStudios
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse Studios", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] can't parse Studios", imdbId))
                 End If
             End If
 
@@ -395,7 +394,7 @@ Public Class Scraper
                 If strTagline IsNot Nothing Then
                     nResult.Tagline = strTagline
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse Tagline", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] can't parse Tagline", imdbId))
                 End If
             End If
 
@@ -421,7 +420,7 @@ Public Class Scraper
                     If Integer.TryParse(strTop250, iTop250) Then
                         nResult.Top250 = iTop250
                     Else
-                        _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse Top250", imdbId))
+                        _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] can't parse Top250", imdbId))
                     End If
                 End If
             End If
@@ -434,7 +433,7 @@ Public Class Scraper
                 If lstCredits IsNot Nothing Then
                     nResult.Credits = lstCredits
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse Writers (Credits)", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & imdbId & """] can't parse Writers (Credits)", imdbId))
                 End If
             End If
 
@@ -444,7 +443,7 @@ Public Class Scraper
             '    If selNode IsNot Nothing Then
             '        nMovie.Year = selNode.InnerText
             '    Else
-            '        logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""{0}""] can't parse Year (fallback)", id))
+            '        logger.Trace(String.Format("[IMDb] [GetInfo_Movie] [ID:""" & id & """] can't parse Year (fallback)", id))
             '    End If
             'End If
 
@@ -457,13 +456,13 @@ Public Class Scraper
 
     Public Function GetInfo_Movieset(ByVal uniqueId As String,
                                      ByVal filteredOptions As Structures.ScrapeOptions
-                                     ) As MediaContainers.Movieset Implements Interfaces.IScraper_Search.GetInfo_Movieset
+                                     ) As EmberAPI.MediaContainers.Movieset
         Return Nothing
     End Function
 
     Public Function GetInfo_TVEpisode(ByVal imdbId As String,
                                       ByVal filteredOptions As Structures.ScrapeOptions
-                                      ) As MediaContainers.EpisodeDetails
+                                      ) As EmberAPI.MediaContainers.EpisodeDetails
         If String.IsNullOrEmpty(imdbId.Trim) Then Return Nothing
 
         Try
@@ -478,15 +477,15 @@ Public Class Scraper
 
             If _backgroundWorker.CancellationPending Then Return Nothing
 
-            Dim nResult As New MediaContainers.EpisodeDetails With {
+            Dim nResult As New EmberAPI.MediaContainers.EpisodeDetails With {
                 .Scrapersource = "IMDb",
-                .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.TVEpisode) With {.IMDbId = imdbId}
+                .UniqueIds = New EmberAPI.MediaContainers.UniqueidContainer(Enums.ContentType.TVEpisode) With {.IMDbId = imdbId}
             }
 
             'get season and episode number
             Dim selSENode = htmldReference.DocumentNode.SelectSingleNode("//ul[@class=""ipl-inline-list titlereference-overview-season-episode-numbers""]")
             If selSENode IsNot Nothing Then
-                Dim rSeasonEpisode As Match = Regex.Match(selSENode.InnerText,
+                Dim rSeasonEpisode = Regex.Match(selSENode.InnerText,
                                                               "season (?<SEASON>\d+).*?episode (?<EPISODE>\d+)",
                                                               RegexOptions.IgnoreCase Or RegexOptions.Singleline)
                 If Not rSeasonEpisode.Success Then Return Nothing
@@ -513,7 +512,7 @@ Public Class Scraper
                 'remove year in brakets
                 strOriginalTitle = HttpUtility.HtmlDecode(ndOriginalTitle.InnerText.Trim)
             Else
-                _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""{0}""] can't parse Originaltitle", imdbId))
+                _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""" & imdbId & """] can't parse Originaltitle", imdbId))
             End If
 
             'Actors
@@ -522,7 +521,7 @@ Public Class Scraper
                 If lstActors IsNot Nothing Then
                     nResult.Actors = lstActors
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""{0}""] can't parse Actors", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""" & imdbId & """] can't parse Actors", imdbId))
                 End If
             End If
 
@@ -532,7 +531,7 @@ Public Class Scraper
                 If Parse_Premiered(htmldReference, dateRelease) Then
                     nResult.Aired = dateRelease.ToString("yyyy-MM-dd")
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""{0}""] can't parse AiredDate", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""" & imdbId & """] can't parse AiredDate", imdbId))
                 End If
             End If
 
@@ -542,7 +541,7 @@ Public Class Scraper
                 If lstCredits IsNot Nothing Then
                     nResult.Credits = lstCredits
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""{0}""] can't parse Credits (Writers)", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""" & imdbId & """] can't parse Credits (Writers)", imdbId))
                 End If
             End If
 
@@ -552,7 +551,7 @@ Public Class Scraper
                 If lstDirectors IsNot Nothing Then
                     nResult.Directors = lstDirectors
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""{0}""] can't parse Directors", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""" & imdbId & """] can't parse Directors", imdbId))
                 End If
             End If
 
@@ -572,14 +571,14 @@ Public Class Scraper
                             If Not String.IsNullOrEmpty(strPlot) Then
                                 nResult.Plot = strPlot
                             Else
-                                _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""{0}""] no result from ""plotsummary"" page for Plot", imdbId))
+                                _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""" & imdbId & """] no result from ""plotsummary"" page for Plot", imdbId))
                             End If
                         End If
                     Else
-                        _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""{0}""] can't parse Plot", imdbId))
+                        _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""" & imdbId & """] can't parse Plot", imdbId))
                     End If
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""{0}""] can't parse Plot", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""" & imdbId & """] can't parse Plot", imdbId))
                 End If
             End If
 
@@ -589,7 +588,7 @@ Public Class Scraper
                 If nRating IsNot Nothing Then
                     nResult.Ratings.Add(nRating)
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""{0}""] can't parse Rating", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetTVEpisodeInfo] [ID:""" & imdbId & """] can't parse Rating", imdbId))
                 End If
             End If
 
@@ -613,7 +612,7 @@ Public Class Scraper
                                       ByVal season As Integer,
                                       ByVal episode As Integer,
                                       ByRef filteredOptions As Structures.ScrapeOptions
-                                      ) As MediaContainers.EpisodeDetails
+                                      ) As EmberAPI.MediaContainers.EpisodeDetails
         If String.IsNullOrEmpty(showId) OrElse season = -1 OrElse episode = -1 Then Return Nothing
 
         Dim webParsing As New HtmlWeb
@@ -627,7 +626,7 @@ Public Class Scraper
                 For Each nNode In ncEpisodes
                     Dim strID = StringUtils.GetIMDbIdFromString(nNode.InnerHtml)
                     If Not String.IsNullOrEmpty(strID) Then
-                        Dim nEpisode As MediaContainers.EpisodeDetails = GetInfo_TVEpisode(strID, filteredOptions)
+                        Dim nEpisode As EmberAPI.MediaContainers.EpisodeDetails = GetInfo_TVEpisode(strID, filteredOptions)
                         If nEpisode IsNot Nothing Then
                             Return nEpisode
                         End If
@@ -639,7 +638,7 @@ Public Class Scraper
         Return Nothing
     End Function
 
-    Public Sub GetInfo_TVSeason(ByRef nTVShow As MediaContainers.TVShow,
+    Public Sub GetInfo_TVSeason(ByRef nTVShow As EmberAPI.MediaContainers.TVShow,
                                 ByVal showId As String,
                                 ByVal season As Integer,
                                 ByRef filteredOptions As Structures.ScrapeOptions,
@@ -656,7 +655,7 @@ Public Class Scraper
                     If ncEpisodes IsNot Nothing Then
                         For Each nodeEpisode In ncEpisodes
                             Dim strIMDbId As String = StringUtils.GetIMDbIdFromString(nodeEpisode.InnerHtml)
-                            Dim nEpisode As MediaContainers.EpisodeDetails = GetInfo_TVEpisode(strIMDbId, filteredOptions)
+                            Dim nEpisode As EmberAPI.MediaContainers.EpisodeDetails = GetInfo_TVEpisode(strIMDbId, filteredOptions)
                             If nEpisode IsNot Nothing Then
                                 nTVShow.KnownEpisodes.Add(nEpisode)
                             End If
@@ -672,7 +671,7 @@ Public Class Scraper
     Public Function GetInfo_TVShow(ByVal imdbId As String,
                                    ByVal filteredoptions As Structures.ScrapeOptions,
                                    ByVal scrapemodifier As Structures.ScrapeModifiers
-                                   ) As MediaContainers.TVShow Implements Interfaces.IScraper_Search.GetInfo_TVShow
+                                   ) As EmberAPI.MediaContainers.TVShow
         If String.IsNullOrEmpty(imdbId) Then Return Nothing
 
         Try
@@ -680,9 +679,9 @@ Public Class Scraper
 
             Dim bIsScraperLanguage As Boolean = _addonSettings.PrefLanguage.ToLower.StartsWith("en")
 
-            Dim nResult As New MediaContainers.TVShow With {
+            Dim nResult As New EmberAPI.MediaContainers.TVShow With {
                 .Scrapersource = "IMDb",
-                .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.TVShow) With {.IMDbId = imdbId}
+                .UniqueIds = New EmberAPI.MediaContainers.UniqueidContainer(Enums.ContentType.TVShow) With {.IMDbId = imdbId}
             }
 
             'reset all local objects
@@ -707,7 +706,7 @@ Public Class Scraper
                 'remove year in brakets
                 strOriginalTitle = HttpUtility.HtmlDecode(ndOriginalTitle.InnerText.Trim)
             Else
-                _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""{0}""] can't parse Originaltitle", imdbId))
+                _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""" & imdbId & """] can't parse Originaltitle", imdbId))
             End If
 
             'Actors
@@ -716,7 +715,7 @@ Public Class Scraper
                 If lstActors IsNot Nothing Then
                     nResult.Actors = lstActors
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""{0}""] can't parse Actors", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""" & imdbId & """] can't parse Actors", imdbId))
                 End If
             End If
 
@@ -728,7 +727,7 @@ Public Class Scraper
                 If lstCertifications IsNot Nothing Then
                     nResult.Certifications = lstCertifications
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""{0}""] can't parse Certifications", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""" & imdbId & """] can't parse Certifications", imdbId))
                 End If
             End If
 
@@ -740,7 +739,7 @@ Public Class Scraper
                 If lstCountries IsNot Nothing Then
                     nResult.Countries = lstCountries
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""{0}""] can't parse Countries", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""" & imdbId & """] can't parse Countries", imdbId))
                 End If
             End If
 
@@ -752,7 +751,7 @@ Public Class Scraper
                 If lstCreators IsNot Nothing Then
                     nResult.Creators = lstCreators
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""{0}""] can't parse Creators", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""" & imdbId & """] can't parse Creators", imdbId))
                 End If
             End If
 
@@ -764,7 +763,7 @@ Public Class Scraper
                 If lstGenres IsNot Nothing Then
                     nResult.Genres = lstGenres
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""{0}""] can't parse Genres", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""" & imdbId & """] can't parse Genres", imdbId))
                 End If
             End If
 
@@ -787,7 +786,7 @@ Public Class Scraper
                     If Not String.IsNullOrEmpty(strPlot) Then
                         nResult.Plot = strPlot
                     Else
-                        _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""{0}""] no result from ""plotsummary"" page for Plot", imdbId))
+                        _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""" & imdbId & """] no result from ""plotsummary"" page for Plot", imdbId))
                     End If
                 End If
             End If
@@ -805,7 +804,7 @@ Public Class Scraper
                 If ParsePremiered(imdbId, dateRelease) Then
                     nResult.Premiered = dateRelease.ToString("yyyy-MM-dd")
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""{0}""] can't parse Premiered", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""" & imdbId & """] can't parse Premiered", imdbId))
                 End If
             End If
 
@@ -817,7 +816,7 @@ Public Class Scraper
                 If nRating IsNot Nothing Then
                     nResult.Ratings.Add(nRating)
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""{0}""] can't parse Rating", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""" & imdbId & """] can't parse Rating", imdbId))
                 End If
             End If
 
@@ -829,7 +828,7 @@ Public Class Scraper
                 If strRuntime IsNot Nothing Then
                     nResult.Runtime = strRuntime
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""{0}""] can't parse Runtime", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""" & imdbId & """] can't parse Runtime", imdbId))
                 End If
             End If
 
@@ -841,7 +840,7 @@ Public Class Scraper
                 If lstStudios IsNot Nothing Then
                     nResult.Studios = lstStudios
                 Else
-                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""{0}""] can't parse Studios", imdbId))
+                    _Logger.Trace(String.Format("[IMDb] [GetInfo_TVShow] [ID:""" & imdbId & """] can't parse Studios", imdbId))
                 End If
             End If
 
@@ -859,7 +858,7 @@ Public Class Scraper
             If _backgroundWorker.CancellationPending Then Return Nothing
 
             'Seasons and Episodes
-            If scrapemodifier.withEpisodes OrElse scrapemodifier.withSeasons Then
+            If scrapemodifier.withEpisodes OrElse scrapeModifiers.withSeasons Then
                 Dim webParsingSeasons As New HtmlWeb
                 Dim htmldEpisodes As HtmlDocument = webParsingSeasons.Load(String.Concat("http://www.imdb.com/title/", imdbId, "/episodes"))
 
@@ -879,7 +878,7 @@ Public Class Scraper
                     If _backgroundWorker.CancellationPending Then Return Nothing
                     GetInfo_TVSeason(nResult, nResult.UniqueIDs.IMDbId, tSeason, filteredoptions, scrapemodifier)
                     If scrapemodifier.withSeasons Then
-                        nResult.KnownSeasons.Add(New MediaContainers.SeasonDetails With {.Season = tSeason})
+                        nResult.KnownSeasons.Add(New EmberAPI.MediaContainers.SeasonDetails With {.Season = tSeason})
                     End If
                 Next
             End If
@@ -893,7 +892,7 @@ Public Class Scraper
 
     Public Sub GetInfoAsync_Movie(ByVal imdbId As String,
                                   ByRef filteredOptions As Structures.ScrapeOptions
-                                  ) Implements Interfaces.IScraper_Search.GetInfoAsync_Movie
+                                  )
         If Not _backgroundWorker.IsBusy Then
             _backgroundWorker.WorkerReportsProgress = False
             _backgroundWorker.WorkerSupportsCancellation = True
@@ -907,7 +906,7 @@ Public Class Scraper
 
     Public Sub GetInfoAsync_Movieset(ByVal imdbId As String,
                                      ByRef filteredOptions As Structures.ScrapeOptions
-                                     ) Implements Interfaces.IScraper_Search.GetInfoAsync_Movieset
+                                     )
         If Not _backgroundWorker.IsBusy Then
             _backgroundWorker.WorkerReportsProgress = False
             _backgroundWorker.WorkerSupportsCancellation = True
@@ -921,7 +920,7 @@ Public Class Scraper
 
     Public Sub GetInfoAsync_TVShow(ByVal imdbId As String,
                                    ByRef filteredOptions As Structures.ScrapeOptions
-                                   ) Implements Interfaces.IScraper_Search.GetInfoAsync_TVShow
+                                   )
         If Not _backgroundWorker.IsBusy Then
             _backgroundWorker.WorkerReportsProgress = False
             _backgroundWorker.WorkerSupportsCancellation = True
@@ -945,8 +944,8 @@ Public Class Scraper
         Return New List(Of String)
     End Function
 
-    Private Function Parse_Actors(ByRef htmldReference As HtmlDocument, Optional ByVal removeepisodecount As Boolean = False) As List(Of MediaContainers.Person)
-        Dim nActors As New List(Of MediaContainers.Person)
+    Private Function Parse_Actors(ByRef htmldReference As HtmlDocument, Optional ByVal removeepisodecount As Boolean = False) As List(Of EmberAPI.MediaContainers.Person)
+        Dim nActors As New List(Of EmberAPI.MediaContainers.Person)
         Dim strThumbsSize = Master.eAdvancedSettings.GetSetting("ActorThumbsSize", "SX1000_SY1000")
         Dim selNode = htmldReference.DocumentNode.SelectSingleNode("//table[@class=""cast_list""]")
         If selNode IsNot Nothing Then
@@ -956,7 +955,7 @@ Public Class Scraper
                                                        f.Attributes IsNot Nothing AndAlso
                                                        f.Attributes.Where(Function(a) a.Name = "class" AndAlso a.Value = "odd" OrElse a.Value = "even").Any
                                                        )
-                    Dim nActor As New MediaContainers.Person
+                    Dim nActor As New EmberAPI.MediaContainers.Person
                     'get actor thumb
                     Dim ndActorthumb = nCast.Descendants("img").FirstOrDefault
                     If ndActorthumb IsNot Nothing AndAlso
@@ -1205,15 +1204,15 @@ Public Class Scraper
             If selNode IsNot Nothing AndAlso Not selNode.InnerText.Trim.ToLower.StartsWith("it looks like we don't have any plot summaries") Then
                 Return HttpUtility.HtmlDecode(selNode.InnerText.Trim)
             Else
-                _Logger.Trace(String.Format("[IMDb] [ParsePlotFromSummaryPage] [ID:""{0}""] no proper result from the ""plotsummary"" page for Outline", id))
+                _Logger.Trace(String.Format("[IMDb] [ParsePlotFromSummaryPage] [ID:""" & id & """] no proper result from the ""plotsummary"" page for Outline", id))
             End If
         Else
-            _Logger.Trace(String.Format("[IMDb] [ParsePlotFromSummaryPage] [ID:""{0}""] can't parse the ""plotsummary"" page", id))
+            _Logger.Trace(String.Format("[IMDb] [ParsePlotFromSummaryPage] [ID:""" & id & """] can't parse the ""plotsummary"" page", id))
         End If
         Return String.Empty
     End Function
 
-    Private Function Parse_Rating(ByRef htmldReference As HtmlDocument) As MediaContainers.RatingDetails
+    Private Function Parse_Rating(ByRef htmldReference As HtmlDocument) As EmberAPI.MediaContainers.RatingDetails
         Dim selNodeRating = htmldReference.DocumentNode.SelectSingleNode("//span[@class=""ipl-rating-star__rating""]")
         Dim selNodeVotes = htmldReference.DocumentNode.SelectSingleNode("//span[@class=""ipl-rating-star__total-votes""]")
         If selNodeRating IsNot Nothing AndAlso selNodeVotes IsNot Nothing Then
@@ -1221,7 +1220,7 @@ Public Class Scraper
             Dim iVotes As Integer
             If Double.TryParse(selNodeRating.InnerText.Trim, Globalization.NumberStyles.AllowDecimalPoint, Globalization.CultureInfo.InvariantCulture, dblRating) AndAlso
                 Integer.TryParse(NumUtils.CleanVotes(Regex.Match(selNodeVotes.InnerText.Trim, "[0-9,.]+").Value), iVotes) Then
-                Return New MediaContainers.RatingDetails With {
+                Return New EmberAPI.MediaContainers.RatingDetails With {
                     .Max = 10,
                     .Type = "imdb",
                     .Value = dblRating,
@@ -1326,22 +1325,22 @@ Public Class Scraper
         Return Nothing
     End Function
 
-    Private Function Parse_ThumbPoster(ByRef htmldReference As HtmlDocument) As MediaContainers.Image
+    Private Function Parse_ThumbPoster(ByRef htmldReference As HtmlDocument) As EmberAPI.MediaContainers.Image
         Dim selNode = htmldReference.DocumentNode.SelectSingleNode("//img[@class=""titlereference-primary-image""]")
         If selNode IsNot Nothing Then
             Dim attSource = selNode.Attributes("src")
             If attSource IsNot Nothing Then
-                Return New MediaContainers.Image With {.URLOriginal = attSource.Value, .URLThumb = attSource.Value}
+                Return New EmberAPI.MediaContainers.Image With {.URLOriginal = attSource.Value, .URLThumb = attSource.Value}
             End If
         End If
-        Return New MediaContainers.Image
+        Return New EmberAPI.MediaContainers.Image
     End Function
 
     Public Function Process_SearchResults_Movie(ByVal title As String,
                                                 ByRef oDbElement As Database.DBElement,
                                                 ByVal type As Enums.ScrapeType,
                                                 ByVal filteredOptions As Structures.ScrapeOptions
-                                                ) As MediaContainers.Movie
+                                                ) As EmberAPI.MediaContainers.Movie
         Dim SearchResults = Search_By_Title_Movie(title, CInt(If(oDbElement.Movie.YearSpecified, oDbElement.Movie.Year, Nothing)))
 
         Try
@@ -1408,7 +1407,7 @@ Public Class Scraper
                                                  ByVal type As Enums.ScrapeType,
                                                  ByVal filteredOptions As Structures.ScrapeOptions,
                                                  ByVal scrapeModifiers As Structures.ScrapeModifiers
-                                                 ) As MediaContainers.TVShow
+                                                 ) As EmberAPI.MediaContainers.TVShow
         Dim SearchResults = Search_By_Title_TVShow(title)
 
         Select Case type
@@ -1439,8 +1438,8 @@ Public Class Scraper
         Return Nothing
     End Function
 
-    Private Function Search_By_Title_Movie(ByVal title As String, Optional ByVal year As Integer = 0) As List(Of MediaContainers.Movie)
-        Dim SearchResults As New List(Of MediaContainers.Movie)
+    Private Function Search_By_Title_Movie(ByVal title As String, Optional ByVal year As Integer = 0) As List(Of EmberAPI.MediaContainers.Movie)
+        Dim SearchResults As New List(Of EmberAPI.MediaContainers.Movie)
 
         Dim strTitle As String = String.Concat(title, " ", If(Not year = 0, String.Concat("(", year, ")"), String.Empty)).Trim
 
@@ -1481,11 +1480,11 @@ Public Class Scraper
             Dim ApiResult = htmldResultsPopularTitles.DocumentNode.SelectNodes("//table[@class=""findList""]/tr[@class]/td[2]")
             If ApiResult IsNot Nothing Then
                 For Each nResult In ApiResult
-                    SearchResults.PopularTitles.Add(New MediaContainers.Movie With {
+                    SearchResults.PopularTitles.Add(New EmberAPI.MediaContainers.Movie With {
                                         .Lev = StringUtils.ComputeLevenshtein(StringUtils.FilterYear(strTitle).ToLower, nResult.SelectSingleNode("a").InnerText),
-                                        .Title = nResult.SelectSingleNode("a").InnerText,
-                                        .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDbIdFromString(nResult.OuterHtml)},
-                                        .Year = Regex.Match(nResult.InnerText, "\((\d{4})").Groups(1).Value
+                                        .title = nResult.SelectSingleNode("a").InnerText,
+                                        .UniqueIDs = New EmberAPI.MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDbIdFromString(nResult.OuterHtml)},
+                                        .year = Regex.Match(nResult.InnerText, "\((\d{4})").Groups(1).Value
                                         })
                 Next
             End If
@@ -1496,11 +1495,11 @@ Public Class Scraper
             Dim ApiResult = htmldResultsPartialTitles.DocumentNode.SelectNodes("//table[@class=""findList""]/tr[@class]/td[2]")
             If ApiResult IsNot Nothing Then
                 For Each nResult In ApiResult
-                    SearchResults.PartialMatches.Add(New MediaContainers.Movie With {
+                    SearchResults.PartialMatches.Add(New EmberAPI.MediaContainers.Movie With {
                                          .Lev = StringUtils.ComputeLevenshtein(StringUtils.FilterYear(strTitle).ToLower, nResult.SelectSingleNode("a").InnerText),
-                                         .Title = nResult.SelectSingleNode("a").InnerText,
-                                         .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDbIdFromString(nResult.OuterHtml)},
-                                         .Year = Regex.Match(nResult.InnerText, "\((\d{4})").Groups(1).Value
+                                         .title = nResult.SelectSingleNode("a").InnerText,
+                                         .UniqueIDs = New EmberAPI.MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDbIdFromString(nResult.OuterHtml)},
+                                         .year = Regex.Match(nResult.InnerText, "\((\d{4})").Groups(1).Value
                                          })
                 Next
             End If
@@ -1511,11 +1510,11 @@ Public Class Scraper
             Dim ApiResult = htmldResultsTvTitles.DocumentNode.SelectNodes("//span[@title]")
             If ApiResult IsNot Nothing Then
                 For Each nResult In ApiResult
-                    SearchResults.TvTitles.Add(New MediaContainers.Movie With {
+                    SearchResults.TvTitles.Add(New EmberAPI.MediaContainers.Movie With {
                                    .Lev = StringUtils.ComputeLevenshtein(StringUtils.FilterYear(strTitle).ToLower, nResult.SelectSingleNode("a").InnerText),
-                                   .Title = nResult.SelectSingleNode("a").InnerText,
-                                   .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDbIdFromString(nResult.InnerHtml)},
-                                   .Year = Regex.Match(nResult.SelectSingleNode("span").InnerText, "\((\d{4})").Groups(1).Value
+                                   .title = nResult.SelectSingleNode("a").InnerText,
+                                   .UniqueIDs = New EmberAPI.MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDbIdFromString(nResult.InnerHtml)},
+                                   .year = Regex.Match(nResult.SelectSingleNode("span").InnerText, "\((\d{4})").Groups(1).Value
                                    })
                 Next
             End If
@@ -1526,11 +1525,11 @@ Public Class Scraper
             Dim ApiResult = htmldResultsVideoTitles.DocumentNode.SelectNodes("//span[@title]")
             If ApiResult IsNot Nothing Then
                 For Each nResult In ApiResult
-                    SearchResults.VideoTitles.Add(New MediaContainers.Movie With {
+                    SearchResults.VideoTitles.Add(New EmberAPI.MediaContainers.Movie With {
                                       .Lev = StringUtils.ComputeLevenshtein(StringUtils.FilterYear(strTitle).ToLower, nResult.SelectSingleNode("a").InnerText),
-                                      .Title = nResult.SelectSingleNode("a").InnerText,
-                                      .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDbIdFromString(nResult.InnerHtml)},
-                                      .Year = Regex.Match(nResult.SelectSingleNode("span").InnerText, "\((\d{4})").Groups(1).Value
+                                      .title = nResult.SelectSingleNode("a").InnerText,
+                                      .UniqueIDs = New EmberAPI.MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDbIdFromString(nResult.InnerHtml)},
+                                      .year = Regex.Match(nResult.SelectSingleNode("span").InnerText, "\((\d{4})").Groups(1).Value
                                       })
                 Next
             End If
@@ -1541,11 +1540,11 @@ Public Class Scraper
             Dim ApiResult = htmldResultsShortTitles.DocumentNode.SelectNodes("//span[@title]")
             If ApiResult IsNot Nothing Then
                 For Each nResult In ApiResult
-                    SearchResults.ShortTitles.Add(New MediaContainers.Movie With {
+                    SearchResults.ShortTitles.Add(New EmberAPI.MediaContainers.Movie With {
                                       .Lev = StringUtils.ComputeLevenshtein(StringUtils.FilterYear(strTitle).ToLower, nResult.SelectSingleNode("a").InnerText),
-                                      .Title = nResult.SelectSingleNode("a").InnerText,
-                                      .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDbIdFromString(nResult.InnerHtml)},
-                                      .Year = Regex.Match(nResult.SelectSingleNode("span").InnerText, "\((\d{4})").Groups(1).Value
+                                      .title = nResult.SelectSingleNode("a").InnerText,
+                                      .UniqueIDs = New EmberAPI.MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDbIdFromString(nResult.InnerHtml)},
+                                      .year = Regex.Match(nResult.SelectSingleNode("span").InnerText, "\((\d{4})").Groups(1).Value
                                       })
                 Next
             End If
@@ -1556,11 +1555,11 @@ Public Class Scraper
             Dim ApiResult = htmldResultsExact.DocumentNode.SelectNodes("//table[@class=""findList""]/tr[@class]/td[2]")
             If ApiResult IsNot Nothing Then
                 For Each nResult In ApiResult
-                    SearchResults.ExactMatches.Add(New MediaContainers.Movie With {
+                    SearchResults.ExactMatches.Add(New EmberAPI.MediaContainers.Movie With {
                                            .Lev = StringUtils.ComputeLevenshtein(StringUtils.FilterYear(strTitle).ToLower, nResult.SelectSingleNode("a").InnerText),
-                                           .Title = nResult.SelectSingleNode("a").InnerText,
-                                           .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDbIdFromString(nResult.InnerHtml)},
-                                           .Year = Regex.Match(nResult.InnerText, "\((\d{4})").Groups(1).Value
+                                           .title = nResult.SelectSingleNode("a").InnerText,
+                                           .UniqueIDs = New EmberAPI.MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDbIdFromString(nResult.OuterHtml)},
+                                           .year = Regex.Match(nResult.InnerText, "\((\d{4})").Groups(1).Value
                                            })
                 Next
             End If
@@ -1569,8 +1568,8 @@ Public Class Scraper
         Return SearchResults
     End Function
 
-    Private Function Search_By_Title_TVShow(ByVal title As String) As List(Of MediaContainers.TVShow)
-        Dim SearchResults As New List(Of MediaContainers.TVShow)
+    Private Function Search_By_Title_TVShow(ByVal title As String) As List(Of EmberAPI.MediaContainers.TVShow)
+        Dim SearchResults As New List(Of EmberAPI.MediaContainers.TVShow)
 
         Dim webParsing As New HtmlWeb
         Dim htmldSearchResults As HtmlDocument = webParsing.Load(String.Concat("http://www.imdb.com/search/title?title=",
@@ -1585,9 +1584,9 @@ Public Class Scraper
                     Dim attIMDBID = ndInfo.Attributes.Where(Function(f) f.Name = "data-tconst").FirstOrDefault
                     Dim attTitle = ndInfo.Attributes.Where(Function(f) f.Name = "alt").FirstOrDefault
                     If attIMDBID IsNot Nothing AndAlso attTitle IsNot Nothing Then
-                        SearchResults.Add(New MediaContainers.TVShow With {
+                        SearchResults.Add(New EmberAPI.MediaContainers.TVShow With {
                                           .Title = attTitle.Value,
-                                          .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.TVShow) With {.IMDbId = attIMDBID.Value}
+                                          .UniqueIDs = New EmberAPI.MediaContainers.UniqueidContainer(Enums.ContentType.TVShow) With {.IMDbId = attIMDBID.Value}
                                           })
                     End If
                 End If
@@ -1599,7 +1598,7 @@ Public Class Scraper
 
     Public Sub SearchAsync_By_Title_Movie(ByVal title As String,
                                           Optional ByVal year As Integer = Nothing
-                                          ) Implements Interfaces.IScraper_Search.SearchAsync_By_Title_Movie
+                                          )
         If Not _backgroundWorker.IsBusy Then
             _backgroundWorker.WorkerReportsProgress = False
             _backgroundWorker.WorkerSupportsCancellation = True
@@ -1611,7 +1610,7 @@ Public Class Scraper
         End If
     End Sub
 
-    Public Sub SearchAsync_By_Title_Movieset(ByVal title As String) Implements Interfaces.IScraper_Search.SearchAsync_By_Title_Movieset
+    Public Sub SearchAsync_By_Title_Movieset(ByVal title As String)
         If Not _backgroundWorker.IsBusy Then
             _backgroundWorker.WorkerReportsProgress = False
             _backgroundWorker.WorkerSupportsCancellation = True
@@ -1624,7 +1623,7 @@ Public Class Scraper
 
     Public Sub SearchAsync_By_Title_TVShow(ByVal title As String,
                                            Optional ByVal year As Integer = Nothing
-                                           ) Implements Interfaces.IScraper_Search.SearchAsync_By_Title_TVShow
+                                           )
         If Not _backgroundWorker.IsBusy Then
             _backgroundWorker.WorkerReportsProgress = False
             _backgroundWorker.WorkerSupportsCancellation = True
@@ -1636,7 +1635,7 @@ Public Class Scraper
         End If
     End Sub
 
-    Public Sub SearchAsync_By_UniqueId_Movie(ByVal uniqueId As String) Implements Interfaces.IScraper_Search.SearchAsync_By_UniqueId_Movie
+    Public Sub SearchAsync_By_UniqueId_Movie(ByVal uniqueId As String)
         If Not _backgroundWorker.IsBusy Then
             _backgroundWorker.WorkerReportsProgress = False
             _backgroundWorker.WorkerSupportsCancellation = True
@@ -1647,7 +1646,7 @@ Public Class Scraper
         End If
     End Sub
 
-    Public Sub SearchAsync_By_UniqueId_Movieset(ByVal uniqueId As String) Implements Interfaces.IScraper_Search.SearchAsync_By_UniqueId_Movieset
+    Public Sub SearchAsync_By_UniqueId_Movieset(ByVal uniqueId As String)
         If Not _backgroundWorker.IsBusy Then
             _backgroundWorker.WorkerReportsProgress = False
             _backgroundWorker.WorkerSupportsCancellation = True
@@ -1658,7 +1657,7 @@ Public Class Scraper
         End If
     End Sub
 
-    Public Sub SearchAsync_By_UniqueId_TVShow(ByVal uniqueId As String) Implements Interfaces.IScraper_Search.SearchAsync_By_UniqueId_TVShow
+    Public Sub SearchAsync_By_UniqueId_TVShow(ByVal uniqueId As String)
         If Not _backgroundWorker.IsBusy Then
             _backgroundWorker.WorkerReportsProgress = False
             _backgroundWorker.WorkerSupportsCancellation = True

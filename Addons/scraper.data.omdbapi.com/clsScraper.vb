@@ -30,7 +30,7 @@ Public Class Scraper
 
     Shared _Logger As Logger = LogManager.GetCurrentClassLogger()
 
-    Private _addonSettings As Addon.AddonSettings
+    Private _addonSettings As Addon.Settings
     Private _Options As OpenMovieDatabase.OpenMovieDatabaseOptions
 
     Private _Client As OpenMovieDatabase.OpenMovieDatabaseService = Nothing
@@ -50,7 +50,7 @@ Public Class Scraper
 
 #Region "Methods"
 
-    Public Sub CreateAPI(ByVal addonSettings As Addon.AddonSettings)
+    Public Sub CreateAPI(ByVal addonSettings As Addon.Settings)
         If Not String.IsNullOrEmpty(addonSettings.APIKey) Then
             Try
                 _addonSettings = addonSettings

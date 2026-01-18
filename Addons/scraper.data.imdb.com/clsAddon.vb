@@ -133,7 +133,7 @@ Public Class Addon
         LoadSettings_TV()
     End Sub
 
-    Function InjectSetupScraper_Movie() As Containers.SettingsPanel Implements Interfaces.IAddon_Data_Scraper_Movie.InjectSetupScraper
+    Private Function BuildMovieSettingsPanel() As Containers.SettingsPanel
         Dim SPanel As New Containers.SettingsPanel
         _setup_Movie = New frmSettingsHolder_Movie
         LoadSettings_Movie()
@@ -182,7 +182,11 @@ Public Class Addon
         Return SPanel
     End Function
 
-    Function InjectSetupScraper_TV() As Containers.SettingsPanel Implements Interfaces.IAddon_Data_Scraper_TV.InjectSetupScraper
+    Function InjectSettingsPanel_Movie() As Containers.SettingsPanel Implements Interfaces.IAddon_Data_Scraper_Movie.InjectSettingsPanel
+        Return BuildMovieSettingsPanel()
+    End Function
+
+    Private Function BuildTVSettingsPanel() As Containers.SettingsPanel
         Dim SPanel As New Containers.SettingsPanel
         _setup_TV = New frmSettingsHolder_TV
         LoadSettings_TV()
@@ -224,6 +228,10 @@ Public Class Addon
         AddHandler _setup_TV.SetupScraperChanged, AddressOf Handle_SetupScraperChanged_TV
         AddHandler _setup_TV.ModuleSettingsChanged, AddressOf Handle_ModuleSettingsChanged_TV
         Return SPanel
+    End Function
+
+    Function InjectSettingsPanel_TV() As Containers.SettingsPanel Implements Interfaces.IAddon_Data_Scraper_TV.InjectSettingsPanel
+        Return BuildTVSettingsPanel()
     End Function
 
     Sub LoadSettings_Movie()
@@ -281,8 +289,9 @@ Public Class Addon
         _SpecialSettings_TV.ForceTitleLanguage = Master.eAdvancedSettings.GetSetting("ForceTitleLanguage", String.Empty, , Enums.ContentType.TVShow)
     End Sub
 
-    Sub SaveSettings_Movie()
+    Private Sub PersistSettings_Movie()
         Using settings = New AdvancedSettings()
+
             settings.SetBooleanSetting("DoCast", ConfigScrapeOptions_Movie.bMainActors, , , Enums.ContentType.Movie)
             settings.SetBooleanSetting("DoCert", ConfigScrapeOptions_Movie.bMainCertifications, , , Enums.ContentType.Movie)
             settings.SetBooleanSetting("DoCountry", ConfigScrapeOptions_Movie.bMainCountries, , , Enums.ContentType.Movie)
@@ -300,6 +309,7 @@ Public Class Addon
             settings.SetBooleanSetting("DoTitle", ConfigScrapeOptions_Movie.bMainTitle, , , Enums.ContentType.Movie)
             settings.SetBooleanSetting("DoTop250", ConfigScrapeOptions_Movie.bMainTop250, , , Enums.ContentType.Movie)
             settings.SetBooleanSetting("DoWriters", ConfigScrapeOptions_Movie.bMainWriters, , , Enums.ContentType.Movie)
+
             settings.SetBooleanSetting("FallBackWorldwide", _SpecialSettings_Movie.FallBackWorldwide, , , Enums.ContentType.Movie)
             settings.SetBooleanSetting("MPAADescription", _SpecialSettings_Movie.MPAADescription, , , Enums.ContentType.Movie)
             settings.SetBooleanSetting("SearchPartialTitles", _SpecialSettings_Movie.SearchPartialTitles, , , Enums.ContentType.Movie)
@@ -312,7 +322,7 @@ Public Class Addon
         End Using
     End Sub
 
-    Sub SaveSettings_TV()
+    Private Sub PersistSettings_TV()
         Using settings = New AdvancedSettings()
             settings.SetBooleanSetting("DoActors", ConfigScrapeOptions_TV.bEpisodeActors, , , Enums.ContentType.TVEpisode)
             settings.SetBooleanSetting("DoAired", ConfigScrapeOptions_TV.bEpisodeAired, , , Enums.ContentType.TVEpisode)
@@ -338,7 +348,7 @@ Public Class Addon
         End Using
     End Sub
 
-    Sub SaveSetupScraper_Movie(ByVal DoDispose As Boolean) Implements Interfaces.IAddon_Data_Scraper_Movie.SaveSetupScraper
+    Sub SaveSettings_Movie(ByVal DoDispose As Boolean) Implements Interfaces.IAddon_Data_Scraper_Movie.SaveSettings
         ConfigScrapeOptions_Movie.bMainActors = _setup_Movie.chkActors.Checked
         ConfigScrapeOptions_Movie.bMainCertifications = _setup_Movie.chkCertifications.Checked
         ConfigScrapeOptions_Movie.bMainCountries = _setup_Movie.chkCountries.Checked
@@ -367,7 +377,8 @@ Public Class Addon
         _SpecialSettings_Movie.SearchShortTitles = _setup_Movie.chkShortTitles.Checked
         _SpecialSettings_Movie.StudiowithDistributors = _setup_Movie.chkStudiowithDistributors.Checked
 
-        SaveSettings_Movie()
+        PersistSettings_Movie()
+
         If DoDispose Then
             RemoveHandler _setup_Movie.SetupScraperChanged, AddressOf Handle_SetupScraperChanged_Movie
             RemoveHandler _setup_Movie.ModuleSettingsChanged, AddressOf Handle_ModuleSettingsChanged_Movie
@@ -375,7 +386,7 @@ Public Class Addon
         End If
     End Sub
 
-    Sub SaveSetupScraper_TV(ByVal DoDispose As Boolean) Implements Interfaces.IAddon_Data_Scraper_TV.SaveSetupScraper
+    Sub SaveSettings_TV(ByVal DoDispose As Boolean) Implements Interfaces.IAddon_Data_Scraper_TV.SaveSettings
         ConfigScrapeOptions_TV.bEpisodeActors = _setup_TV.chkScraperEpActors.Checked
         ConfigScrapeOptions_TV.bEpisodeAired = _setup_TV.chkScraperEpAired.Checked
         ConfigScrapeOptions_TV.bEpisodeCredits = _setup_TV.chkScraperEpCredits.Checked
@@ -399,7 +410,7 @@ Public Class Addon
         _SpecialSettings_TV.FallBackWorldwide = _setup_TV.chkFallBackworldwide.Checked
         _SpecialSettings_TV.ForceTitleLanguage = _setup_TV.cbForceTitleLanguage.Text
 
-        SaveSettings_TV()
+        PersistSettings_TV()
         If DoDispose Then
             RemoveHandler _setup_TV.SetupScraperChanged, AddressOf Handle_SetupScraperChanged_TV
             RemoveHandler _setup_TV.ModuleSettingsChanged, AddressOf Handle_ModuleSettingsChanged_TV
@@ -407,18 +418,15 @@ Public Class Addon
         End If
     End Sub
 
-    Function GetTMDbIdByIMDbId(ByVal imdbId As String, ByRef tmdbId As Integer) As Interfaces.AddonResult_Generic Implements Interfaces.IAddon_Data_Scraper_Movie.GetTMDbIdByIMDbId
+    Function GetTMDbIdByIMDbId(ByVal imdbId As String, ByRef tmdbId As Integer) As Interfaces.AddonResult_Generic
         Return New Interfaces.AddonResult_Generic
     End Function
-    ''' <summary>
-    '''  Scrape MovieDetails from IMDB
-    ''' </summary>
-    ''' <param name="oDBElement">Movie to be scraped. oDBMovie as ByRef to use existing data for identifing movie and to fill with IMDB/TMDB ID for next scraper</param>
-    ''' <param name="Options">What kind of data is being requested from the scrape(global scraper settings)</param>
-    ''' <returns>Database.DBElement Object (nMovie) which contains the scraped data</returns>
-    ''' <remarks></remarks>
-    Function Scraper_Movie(ByRef oDBElement As Database.DBElement, ByRef ScrapeModifiers As Structures.ScrapeModifiers, ByRef ScrapeType As Enums.ScrapeType, ByRef ScrapeOptions As Structures.ScrapeOptions) As Interfaces.AddonResult_Data_Scraper_Movie Implements Interfaces.IAddon_Data_Scraper_Movie.Scraper_Movie
-        logger.Trace("[IMDb_Data] [Scraper_Movie] [Start]")
+
+    Function Scraper(ByRef oDBElement As Database.DBElement,
+                     ByVal ScrapeModifiers As Structures.ScrapeModifiers,
+                     ByVal ScrapeOptions As Structures.ScrapeOptions
+                     ) As Interfaces.AddonResult_Data_Scraper_Movie Implements Interfaces.IAddon_Data_Scraper_Movie.Scraper
+        logger.Trace("[IMDb_Data] [Scraper] [Start]")
 
         LoadSettings_Movie()
 
@@ -429,59 +437,38 @@ Public Class Addon
 
         If ScrapeModifiers.MainNFO AndAlso Not ScrapeModifiers.DoSearch Then
             If Not String.IsNullOrEmpty(oDBElement.Movie.UniqueIDs.IMDbId) Then
-                'IMDB-ID already available -> scrape and save data into an empty movie container (nMovie)
                 Result = _scraper.GetInfo_Movie(oDBElement.Movie.UniqueIDs.IMDbId, FilteredOptions)
-            ElseIf Not ScrapeType = Enums.ScrapeType.SingleScrape Then
-                'no IMDB-ID for movie --> search first!
-                Result = _scraper.Process_SearchResults_Movie(oDBElement.Movie.Title, oDBElement, ScrapeType, FilteredOptions)
-                'if still no search result -> exit
-                logger.Trace(String.Format("[IMDB_Data] [Scraper_Movie] [Abort] No search result found"))
-                If Result Is Nothing Then Return New Interfaces.AddonResult_Data_Scraper_Movie(Interfaces.ResultStatus.NoResult)
+            Else
+                logger.Trace(String.Format("[IMDB_Data] [Scraper] [Abort] No search result found"))
+                Return New Interfaces.AddonResult_Data_Scraper_Movie(Interfaces.ResultStatus.NoResult)
             End If
         End If
 
-        If Result Is Nothing Then
-            Select Case ScrapeType
-                Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto
-                    logger.Trace(String.Format("[IMDb_Data] [Scraper_Movie] [Abort] No search result found"))
-                    Return New Interfaces.AddonResult_Data_Scraper_Movie(Interfaces.ResultStatus.NoResult)
-            End Select
-        Else
-            logger.Trace("[IMDb_Data] [Scraper_Movie] [Done]")
+        If Result IsNot Nothing Then
+            logger.Trace("[IMDb_Data] [Scraper] [Done]")
             Return New Interfaces.AddonResult_Data_Scraper_Movie(Interfaces.ResultStatus.Successful)
+        Else
+            logger.Trace("[IMDb_Data] [Scraper] [Abort] No result found")
+            Return New Interfaces.AddonResult_Data_Scraper_Movie(Interfaces.ResultStatus.NoResult)
         End If
-
-        If ScrapeType = Enums.ScrapeType.SingleScrape OrElse ScrapeType = Enums.ScrapeType.SingleAuto Then
-            If Not oDBElement.Movie.UniqueIDs.IMDbIdSpecified Then
-                Using dlgSearch As New dlgSearchResults(_scraper, "imdb", New List(Of String) From {"IMDb"}, Enums.ContentType.Movie)
-                    Select Case dlgSearch.ShowDialog(oDBElement.Movie.Title, oDBElement.Filename, oDBElement.Movie.Year)
-                        Case DialogResult.Cancel
-                            logger.Trace(String.Format("[IMDb_Data] [Scraper_Movie] [Cancelled] Cancelled by user"))
-                            Return New Interfaces.AddonResult_Data_Scraper_Movie(Interfaces.ResultStatus.Cancelled)
-                        Case DialogResult.OK
-                            Result = _scraper.GetInfo_Movie(dlgSearch.Result_Movie.UniqueIDs.IMDbId.ToString, FilteredOptions)
-                            'if a movie is found, set DoSearch back to "false" for following scrapers
-                            ScrapeModifiers.DoSearch = False
-                        Case DialogResult.Retry
-                            logger.Trace(String.Format("[IMDb_Data] [Scraper_Movie] [Retry] Skipped by user"))
-                            Return New Interfaces.AddonResult_Data_Scraper_Movie(Interfaces.ResultStatus.Skipped)
-                    End Select
-                End Using
-            End If
-        End If
-
-        logger.Trace("[IMDb_Data] [Scraper_Movie] [Done]")
-        Return New Interfaces.AddonResult_Data_Scraper_Movie(Interfaces.ResultStatus.Successful)
     End Function
-    ''' <summary>
-    '''  Scrape MovieDetails from IMDB
-    ''' </summary>
-    ''' <param name="oDBElement">TV Show to be scraped. DBTV as ByRef to use existing data for identifing tv show and to fill with IMDB/TMDB/TVDB ID for next scraper</param>
-    ''' <param name="Options">What kind of data is being requested from the scrape(global scraper settings)</param>
-    ''' <returns>Database.DBElement Object (nMovie) which contains the scraped data</returns>
-    ''' <remarks></remarks>
-    Function Scraper_TV(ByRef oDBElement As Database.DBElement, ByRef ScrapeModifiers As Structures.ScrapeModifiers, ByRef ScrapeType As Enums.ScrapeType, ByRef ScrapeOptions As Structures.ScrapeOptions) As Interfaces.AddonResult_Data_Scraper_TVShow Implements Interfaces.IAddon_Data_Scraper_TV.Scraper_TVShow
-        logger.Trace("[IMDb_Data] [Scraper_TV] [Start]")
+
+    Function GetMovieStudio(ByRef DBMovie As Database.DBElement,
+                            ByVal sStudio As List(Of String)
+                            ) As Interfaces.AddonResult_Data_Scraper_Movie Implements Interfaces.IAddon_Data_Scraper_Movie.GetMovieStudio
+        Return New Interfaces.AddonResult_Data_Scraper_Movie(Interfaces.ResultStatus.NoResult)
+    End Function
+
+    Function GetSearchResults_Movie(ByRef nMovie As Database.DBElement
+                                    ) As Interfaces.AddonResult_Generic Implements Interfaces.IAddon_Data_Scraper_Movie.GetSearchResults
+        Return New Interfaces.AddonResult_Generic(Interfaces.ResultStatus.NoResult)
+    End Function
+
+    Function Scraper_TVShow(ByRef oDBElement As Database.DBElement,
+                            ByVal ScrapeModifiers As Structures.ScrapeModifiers,
+                            ByVal ScrapeOptions As Structures.ScrapeOptions
+                            ) As Interfaces.AddonResult_Data_Scraper_TVShow Implements Interfaces.IAddon_Data_Scraper_TV.Scraper_TVShow
+        logger.Trace("[IMDb_Data] [Scraper_TVShow] [Start]")
 
         LoadSettings_TV()
 
@@ -490,57 +477,32 @@ Public Class Addon
         _SpecialSettings_TV.PrefLanguage = oDBElement.Language
         Dim _scraper As New Scraper(_SpecialSettings_TV)
 
-        If Not ScrapeModifiers.DoSearch AndAlso
-            (ScrapeModifiers.MainNFO OrElse
-            (ScrapeModifiers.withEpisodes AndAlso ScrapeModifiers.EpisodeNFO) OrElse
-            (ScrapeModifiers.withSeasons AndAlso ScrapeModifiers.SeasonNFO)) Then
+        If Not ScrapeModifiers.DoSearch AndAlso _scraper IsNot Nothing Then
             If oDBElement.TVShow.UniqueIDs.IMDbIdSpecified Then
-                'IMDB-ID already available -> scrape and save data into an empty tvshow container (nTVShow)
                 Result = _scraper.GetInfo_TVShow(oDBElement.TVShow.UniqueIDs.IMDbId, FilteredOptions, ScrapeModifiers)
-            ElseIf Not ScrapeType = Enums.ScrapeType.SingleScrape Then
-                'no IMDB-ID for tvshow --> search first!
-                Result = _scraper.Process_SearchResults_TVShow(oDBElement.TVShow.Title, oDBElement, ScrapeType, FilteredOptions, ScrapeModifiers)
-                'if still no search result -> exit
-                logger.Trace(String.Format("[IMDb_Data] [Scraper_TV] [Abort] No search result found"))
-                If Result Is Nothing Then Return New Interfaces.AddonResult_Data_Scraper_TVShow(Interfaces.ResultStatus.NoResult)
+            Else
+                logger.Trace(String.Format("[IMDb_Data] [Scraper_TVShow] [Abort] No search result found"))
+                Return New Interfaces.AddonResult_Data_Scraper_TVShow(Interfaces.ResultStatus.NoResult)
             End If
         End If
 
-        If Result Is Nothing Then
-            Select Case ScrapeType
-                Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto
-                    logger.Trace(String.Format("[IMDb_Data] [Scraper_TV] [Abort] No search result found"))
-                    Return New Interfaces.AddonResult_Data_Scraper_TVShow(Interfaces.ResultStatus.NoResult)
-            End Select
-        Else
-            logger.Trace("[IMDB_Data] [Scraper_TV] [Done]")
+        If Result IsNot Nothing Then
+            logger.Trace("[IMDB_Data] [Scraper_TVShow] [Done]")
             Return New Interfaces.AddonResult_Data_Scraper_TVShow(Interfaces.ResultStatus.Successful)
+        Else
+            logger.Trace("[IMDb_Data] [Scraper_TVShow] [Abort] No result found")
+            Return New Interfaces.AddonResult_Data_Scraper_TVShow(Interfaces.ResultStatus.NoResult)
         End If
-
-        If ScrapeType = Enums.ScrapeType.SingleScrape OrElse ScrapeType = Enums.ScrapeType.SingleAuto Then
-            If Not oDBElement.TVShow.UniqueIDs.IMDbIdSpecified Then
-                Using dlgSearch As New dlgSearchResults(_scraper, "imdb", New List(Of String) From {"IMDb"}, Enums.ContentType.TVShow)
-                    Select Case dlgSearch.ShowDialog(oDBElement.TVShow.Title, oDBElement.ShowPath)
-                        Case DialogResult.Cancel
-                            logger.Trace(String.Format("[IMDb_Data] [Scraper_TV] [Cancelled] Cancelled by user"))
-                            Return New Interfaces.AddonResult_Data_Scraper_TVShow(Interfaces.ResultStatus.Cancelled)
-                        Case DialogResult.OK
-                            Result = _scraper.GetInfo_TVShow(dlgSearch.Result_TVShow.UniqueIDs.IMDbId, FilteredOptions, ScrapeModifiers)
-                            'if a tvshow is found, set DoSearch back to "false" for following scrapers
-                            ScrapeModifiers.DoSearch = False
-                        Case DialogResult.Retry
-                            logger.Trace(String.Format("[IMDb_Data] [Scraper_TV] [Retry] Skiped by user"))
-                            Return New Interfaces.AddonResult_Data_Scraper_TVShow(Interfaces.ResultStatus.Skipped)
-                    End Select
-                End Using
-            End If
-        End If
-
-        logger.Trace("[IMDb_Data] [Scraper_TV] [Done]")
-        Return New Interfaces.AddonResult_Data_Scraper_TVShow(Interfaces.ResultStatus.Successful)
     End Function
 
-    Public Function Scraper_TVEpisode(ByRef oDBTVEpisode As Database.DBElement, ByVal ScrapeOptions As Structures.ScrapeOptions) As Interfaces.AddonResult_Data_Scraper_TVEpisode Implements Interfaces.IAddon_Data_Scraper_TV.Scraper_TVEpisode
+    Function GetSearchResults_TV(ByRef nShow As Database.DBElement
+                                 ) As Interfaces.AddonResult_Generic Implements Interfaces.IAddon_Data_Scraper_TV.GetSearchResults
+        Return New Interfaces.AddonResult_Generic(Interfaces.ResultStatus.NoResult)
+    End Function
+
+    Public Function Scraper_TVEpisode(ByRef oDBTVEpisode As Database.DBElement,
+                                      ByVal ScrapeOptions As Structures.ScrapeOptions
+                                      ) As Interfaces.AddonResult_Data_Scraper_TVEpisode Implements Interfaces.IAddon_Data_Scraper_TV.Scraper_TVEpisode
         logger.Trace("[IMDb_Data] [Scraper_TVEpisode] [Start]")
 
         LoadSettings_TV()
@@ -563,16 +525,15 @@ Public Class Addon
         Return New Interfaces.AddonResult_Data_Scraper_TVEpisode(Interfaces.ResultStatus.Successful)
     End Function
 
-    Public Function Scraper_TVSeason(ByRef oDBTVSeason As Database.DBElement, ByVal ScrapeOptions As Structures.ScrapeOptions) As Interfaces.AddonResult_Data_Scraper_TVSeason Implements Interfaces.IAddon_Data_Scraper_TV.Scraper_TVSeason
+    Public Function Scraper_TVSeason(ByRef oDBTVSeason As Database.DBElement,
+                                     ByVal ScrapeOptions As Structures.ScrapeOptions
+                                     ) As Interfaces.AddonResult_Data_Scraper_TVSeason Implements Interfaces.IAddon_Data_Scraper_TV.Scraper_TVSeason
         Return New Interfaces.AddonResult_Data_Scraper_TVSeason(Interfaces.ResultStatus.NoResult)
     End Function
 
-    Public Sub ScraperOrderChanged_Movie() Implements Interfaces.IAddon_Data_Scraper_Movie.ScraperOrderChanged
-        _setup_Movie.orderChanged()
-    End Sub
-
-    Public Sub ScraperOrderChanged_tv() Implements Interfaces.IAddon_Data_Scraper_TV.ScraperOrderChanged
-        _setup_TV.orderChanged()
+    Public Sub ScraperOrderChanged() Implements Interfaces.IAddon_Data_Scraper_Movie.ScraperOrderChanged, Interfaces.IAddon_Data_Scraper_TV.ScraperOrderChanged
+        If _setup_Movie IsNot Nothing Then _setup_Movie.orderChanged()
+        If _setup_TV IsNot Nothing Then _setup_TV.orderChanged()
     End Sub
 
 #End Region 'Methods

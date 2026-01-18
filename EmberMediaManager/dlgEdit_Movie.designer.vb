@@ -391,7 +391,7 @@ Partial Class dlgEdit_Movie
         Me.btnOK.AutoSize = True
         Me.btnOK.Dock = System.Windows.Forms.DockStyle.Fill
         Me.btnOK.Enabled = False
-        Me.btnOK.Location = New System.Drawing.Point(1122, 26)
+        Me.btnOK.Location = New System.Drawing.Point(1048, 26)
         Me.btnOK.Name = "btnOK"
         Me.btnOK.Size = New System.Drawing.Size(70, 23)
         Me.btnOK.TabIndex = 9
@@ -402,7 +402,7 @@ Partial Class dlgEdit_Movie
         Me.btnCancel.AutoSize = True
         Me.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel
         Me.btnCancel.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.btnCancel.Location = New System.Drawing.Point(1198, 26)
+        Me.btnCancel.Location = New System.Drawing.Point(1124, 26)
         Me.btnCancel.Name = "btnCancel"
         Me.btnCancel.Size = New System.Drawing.Size(83, 23)
         Me.btnCancel.TabIndex = 10
@@ -417,7 +417,7 @@ Partial Class dlgEdit_Movie
         Me.pnlTop.Dock = System.Windows.Forms.DockStyle.Top
         Me.pnlTop.Location = New System.Drawing.Point(0, 0)
         Me.pnlTop.Name = "pnlTop"
-        Me.pnlTop.Size = New System.Drawing.Size(1284, 56)
+        Me.pnlTop.Size = New System.Drawing.Size(1210, 56)
         Me.pnlTop.TabIndex = 2
         '
         'tblTop
@@ -436,7 +436,7 @@ Partial Class dlgEdit_Movie
         Me.tblTop.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblTop.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblTop.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-        Me.tblTop.Size = New System.Drawing.Size(1282, 54)
+        Me.tblTop.Size = New System.Drawing.Size(1208, 54)
         Me.tblTop.TabIndex = 2
         '
         'pbTopLogo
@@ -473,7 +473,7 @@ Partial Class dlgEdit_Movie
         Me.lblTopTitle.ForeColor = System.Drawing.Color.White
         Me.lblTopTitle.Location = New System.Drawing.Point(57, 0)
         Me.lblTopTitle.Name = "lblTopTitle"
-        Me.lblTopTitle.Size = New System.Drawing.Size(137, 32)
+        Me.lblTopTitle.Size = New System.Drawing.Size(136, 32)
         Me.lblTopTitle.TabIndex = 0
         Me.lblTopTitle.Text = "Edit Movie"
         '
@@ -483,7 +483,7 @@ Partial Class dlgEdit_Movie
         Me.btnRescrape.Dock = System.Windows.Forms.DockStyle.Fill
         Me.btnRescrape.Image = CType(resources.GetObject("btnRescrape.Image"), System.Drawing.Image)
         Me.btnRescrape.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
-        Me.btnRescrape.Location = New System.Drawing.Point(664, 26)
+        Me.btnRescrape.Location = New System.Drawing.Point(627, 26)
         Me.btnRescrape.Name = "btnRescrape"
         Me.btnRescrape.Size = New System.Drawing.Size(98, 23)
         Me.btnRescrape.TabIndex = 7
@@ -497,7 +497,7 @@ Partial Class dlgEdit_Movie
         Me.btnChange.Dock = System.Windows.Forms.DockStyle.Fill
         Me.btnChange.Image = CType(resources.GetObject("btnChange.Image"), System.Drawing.Image)
         Me.btnChange.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
-        Me.btnChange.Location = New System.Drawing.Point(768, 26)
+        Me.btnChange.Location = New System.Drawing.Point(731, 26)
         Me.btnChange.Name = "btnChange"
         Me.btnChange.Size = New System.Drawing.Size(107, 23)
         Me.btnChange.TabIndex = 8
@@ -513,9 +513,9 @@ Partial Class dlgEdit_Movie
         '
         Me.StatusStrip.ImageScalingSize = New System.Drawing.Size(18, 18)
         Me.StatusStrip.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.tsslFilename, Me.tsslSpring, Me.tsslStatus, Me.tspbStatus})
-        Me.StatusStrip.Location = New System.Drawing.Point(0, 809)
+        Me.StatusStrip.Location = New System.Drawing.Point(0, 790)
         Me.StatusStrip.Name = "StatusStrip"
-        Me.StatusStrip.Size = New System.Drawing.Size(1284, 22)
+        Me.StatusStrip.Size = New System.Drawing.Size(1210, 22)
         Me.StatusStrip.TabIndex = 9
         Me.StatusStrip.Text = "StatusStrip1"
         '
@@ -528,7 +528,7 @@ Partial Class dlgEdit_Movie
         'tsslSpring
         '
         Me.tsslSpring.Name = "tsslSpring"
-        Me.tsslSpring.Size = New System.Drawing.Size(1214, 17)
+        Me.tsslSpring.Size = New System.Drawing.Size(1140, 17)
         Me.tsslSpring.Spring = True
         '
         'tsslStatus
@@ -571,7 +571,7 @@ Partial Class dlgEdit_Movie
         Me.pnlMain.Dock = System.Windows.Forms.DockStyle.Fill
         Me.pnlMain.Location = New System.Drawing.Point(0, 56)
         Me.pnlMain.Name = "pnlMain"
-        Me.pnlMain.Size = New System.Drawing.Size(1284, 701)
+        Me.pnlMain.Size = New System.Drawing.Size(1210, 682)
         Me.pnlMain.TabIndex = 78
         '
         'tcEdit
@@ -587,7 +587,7 @@ Partial Class dlgEdit_Movie
         Me.tcEdit.Location = New System.Drawing.Point(0, 0)
         Me.tcEdit.Name = "tcEdit"
         Me.tcEdit.SelectedIndex = 0
-        Me.tcEdit.Size = New System.Drawing.Size(1284, 701)
+        Me.tcEdit.Size = New System.Drawing.Size(1210, 682)
         Me.tcEdit.TabIndex = 0
         '
         'tpDetails
@@ -596,7 +596,7 @@ Partial Class dlgEdit_Movie
         Me.tpDetails.Location = New System.Drawing.Point(4, 22)
         Me.tpDetails.Name = "tpDetails"
         Me.tpDetails.Padding = New System.Windows.Forms.Padding(3)
-        Me.tpDetails.Size = New System.Drawing.Size(1276, 675)
+        Me.tpDetails.Size = New System.Drawing.Size(1202, 656)
         Me.tpDetails.TabIndex = 0
         Me.tpDetails.Text = "Details"
         '
@@ -674,7 +674,7 @@ Partial Class dlgEdit_Movie
         Me.tblDetails.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblDetails.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblDetails.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblDetails.Size = New System.Drawing.Size(1270, 669)
+        Me.tblDetails.Size = New System.Drawing.Size(1196, 650)
         Me.tblDetails.TabIndex = 78
         '
         'lblTitle
@@ -1106,7 +1106,7 @@ Partial Class dlgEdit_Movie
         Me.tpDetails2.Controls.Add(Me.tblDetails2)
         Me.tpDetails2.Location = New System.Drawing.Point(4, 22)
         Me.tpDetails2.Name = "tpDetails2"
-        Me.tpDetails2.Size = New System.Drawing.Size(1276, 675)
+        Me.tpDetails2.Size = New System.Drawing.Size(1202, 656)
         Me.tpDetails2.TabIndex = 18
         Me.tpDetails2.Text = "Details 2"
         '
@@ -1181,7 +1181,7 @@ Partial Class dlgEdit_Movie
         Me.tblDetails2.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
         Me.tblDetails2.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblDetails2.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblDetails2.Size = New System.Drawing.Size(1276, 675)
+        Me.tblDetails2.Size = New System.Drawing.Size(1202, 656)
         Me.tblDetails2.TabIndex = 0
         '
         'lblDateAdded
@@ -1618,7 +1618,7 @@ Partial Class dlgEdit_Movie
         Me.tpCastCrew.Controls.Add(Me.tblCastCrew)
         Me.tpCastCrew.Location = New System.Drawing.Point(4, 22)
         Me.tpCastCrew.Name = "tpCastCrew"
-        Me.tpCastCrew.Size = New System.Drawing.Size(1276, 675)
+        Me.tpCastCrew.Size = New System.Drawing.Size(1202, 656)
         Me.tpCastCrew.TabIndex = 19
         Me.tpCastCrew.Text = "Cast & Crew"
         '
@@ -1655,7 +1655,7 @@ Partial Class dlgEdit_Movie
         Me.tblCastCrew.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
         Me.tblCastCrew.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
         Me.tblCastCrew.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 30.0!))
-        Me.tblCastCrew.Size = New System.Drawing.Size(1276, 675)
+        Me.tblCastCrew.Size = New System.Drawing.Size(1202, 656)
         Me.tblCastCrew.TabIndex = 0
         '
         'lblActors
@@ -1681,7 +1681,7 @@ Partial Class dlgEdit_Movie
         Me.lvActors.Location = New System.Drawing.Point(55, 3)
         Me.lvActors.Name = "lvActors"
         Me.tblCastCrew.SetRowSpan(Me.lvActors, 6)
-        Me.lvActors.Size = New System.Drawing.Size(1218, 476)
+        Me.lvActors.Size = New System.Drawing.Size(1144, 462)
         Me.lvActors.TabIndex = 31
         Me.lvActors.UseCompatibleStateImageBehavior = False
         Me.lvActors.View = System.Windows.Forms.View.Details
@@ -1766,11 +1766,11 @@ Partial Class dlgEdit_Movie
         Me.dgvDirectors.ColumnHeadersVisible = False
         Me.dgvDirectors.Columns.AddRange(New System.Windows.Forms.DataGridViewColumn() {Me.colDirectorsName})
         Me.dgvDirectors.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.dgvDirectors.Location = New System.Drawing.Point(708, 505)
+        Me.dgvDirectors.Location = New System.Drawing.Point(671, 491)
         Me.dgvDirectors.Name = "dgvDirectors"
         Me.dgvDirectors.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing
         Me.tblCastCrew.SetRowSpan(Me.dgvDirectors, 2)
-        Me.dgvDirectors.Size = New System.Drawing.Size(565, 167)
+        Me.dgvDirectors.Size = New System.Drawing.Size(528, 162)
         Me.dgvDirectors.TabIndex = 44
         '
         'colDirectorsName
@@ -1790,11 +1790,11 @@ Partial Class dlgEdit_Movie
         Me.dgvCredits.ColumnHeadersVisible = False
         Me.dgvCredits.Columns.AddRange(New System.Windows.Forms.DataGridViewColumn() {Me.colCreditsName})
         Me.dgvCredits.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.dgvCredits.Location = New System.Drawing.Point(55, 505)
+        Me.dgvCredits.Location = New System.Drawing.Point(55, 491)
         Me.dgvCredits.Name = "dgvCredits"
         Me.dgvCredits.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing
         Me.tblCastCrew.SetRowSpan(Me.dgvCredits, 2)
-        Me.dgvCredits.Size = New System.Drawing.Size(565, 167)
+        Me.dgvCredits.Size = New System.Drawing.Size(528, 162)
         Me.dgvCredits.TabIndex = 42
         '
         'colCreditsName
@@ -1808,7 +1808,7 @@ Partial Class dlgEdit_Movie
         '
         Me.lblCredits.Anchor = System.Windows.Forms.AnchorStyles.Right
         Me.lblCredits.AutoSize = True
-        Me.lblCredits.Location = New System.Drawing.Point(3, 509)
+        Me.lblCredits.Location = New System.Drawing.Point(3, 495)
         Me.lblCredits.Name = "lblCredits"
         Me.lblCredits.Size = New System.Drawing.Size(46, 13)
         Me.lblCredits.TabIndex = 41
@@ -1818,7 +1818,7 @@ Partial Class dlgEdit_Movie
         '
         Me.lblDirectors.Anchor = System.Windows.Forms.AnchorStyles.Right
         Me.lblDirectors.AutoSize = True
-        Me.lblDirectors.Location = New System.Drawing.Point(646, 509)
+        Me.lblDirectors.Location = New System.Drawing.Point(609, 495)
         Me.lblDirectors.Name = "lblDirectors"
         Me.lblDirectors.Size = New System.Drawing.Size(56, 13)
         Me.lblDirectors.TabIndex = 43
@@ -1830,7 +1830,7 @@ Partial Class dlgEdit_Movie
         Me.tpOther.Controls.Add(Me.tblOther)
         Me.tpOther.Location = New System.Drawing.Point(4, 22)
         Me.tpOther.Name = "tpOther"
-        Me.tpOther.Size = New System.Drawing.Size(1276, 675)
+        Me.tpOther.Size = New System.Drawing.Size(1202, 656)
         Me.tpOther.TabIndex = 17
         Me.tpOther.Text = "Other"
         '
@@ -1852,7 +1852,7 @@ Partial Class dlgEdit_Movie
         Me.tblOther.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblOther.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblOther.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblOther.Size = New System.Drawing.Size(1276, 675)
+        Me.tblOther.Size = New System.Drawing.Size(1202, 656)
         Me.tblOther.TabIndex = 0
         '
         'gbMediaStub
@@ -2299,7 +2299,7 @@ Partial Class dlgEdit_Movie
         Me.tpImages.Location = New System.Drawing.Point(4, 22)
         Me.tpImages.Name = "tpImages"
         Me.tpImages.Padding = New System.Windows.Forms.Padding(3)
-        Me.tpImages.Size = New System.Drawing.Size(1276, 675)
+        Me.tpImages.Size = New System.Drawing.Size(1202, 656)
         Me.tpImages.TabIndex = 16
         Me.tpImages.Text = "Images"
         '
@@ -2332,7 +2332,7 @@ Partial Class dlgEdit_Movie
         Me.tblImages.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblImages.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblImages.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblImages.Size = New System.Drawing.Size(1267, 669)
+        Me.tblImages.Size = New System.Drawing.Size(1193, 650)
         Me.tblImages.TabIndex = 2
         '
         'pnlExtrathumbs
@@ -3673,9 +3673,9 @@ Partial Class dlgEdit_Movie
         Me.pnlImagesRight.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.pnlImagesRight.Controls.Add(Me.tblImagesRight)
         Me.pnlImagesRight.Dock = System.Windows.Forms.DockStyle.Right
-        Me.pnlImagesRight.Location = New System.Drawing.Point(1270, 3)
+        Me.pnlImagesRight.Location = New System.Drawing.Point(1196, 3)
         Me.pnlImagesRight.Name = "pnlImagesRight"
-        Me.pnlImagesRight.Size = New System.Drawing.Size(3, 669)
+        Me.pnlImagesRight.Size = New System.Drawing.Size(3, 650)
         Me.pnlImagesRight.TabIndex = 4
         '
         'tblImagesRight
@@ -3699,7 +3699,7 @@ Partial Class dlgEdit_Movie
         Me.tpFrameExtraction.Location = New System.Drawing.Point(4, 22)
         Me.tpFrameExtraction.Name = "tpFrameExtraction"
         Me.tpFrameExtraction.Padding = New System.Windows.Forms.Padding(3)
-        Me.tpFrameExtraction.Size = New System.Drawing.Size(1276, 675)
+        Me.tpFrameExtraction.Size = New System.Drawing.Size(1202, 656)
         Me.tpFrameExtraction.TabIndex = 3
         Me.tpFrameExtraction.Text = "Frame Extraction"
         '
@@ -3728,7 +3728,7 @@ Partial Class dlgEdit_Movie
         Me.tblFrameExtraction.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblFrameExtraction.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblFrameExtraction.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblFrameExtraction.Size = New System.Drawing.Size(1270, 669)
+        Me.tblFrameExtraction.Size = New System.Drawing.Size(1196, 650)
         Me.tblFrameExtraction.TabIndex = 28
         '
         'pbFrame
@@ -3740,7 +3740,7 @@ Partial Class dlgEdit_Movie
         Me.pbFrame.Location = New System.Drawing.Point(3, 3)
         Me.pbFrame.Name = "pbFrame"
         Me.tblFrameExtraction.SetRowSpan(Me.pbFrame, 5)
-        Me.pbFrame.Size = New System.Drawing.Size(1162, 630)
+        Me.pbFrame.Size = New System.Drawing.Size(1088, 611)
         Me.pbFrame.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom
         Me.pbFrame.TabIndex = 25
         Me.pbFrame.TabStop = False
@@ -3751,7 +3751,7 @@ Partial Class dlgEdit_Movie
         Me.btnFrameSaveAsExtrathumb.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(238, Byte))
         Me.btnFrameSaveAsExtrathumb.Image = CType(resources.GetObject("btnFrameSaveAsExtrathumb.Image"), System.Drawing.Image)
         Me.btnFrameSaveAsExtrathumb.ImageAlign = System.Drawing.ContentAlignment.TopCenter
-        Me.btnFrameSaveAsExtrathumb.Location = New System.Drawing.Point(1171, 550)
+        Me.btnFrameSaveAsExtrathumb.Location = New System.Drawing.Point(1097, 531)
         Me.btnFrameSaveAsExtrathumb.Name = "btnFrameSaveAsExtrathumb"
         Me.btnFrameSaveAsExtrathumb.Size = New System.Drawing.Size(96, 83)
         Me.btnFrameSaveAsExtrathumb.TabIndex = 4
@@ -3765,7 +3765,7 @@ Partial Class dlgEdit_Movie
         Me.btnFrameSaveAsExtrafanart.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(238, Byte))
         Me.btnFrameSaveAsExtrafanart.Image = CType(resources.GetObject("btnFrameSaveAsExtrafanart.Image"), System.Drawing.Image)
         Me.btnFrameSaveAsExtrafanart.ImageAlign = System.Drawing.ContentAlignment.TopCenter
-        Me.btnFrameSaveAsExtrafanart.Location = New System.Drawing.Point(1171, 461)
+        Me.btnFrameSaveAsExtrafanart.Location = New System.Drawing.Point(1097, 442)
         Me.btnFrameSaveAsExtrafanart.Name = "btnFrameSaveAsExtrafanart"
         Me.btnFrameSaveAsExtrafanart.Size = New System.Drawing.Size(96, 83)
         Me.btnFrameSaveAsExtrafanart.TabIndex = 3
@@ -3780,9 +3780,9 @@ Partial Class dlgEdit_Movie
         Me.tbFrame.Cursor = System.Windows.Forms.Cursors.Default
         Me.tbFrame.Dock = System.Windows.Forms.DockStyle.Fill
         Me.tbFrame.Enabled = False
-        Me.tbFrame.Location = New System.Drawing.Point(3, 639)
+        Me.tbFrame.Location = New System.Drawing.Point(3, 620)
         Me.tbFrame.Name = "tbFrame"
-        Me.tbFrame.Size = New System.Drawing.Size(1097, 27)
+        Me.tbFrame.Size = New System.Drawing.Size(1023, 27)
         Me.tbFrame.TabIndex = 1
         Me.tbFrame.TickStyle = System.Windows.Forms.TickStyle.None
         '
@@ -3792,7 +3792,7 @@ Partial Class dlgEdit_Movie
         Me.btnFrameSaveAsFanart.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.btnFrameSaveAsFanart.Image = CType(resources.GetObject("btnFrameSaveAsFanart.Image"), System.Drawing.Image)
         Me.btnFrameSaveAsFanart.ImageAlign = System.Drawing.ContentAlignment.TopCenter
-        Me.btnFrameSaveAsFanart.Location = New System.Drawing.Point(1171, 372)
+        Me.btnFrameSaveAsFanart.Location = New System.Drawing.Point(1097, 353)
         Me.btnFrameSaveAsFanart.Name = "btnFrameSaveAsFanart"
         Me.btnFrameSaveAsFanart.Size = New System.Drawing.Size(96, 83)
         Me.btnFrameSaveAsFanart.TabIndex = 2
@@ -3803,7 +3803,7 @@ Partial Class dlgEdit_Movie
         'lblTime
         '
         Me.lblTime.Anchor = System.Windows.Forms.AnchorStyles.Left
-        Me.lblTime.Location = New System.Drawing.Point(1106, 641)
+        Me.lblTime.Location = New System.Drawing.Point(1032, 622)
         Me.lblTime.Name = "lblTime"
         Me.lblTime.Size = New System.Drawing.Size(59, 23)
         Me.lblTime.TabIndex = 24
@@ -3815,7 +3815,7 @@ Partial Class dlgEdit_Movie
         Me.btnFrameLoadVideo.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(238, Byte))
         Me.btnFrameLoadVideo.Image = CType(resources.GetObject("btnFrameLoadVideo.Image"), System.Drawing.Image)
         Me.btnFrameLoadVideo.ImageAlign = System.Drawing.ContentAlignment.TopCenter
-        Me.btnFrameLoadVideo.Location = New System.Drawing.Point(1171, 3)
+        Me.btnFrameLoadVideo.Location = New System.Drawing.Point(1097, 3)
         Me.btnFrameLoadVideo.Name = "btnFrameLoadVideo"
         Me.btnFrameLoadVideo.Size = New System.Drawing.Size(96, 83)
         Me.btnFrameLoadVideo.TabIndex = 0
@@ -3830,7 +3830,7 @@ Partial Class dlgEdit_Movie
         Me.tpMetaData.Location = New System.Drawing.Point(4, 22)
         Me.tpMetaData.Name = "tpMetaData"
         Me.tpMetaData.Padding = New System.Windows.Forms.Padding(3)
-        Me.tpMetaData.Size = New System.Drawing.Size(1276, 675)
+        Me.tpMetaData.Size = New System.Drawing.Size(1202, 656)
         Me.tpMetaData.TabIndex = 5
         Me.tpMetaData.Text = "Meta Data"
         '
@@ -3839,7 +3839,7 @@ Partial Class dlgEdit_Movie
         Me.pnlFileInfo.Dock = System.Windows.Forms.DockStyle.Fill
         Me.pnlFileInfo.Location = New System.Drawing.Point(3, 3)
         Me.pnlFileInfo.Name = "pnlFileInfo"
-        Me.pnlFileInfo.Size = New System.Drawing.Size(1270, 669)
+        Me.pnlFileInfo.Size = New System.Drawing.Size(1196, 650)
         Me.pnlFileInfo.TabIndex = 0
         '
         'pnlBottom
@@ -3847,9 +3847,9 @@ Partial Class dlgEdit_Movie
         Me.pnlBottom.AutoSize = True
         Me.pnlBottom.Controls.Add(Me.tblBottom)
         Me.pnlBottom.Dock = System.Windows.Forms.DockStyle.Bottom
-        Me.pnlBottom.Location = New System.Drawing.Point(0, 757)
+        Me.pnlBottom.Location = New System.Drawing.Point(0, 738)
         Me.pnlBottom.Name = "pnlBottom"
-        Me.pnlBottom.Size = New System.Drawing.Size(1284, 52)
+        Me.pnlBottom.Size = New System.Drawing.Size(1210, 52)
         Me.pnlBottom.TabIndex = 79
         '
         'tblBottom
@@ -3885,7 +3885,7 @@ Partial Class dlgEdit_Movie
         Me.tblBottom.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblBottom.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblBottom.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
-        Me.tblBottom.Size = New System.Drawing.Size(1284, 52)
+        Me.tblBottom.Size = New System.Drawing.Size(1210, 52)
         Me.tblBottom.TabIndex = 78
         '
         'chkLocked
@@ -3960,7 +3960,7 @@ Partial Class dlgEdit_Movie
         Me.AutoScaleDimensions = New System.Drawing.SizeF(96.0!, 96.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi
         Me.CancelButton = Me.btnCancel
-        Me.ClientSize = New System.Drawing.Size(1284, 831)
+        Me.ClientSize = New System.Drawing.Size(1210, 812)
         Me.Controls.Add(Me.pnlMain)
         Me.Controls.Add(Me.pnlTop)
         Me.Controls.Add(Me.pnlBottom)

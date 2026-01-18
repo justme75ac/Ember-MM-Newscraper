@@ -204,6 +204,25 @@ Public Class Containers
 
     End Class 'CommandsNoTransactionCommand
 
+    ''' <summary>
+    ''' Settings panel container for old addon system
+    ''' </summary>
+    Public Class SettingsPanel
+
+#Region "Fields"
+
+        Public UniqueName As String
+        Public Title As String
+        Public Order As Integer
+        Public Parent As String
+        Public Type As String
+        Public ImageIndex As Integer
+        Public Panel As Windows.Forms.Panel
+
+#End Region 'Fields
+
+    End Class
+
 #End Region 'Nested Types
 
 End Class

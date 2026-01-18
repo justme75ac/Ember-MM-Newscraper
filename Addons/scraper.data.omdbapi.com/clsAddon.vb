@@ -36,9 +36,9 @@ Public Class Addon
     Public Shared ConfigScrapeModifier_Movie As New Structures.ScrapeModifiers
     Public Shared ConfigScrapeModifier_TV As New Structures.ScrapeModifiers
 
-    Private _SpecialSettings_Movie As New AddonSettings
-    Private _SpecialSettings_TV As New AddonSettings
-    Private _SpecialSettings_TVEpisode As New AddonSettings
+    Private _SpecialSettings_Movie As New Settings
+    Private _SpecialSettings_TV As New Settings
+    Private _SpecialSettings_TVEpisode As New Settings
     Private _Name As String = "OMDb_Data"
     Private _ScraperEnabled_Movie As Boolean = False
     Private _ScraperEnabled_TV As Boolean = False
@@ -65,19 +65,19 @@ Public Class Addon
 
 #Region "Properties"
 
-    ReadOnly Property Name() As String Implements Interfaces.IAddon_Data_Scraper_Movie.Name, Interfaces.IAddon_Data_Scraper_TV.Name
+    ReadOnly Property ModuleName() As String Implements Interfaces.IAddon_Data_Scraper_Movie.ModuleName, Interfaces.IAddon_Data_Scraper_TV.ModuleName
         Get
             Return _Name
         End Get
     End Property
 
-    ReadOnly Property Version() As String Implements Interfaces.IAddon_Data_Scraper_Movie.Version, Interfaces.IAddon_Data_Scraper_TV.Version
+    ReadOnly Property ModuleVersion() As String Implements Interfaces.IAddon_Data_Scraper_Movie.ModuleVersion, Interfaces.IAddon_Data_Scraper_TV.ModuleVersion
         Get
             Return FileVersionInfo.GetVersionInfo(Reflection.Assembly.GetExecutingAssembly.Location).FileVersion.ToString
         End Get
     End Property
 
-    Property ScraperEnabled_Movie() As Boolean Implements Interfaces.IAddon_Data_Scraper_Movie.Enabled
+    Property ScraperEnabled_Movie() As Boolean Implements Interfaces.IAddon_Data_Scraper_Movie.ScraperEnabled
         Get
             Return _ScraperEnabled_Movie
         End Get
@@ -260,97 +260,87 @@ Public Class Addon
         End If
     End Sub
 
-    Function Scraper_Movie(ByRef dbElement As Database.DBElement,
-                           ByRef scrapeModifiers As Structures.ScrapeModifiers,
-                           ByRef scrapeType As Enums.ScrapeType,
-                           ByRef scrapeOptions As Structures.ScrapeOptions
-                           ) As Interfaces.AddonResult_Data_Scraper_Movie Implements Interfaces.IAddon_Data_Scraper_Movie.Scraper_Movie
-        _Logger.Trace("[OMDbApi.com_Data] [Scraper_Movie] [Start]")
-        Dim FilteredOptions As Structures.ScrapeOptions = Functions.ScrapeOptionsAndAlso(scrapeOptions, ConfigScrapeOptions_Movie)
+    Function Scraper(ByRef DBMovie As Database.DBElement,
+                     ByVal ScrapeModifiers As Structures.ScrapeModifiers,
+                     ByVal ScrapeOptions As Structures.ScrapeOptions
+                     ) As Interfaces.AddonResult_Data_Scraper_Movie Implements Interfaces.IAddon_Data_Scraper_Movie.Scraper
+        _Logger.Trace("[OMDbApi.com_Data] [Scraper] [Start]")
+        Dim FilteredOptions As Structures.ScrapeOptions = Functions.ScrapeOptionsAndAlso(ScrapeOptions, ConfigScrapeOptions_Movie)
         Dim Result As MediaContainers.Movie = Nothing
 
-        If scrapeModifiers.MainNFO AndAlso Not scrapeModifiers.DoSearch AndAlso _OMDbAPI_Movie.IsClientCreated Then
-            If dbElement.Movie.UniqueIDs.IMDbIdSpecified Then
-                Dim nRatings = _OMDbAPI_Movie.GetRatingsByImbId(dbElement.Movie.UniqueIDs.IMDbId, dbElement.ContentType, FilteredOptions)
+        If ScrapeModifiers.MainNFO AndAlso Not ScrapeModifiers.DoSearch AndAlso _OMDbAPI_Movie.IsClientCreated Then
+            If DBMovie.Movie.UniqueIDs.IMDbIdSpecified Then
+                Dim nRatings = _OMDbAPI_Movie.GetRatingsByImbId(DBMovie.Movie.UniqueIDs.IMDbId, DBMovie.ContentType, FilteredOptions)
                 If nRatings IsNot Nothing Then
                     Result = New MediaContainers.Movie With {.Ratings = nRatings}
                 End If
             Else
-                _Logger.Trace("[OMDbApi.com_Data] [Scraper_Movie] [Abort] No IMDb ID available")
+                _Logger.Trace("[OMDbApi.com_Data] [Scraper] [Abort] No IMDb ID available")
                 Return New Interfaces.AddonResult_Data_Scraper_Movie(Interfaces.ResultStatus.NoResult)
             End If
         ElseIf Not _OMDbAPI_Movie.IsClientCreated Then
-            _Logger.Error("[OMDbApi.com_Data] [Scraper_Movie] [Abort] Can't create API client (API key missing?)")
+            _Logger.Error("[OMDbApi.com_Data] [Scraper] [Abort] Can't create API client (API key missing?)")
             Return New Interfaces.AddonResult_Data_Scraper_Movie(Interfaces.ResultStatus.NoResult)
         End If
 
         If Result IsNot Nothing Then
-            _Logger.Trace("[OMDbApi.com_Data] [Scraper_Movie] [Done]")
+            _Logger.Trace("[OMDbApi.com_Data] [Scraper] [Done]")
             Return New Interfaces.AddonResult_Data_Scraper_Movie(Result)
         Else
-            _Logger.Trace("[OMDbApi.com_Data] [Scraper_Movie] [Abort] No result found")
+            _Logger.Trace("[OMDbApi.com_Data] [Scraper] [Abort] No result found")
             Return New Interfaces.AddonResult_Data_Scraper_Movie(Interfaces.ResultStatus.NoResult)
         End If
     End Function
 
-    Function Scraper_TVShow(ByRef dbElement As Database.DBElement,
-                            ByRef scrapeModifiers As Structures.ScrapeModifiers,
-                            ByRef scrapeType As Enums.ScrapeType,
-                            ByRef scrapeOptions As Structures.ScrapeOptions
+    Function GetMovieStudio(ByRef DBMovie As Database.DBElement, ByVal sStudio As List(Of String)) As Interfaces.AddonResult_Data_Scraper_Movie Implements Interfaces.IAddon_Data_Scraper_Movie.GetMovieStudio
+        Return New Interfaces.AddonResult_Data_Scraper_Movie(Interfaces.ResultStatus.NoResult)
+    End Function
+
+    Function GetSearchResults_Movie(ByRef nMovie As Database.DBElement) As Interfaces.AddonResult_Generic Implements Interfaces.IAddon_Data_Scraper_Movie.GetSearchResults
+        Return New Interfaces.AddonResult_Generic(Interfaces.ResultStatus.NoResult)
+    End Function
+
+    Function Scraper_TVShow(ByRef DBTVShow As Database.DBElement,
+                            ByVal ScrapeModifiers As Structures.ScrapeModifiers,
+                            ByVal ScrapeOptions As Structures.ScrapeOptions
                             ) As Interfaces.AddonResult_Data_Scraper_TVShow Implements Interfaces.IAddon_Data_Scraper_TV.Scraper_TVShow
-        _Logger.Trace("[OMDbApi.com_Data] [Scraper_TV] [Start]")
-        Dim FilteredOptions As Structures.ScrapeOptions = Functions.ScrapeOptionsAndAlso(scrapeOptions, ConfigScrapeOptions_TV)
+        _Logger.Trace("[OMDbApi.com_Data] [Scraper_TVShow] [Start]")
+        Dim FilteredOptions As Structures.ScrapeOptions = Functions.ScrapeOptionsAndAlso(ScrapeOptions, ConfigScrapeOptions_TV)
         Dim Result As MediaContainers.TVShow = Nothing
 
-        If scrapeModifiers.MainNFO AndAlso Not scrapeModifiers.DoSearch AndAlso _OMDbAPI_TV.IsClientCreated Then
-            If dbElement.TVShow.UniqueIDs.IMDbIdSpecified Then
-                Dim nRatings = _OMDbAPI_TV.GetRatingsByImbId(dbElement.TVShow.UniqueIDs.IMDbId, dbElement.ContentType, FilteredOptions)
+        If ScrapeModifiers.MainNFO AndAlso Not ScrapeModifiers.DoSearch AndAlso _OMDbAPI_TV.IsClientCreated Then
+            If DBTVShow.TVShow.UniqueIDs.IMDbIdSpecified Then
+                Dim nRatings = _OMDbAPI_TV.GetRatingsByImbId(DBTVShow.TVShow.UniqueIDs.IMDbId, DBTVShow.ContentType, FilteredOptions)
                 If nRatings IsNot Nothing Then
                     Result = New MediaContainers.TVShow With {.Ratings = nRatings}
                 End If
             Else
-                _Logger.Trace("[OMDbApi.com_Data] [Scraper_TV] [Abort] No IMDb ID available")
+                _Logger.Trace("[OMDbApi.com_Data] [Scraper_TVShow] [Abort] No IMDb ID available")
                 Return New Interfaces.AddonResult_Data_Scraper_TVShow(Interfaces.ResultStatus.NoResult)
             End If
         ElseIf Not _OMDbAPI_TV.IsClientCreated Then
-            _Logger.Error("[OMDbApi.com_Data] [Scraper_TV] [Abort] Can't create API client (API key missing?)")
+            _Logger.Error("[OMDbApi.com_Data] [Scraper_TVShow] [Abort] Can't create API client (API key missing?)")
             Return New Interfaces.AddonResult_Data_Scraper_TVShow(Interfaces.ResultStatus.NoResult)
         End If
 
         If Result IsNot Nothing Then
-            _Logger.Trace("[OMDbApi.com_Data] [Scraper_TV] [Done]")
+            _Logger.Trace("[OMDbApi.com_Data] [Scraper_TVShow] [Done]")
             Return New Interfaces.AddonResult_Data_Scraper_TVShow(Result)
         Else
-            _Logger.Trace("[OMDbApi.com_Data] [Scraper_TV] [Abort] No result found")
+            _Logger.Trace("[OMDbApi.com_Data] [Scraper_TVShow] [Abort] No result found")
             Return New Interfaces.AddonResult_Data_Scraper_TVShow(Interfaces.ResultStatus.NoResult)
         End If
     End Function
 
-    Public Function Scraper_TVEpisode(ByRef dbElement As Database.DBElement,
-                                      ByVal scrapeOptions As Structures.ScrapeOptions
+    Function GetSearchResults_TV(ByRef nShow As Database.DBElement) As Interfaces.AddonResult_Generic Implements Interfaces.IAddon_Data_Scraper_TV.GetSearchResults
+        Return New Interfaces.AddonResult_Generic(Interfaces.ResultStatus.NoResult)
+    End Function
+
+    Public Function Scraper_TVEpisode(ByRef DBTVEpisode As Database.DBElement,
+                                      ByVal ScrapeOptions As Structures.ScrapeOptions
                                       ) As Interfaces.AddonResult_Data_Scraper_TVEpisode Implements Interfaces.IAddon_Data_Scraper_TV.Scraper_TVEpisode
         _Logger.Trace("[OMDb_Data] [Scraper_TVEpisode] [Start]")
         Dim Result As MediaContainers.EpisodeDetails = Nothing
-        '    Dim FilteredOptions As Structures.ScrapeOptions = Functions.ScrapeOptionsAndAlso(ScrapeOptions, ConfigScrapeOptions_TV)
-
-        '    If oDBElement.TVShow.TMDBSpecified Then
-        '        If Not oDBElement.TVEpisode.Episode = -1 AndAlso Not oDBElement.TVEpisode.Season = -1 Then
-        '            nTVEpisode = _OMDbAPI_TV.GetInfo_TVEpisode(CInt(oDBElement.TVShow.TMDB), oDBElement.TVEpisode.Season, oDBElement.TVEpisode.Episode, FilteredOptions)
-        '        ElseIf oDBElement.TVEpisode.AiredSpecified Then
-        '            nTVEpisode = _OMDbAPI_TV.GetInfo_TVEpisode(CInt(oDBElement.TVShow.TMDB), oDBElement.TVEpisode.Aired, FilteredOptions)
-        '        Else
-        '            _Logger.Trace(String.Format("[TMDB_Data] [Scraper_TVEpisode] [Abort] No search result found"))
-        '            Return New Interfaces.ModuleResult_Data_TVEpisode With {.Result = Nothing}
-        '        End If
-        '        'if still no search result -> exit
-        '        If nTVEpisode Is Nothing Then
-        '            _Logger.Trace(String.Format("[TMDB_Data] [Scraper_TVEpisode] [Abort] No search result found"))
-        '            Return New Interfaces.ModuleResult_Data_TVEpisode With {.Result = Nothing}
-        '        End If
-        '    Else
-        '        _Logger.Trace(String.Format("[TMDB_Data] [Scraper_TVEpisode] [Abort] No TV Show TMDB ID available"))
-        '        Return New Interfaces.ModuleResult_Data_TVEpisode With {.Result = Nothing}
-        '    End If
 
         If Result IsNot Nothing Then
             _Logger.Trace("[OMDb_Data] [Scraper_TVEpisode] [Done]")
@@ -361,33 +351,11 @@ Public Class Addon
         End If
     End Function
 
-    Public Function Scraper_TVSeason(ByRef dbElement As Database.DBElement,
-                                     ByVal scrapeOptions As Structures.ScrapeOptions
+    Public Function Scraper_TVSeason(ByRef DBTVSeason As Database.DBElement,
+                                     ByVal ScrapeOptions As Structures.ScrapeOptions
                                      ) As Interfaces.AddonResult_Data_Scraper_TVSeason Implements Interfaces.IAddon_Data_Scraper_TV.Scraper_TVSeason
         _Logger.Trace("[OMDb_Data] [Scraper_TVSeason] [Start]")
         Dim Result As MediaContainers.SeasonDetails = Nothing
-        '    Dim FilteredOptions As Structures.ScrapeOptions = Functions.ScrapeOptionsAndAlso(ScrapeOptions, ConfigScrapeOptions_TV)
-
-        '    If Not oDBElement.TVShow.TMDBSpecified AndAlso oDBElement.TVShow.TVDBSpecified Then
-        '        oDBElement.TVShow.TMDB = _OMDbAPI_TV.GetTMDBbyTVDB(oDBElement.TVShow.TVDB)
-        '    End If
-
-        '    If oDBElement.TVShow.TMDBSpecified Then
-        '        If oDBElement.TVSeason.SeasonSpecified Then
-        '            nTVSeason = _OMDbAPI_TV.GetInfo_TVSeason(CInt(oDBElement.TVShow.TMDB), oDBElement.TVSeason.Season, FilteredOptions)
-        '        Else
-        '            _Logger.Trace(String.Format("[OMDb_Data] [Scraper_TVSeason] [Abort] Season number is not specified"))
-        '            Return New Interfaces.ModuleResult_Data_TVSeason With {.Result = Nothing}
-        '        End If
-        '        'if still no search result -> exit
-        '        If nTVSeason Is Nothing Then
-        '            _Logger.Trace(String.Format("[OMDb_Data] [Scraper_TVSeason] [Abort] No search result found"))
-        '            Return New Interfaces.ModuleResult_Data_TVSeason With {.Result = Nothing}
-        '        End If
-        '    Else
-        '        _Logger.Trace(String.Format("[OMDb_Data] [Scraper_TVSeason] [Abort] No TV Show TMDB ID available"))
-        '        Return New Interfaces.ModuleResult_Data_TVSeason With {.Result = Nothing}
-        '    End If
 
         If Result IsNot Nothing Then
             _Logger.Trace("[OMDb_Data] [Scraper_TVSeason] [Done]")
@@ -398,17 +366,10 @@ Public Class Addon
         End If
     End Function
 
-    Public Sub ScraperOrderChanged_Movie() Implements Interfaces.IAddon_Data_Scraper_Movie.OrderChanged
-        _setup_Movie.OrderChanged()
+    Public Sub ScraperOrderChanged() Implements Interfaces.IAddon_Data_Scraper_Movie.ScraperOrderChanged, Interfaces.IAddon_Data_Scraper_TV.ScraperOrderChanged
+        If _setup_Movie IsNot Nothing Then _setup_Movie.OrderChanged()
+        If _setup_TV IsNot Nothing Then _setup_TV.OrderChanged()
     End Sub
-
-    Public Sub ScraperOrderChanged_TV() Implements Interfaces.IAddon_Data_Scraper_TV.ScraperOrderChanged
-        _setup_TV.OrderChanged()
-    End Sub
-
-    Function GetTMDbIdByIMDbId(ByVal imdbId As String, ByRef tmdbId As Integer) As Interfaces.AddonResult_Generic Implements Interfaces.IAddon_Data_Scraper_Movie.GetTMDbIdByIMDbId
-        Return New Interfaces.AddonResult_Generic
-    End Function
 
 #End Region 'Methods
 

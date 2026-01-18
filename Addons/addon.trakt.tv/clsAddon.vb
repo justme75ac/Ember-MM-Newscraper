@@ -66,7 +66,6 @@ Public Class Addon
 
 #Region "Events"
 
-    Public Event GenericEvent(ByVal eventType As Enums.AddonEventType, ByRef parameters As List(Of Object)) Implements Interfaces.IAddon_Generic.GenericEvent
     Public Event AddonSettingsChanged() Implements Interfaces.IAddon_Generic.AddonSettingsChanged
     Public Event AddonStateChanged(ByVal name As String, ByVal state As Boolean, ByVal diffOrder As Integer) Implements Interfaces.IAddon_Generic.AddonStateChanged
     Public Event AddonNeedsRestart() Implements Interfaces.IAddon_Generic.AddonNeedsRestart
@@ -75,30 +74,7 @@ Public Class Addon
 
 #Region "Properties"
 
-    Public ReadOnly Property EventType() As List(Of Enums.AddonEventType) Implements Interfaces.IAddon_Generic.EventType
-        Get
-            Return New List(Of Enums.AddonEventType)(New Enums.AddonEventType() {
-                                                      Enums.AddonEventType.BeforeEdit_Movie,
-                                                      Enums.AddonEventType.BeforeEdit_TVEpisode,
-                                                      Enums.AddonEventType.BeforeEdit_TVShow,
-                                                      Enums.AddonEventType.CommandLine,
-                                                      Enums.AddonEventType.Generic,
-                                                      Enums.AddonEventType.Remove_Movie,
-                                                      Enums.AddonEventType.Remove_TVEpisode,
-                                                      Enums.AddonEventType.Remove_TVSeason,
-                                                      Enums.AddonEventType.Remove_TVShow,
-                                                      Enums.AddonEventType.ScraperMulti_Movie,
-                                                      Enums.AddonEventType.ScraperMulti_TVEpisode,
-                                                      Enums.AddonEventType.ScraperMulti_TVSeason,
-                                                      Enums.AddonEventType.ScraperMulti_TVShow,
-                                                      Enums.AddonEventType.ScraperSingle_Movie,
-                                                      Enums.AddonEventType.ScraperSingle_TVEpisode,
-                                                      Enums.AddonEventType.ScraperSingle_TVSeason,
-                                                      Enums.AddonEventType.ScraperSingle_TVShow})
-        End Get
-    End Property
-
-    Property Enabled() As Boolean Implements Interfaces.IAddon_Generic.Enabled
+    Property ScraperEnabled() As Boolean Implements Interfaces.IAddon_Generic.ScraperEnabled
         Get
             Return _Enabled
         End Get
@@ -113,19 +89,13 @@ Public Class Addon
         End Set
     End Property
 
-    ReadOnly Property IsBusy() As Boolean Implements Interfaces.IAddon_Generic.IsBusy
-        Get
-            Return False
-        End Get
-    End Property
-
-    ReadOnly Property Name() As String Implements Interfaces.IAddon_Generic.Name
+    ReadOnly Property ModuleName() As String Implements Interfaces.IAddon_Generic.ModuleName
         Get
             Return _Name
         End Get
     End Property
 
-    ReadOnly Property Version() As String Implements Interfaces.IAddon_Generic.Version
+    ReadOnly Property ModuleVersion() As String Implements Interfaces.IAddon_Generic.ModuleVersion
         Get
             Return FileVersionInfo.GetVersionInfo(Reflection.Assembly.GetExecutingAssembly.Location).FileVersion.ToString
         End Get
@@ -134,43 +104,6 @@ Public Class Addon
 #End Region 'Properties
 
 #Region "Methods"
-
-    Public Function RunGeneric(ByVal eventType As Enums.AddonEventType, ByRef parameters As List(Of Object), ByRef singleObject As Object, ByRef dbElement As Database.DBElement) As Interfaces.AddonResult_Generic Implements Interfaces.IAddon_Generic.RunGeneric
-        Select Case eventType
-            Case Enums.AddonEventType.BeforeEdit_Movie
-                If _AddonSettings.GetWatchedStateBeforeEdit_Movie AndAlso dbElement IsNot Nothing Then
-                    _TraktAPI.GetWatchedState_Movie(dbElement)
-                End If
-            Case Enums.AddonEventType.BeforeEdit_TVEpisode
-                If _AddonSettings.GetWatchedStateBeforeEdit_TVEpisode AndAlso dbElement IsNot Nothing Then
-                    _TraktAPI.GetWatchedState_TVEpisode(dbElement)
-                End If
-            Case Enums.AddonEventType.CommandLine
-                '_TraktAPI.SyncToEmber_All()
-            Case Enums.AddonEventType.ScraperMulti_Movie
-                If _AddonSettings.GetWatchedStateScraperMulti_Movie AndAlso dbElement IsNot Nothing Then
-                    _TraktAPI.GetWatchedState_Movie(dbElement)
-                End If
-            Case Enums.AddonEventType.Remove_Movie
-                If _AddonSettings.CollectionRemove_Movie AndAlso dbElement IsNot Nothing Then
-                    '_TraktAPI.RemoveFromCollection_Movie(_dbelement)
-                End If
-            Case Enums.AddonEventType.ScraperMulti_TVShow, Enums.AddonEventType.ScraperMulti_TVEpisode
-                If _AddonSettings.GetWatchedStateScraperMulti_TVEpisode AndAlso dbElement IsNot Nothing Then
-                    _TraktAPI.GetWatchedState_TVEpisode(dbElement)
-                End If
-            Case Enums.AddonEventType.ScraperSingle_Movie
-                If _AddonSettings.GetWatchedStateScraperSingle_Movie AndAlso dbElement IsNot Nothing Then
-                    _TraktAPI.GetWatchedState_Movie(dbElement)
-                End If
-            Case Enums.AddonEventType.ScraperSingle_TVShow, Enums.AddonEventType.ScraperSingle_TVEpisode
-                If _AddonSettings.GetWatchedStateScraperSingle_TVEpisode AndAlso dbElement IsNot Nothing Then
-                    _TraktAPI.GetWatchedState_TVEpisode(dbElement)
-                End If
-        End Select
-
-        Return New Interfaces.AddonResult_Generic
-    End Function
 
     Private Sub Disable()
         Dim tsi As New ToolStripMenuItem
@@ -286,7 +219,7 @@ Public Class Addon
     End Sub
 
     Private Sub Handle_GenericEvent(ByVal eventType As Enums.AddonEventType, ByRef parameters As List(Of Object))
-        RaiseEvent GenericEvent(eventType, parameters)
+        'RaiseEvent GenericEvent(eventType, parameters)
     End Sub
 
     Private Sub Handle_ModuleSetupChanged(ByVal state As Boolean)
@@ -305,8 +238,8 @@ Public Class Addon
         SaveSettings()
     End Sub
 
-    Sub Init(ByVal assemblyName As String, ByVal executable As String) Implements Interfaces.IAddon_Generic.Init
-        _AssemblyName = assemblyName
+    Sub Init(ByVal sAssemblyName As String) Implements Interfaces.IAddon_Generic.Init
+        _AssemblyName = sAssemblyName
         LoadSettings()
         _TraktAPI = New ApiTrakt
         AddHandler _TraktAPI.NewTokenCreated, AddressOf Handle_NewToken
@@ -360,7 +293,7 @@ Public Class Addon
                 If _TraktAPI.GetWatchedState_Movie(DBElement, lstWatchedMovies) Then
                     Master.DB.Save_Movie(DBElement, False, True, False, True, False)
                     logger.Trace(String.Format("[TraktWorker] GetWatchedStateSelected_Movie: ""{0}"" | Synced to Ember", DBElement.Movie.Title))
-                    RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_Movie, New List(Of Object)(New Object() {DBElement.ID}))
+                    'RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_Movie, New List(Of Object)(New Object() {DBElement.ID}))
                 End If
             End If
         Next
@@ -384,7 +317,7 @@ Public Class Addon
                                                DBElement.TVEpisode.Season,
                                                DBElement.TVEpisode.Episode,
                                                DBElement.TVEpisode.Title))
-                    RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_TVEpisode, New List(Of Object)(New Object() {DBElement.ID}))
+                    'RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_TVEpisode, New List(Of Object)(New Object() {DBElement.ID}))
                 End If
             End If
         Next
@@ -411,11 +344,11 @@ Public Class Addon
                                                    DBElement.TVEpisode.Season,
                                                    DBElement.TVEpisode.Episode,
                                                    DBElement.TVEpisode.Title))
-                        RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_TVEpisode, New List(Of Object)(New Object() {DBElement.ID}))
+                        'RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_TVEpisode, New List(Of Object)(New Object() {DBElement.ID}))
                     End If
                 End If
             Next
-            RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_TVSeason, New List(Of Object)(New Object() {DBTVSeason.ID}))
+            'RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_TVSeason, New List(Of Object)(New Object() {DBTVSeason.ID}))
         Next
     End Sub
     ''' <summary>
@@ -438,11 +371,11 @@ Public Class Addon
                                                    DBElement.TVEpisode.Season,
                                                    DBElement.TVEpisode.Episode,
                                                    DBElement.TVEpisode.Title))
-                        RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_TVEpisode, New List(Of Object)(New Object() {DBElement.ID}))
+                        'RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_TVEpisode, New List(Of Object)(New Object() {DBElement.ID}))
                     End If
                 End If
             Next
-            RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_TVShow, New List(Of Object)(New Object() {DBTVSShow.ID}))
+            'RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_TVShow, New List(Of Object)(New Object() {DBTVSShow.ID}))
         Next
     End Sub
     ''' <summary>
@@ -614,7 +547,7 @@ Public Class Addon
     End Sub
 
     Sub SaveSettings(ByVal doDispose As Boolean) Implements Interfaces.IAddon_Generic.SaveSettings
-        Enabled = _setup.chkEnabled.Checked
+        ScraperEnabled = _setup.chkEnabled.Checked
         _AddonSettings.GetWatchedStateBeforeEdit_Movie = _setup.chkGetWatchedStateBeforeEdit_Movie.Checked
         _AddonSettings.GetWatchedStateBeforeEdit_TVEpisode = _setup.chkGetWatchedStateBeforeEdit_TVEpisode.Checked
         _AddonSettings.GetWatchedStateScraperMulti_Movie = _setup.chkGetWatchedStateScraperMulti_Movie.Checked
@@ -645,6 +578,9 @@ Public Class Addon
                 xmlSer.Serialize(xmlSW, _AddonSettings)
             End Using
         End If
+    End Sub
+
+    Public Sub ScraperOrderChanged() Implements Interfaces.IAddon_Generic.ScraperOrderChanged
     End Sub
 
 #End Region 'Methods
