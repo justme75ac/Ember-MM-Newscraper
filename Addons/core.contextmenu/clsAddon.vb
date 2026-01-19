@@ -1,4 +1,4 @@
-﻿' ################################################################################
+' ################################################################################
 ' #                             EMBER MEDIA MANAGER                              #
 ' ################################################################################
 ' ################################################################################
@@ -85,6 +85,10 @@ Public Class Addon
     Private Sub Handle_ModuleSettingsChanged()
         RaiseEvent AddonSettingsChanged()
     End Sub
+
+    Public Function RunGeneric(ByVal eventType As Enums.AddonEventType, ByRef parameters As List(Of Object), ByRef singleObject As Object, ByRef dbElement As Database.DBElement) As Interfaces.AddonResult_Generic Implements Interfaces.IAddon_Generic.RunGeneric
+        Return New Interfaces.AddonResult_Generic
+    End Function
 
     Public Sub SaveSettings(ByVal doDispose As Boolean) Implements Interfaces.IAddon_Generic.SaveSettings
         If doDispose Then

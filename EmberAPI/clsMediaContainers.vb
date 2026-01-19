@@ -1699,6 +1699,16 @@ Namespace MediaContainers
             End Get
         End Property
 
+        ''' <summary>
+        ''' Alias for EpisodeGuideURL for compatibility
+        ''' </summary>
+        <XmlIgnore()>
+        Public ReadOnly Property EpisodeGuide() As EpisodeGuide
+            Get
+                Return EpisodeGuideURL
+            End Get
+        End Property
+
         <XmlElement("fanart")>
         Public Property Fanart() As Fanart = New Fanart
 
@@ -1982,6 +1992,16 @@ Namespace MediaContainers
         Public ReadOnly Property Season_IsAllSeasons() As Boolean
             Get
                 Return Season = -1
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Alias for Season_IsAllSeasons for compatibility
+        ''' </summary>
+        <XmlIgnore()>
+        Public ReadOnly Property IsAllSeasons() As Boolean
+            Get
+                Return Season_IsAllSeasons
             End Get
         End Property
 
@@ -5433,6 +5453,16 @@ Namespace MediaContainers
         Public Shadows ReadOnly Property SeasonSpecified As Boolean
             Get
                 Return Not Season = -1
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Alias for Season_IsAllSeasons for compatibility
+        ''' </summary>
+        <XmlIgnore()>
+        Public ReadOnly Property IsAllSeasons As Boolean
+            Get
+                Return Season_IsAllSeasons
             End Get
         End Property
 

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.2.11408.102 d18.0
+VisualStudioVersion = 18.2.11408.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "EmberMediaManager", "EmberMediaManager\EmberMediaManager.vbproj", "{9B57D3AB-AF12-4012-B945-284C2448DC81}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -128,6 +128,7 @@ Global
 		{208AA35E-C6AE-4D2D-A9DD-B6EFD19A4279}.Release|x86.ActiveCfg = Release|x86
 		{208AA35E-C6AE-4D2D-A9DD-B6EFD19A4279}.Release|x86.Build.0 = Release|x86
 		{FE178193-F90C-42E8-BF0C-5D64E10AB6F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE178193-F90C-42E8-BF0C-5D64E10AB6F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE178193-F90C-42E8-BF0C-5D64E10AB6F0}.Debug|x64.ActiveCfg = Debug|x64
 		{FE178193-F90C-42E8-BF0C-5D64E10AB6F0}.Debug|x64.Build.0 = Debug|x64
 		{FE178193-F90C-42E8-BF0C-5D64E10AB6F0}.Debug|x86.ActiveCfg = Debug|x86
@@ -225,6 +226,7 @@ Global
 		{EAAB0601-6478-44D2-A39C-89B0850D7833}.Release|x86.ActiveCfg = Release|x86
 		{EAAB0601-6478-44D2-A39C-89B0850D7833}.Release|x86.Build.0 = Release|x86
 		{F6CACA89-E8E4-45D9-B942-97FBD4ADD106}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6CACA89-E8E4-45D9-B942-97FBD4ADD106}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6CACA89-E8E4-45D9-B942-97FBD4ADD106}.Debug|x64.ActiveCfg = Debug|x64
 		{F6CACA89-E8E4-45D9-B942-97FBD4ADD106}.Debug|x86.ActiveCfg = Debug|x86
 		{F6CACA89-E8E4-45D9-B942-97FBD4ADD106}.Debug|x86.Build.0 = Debug|x86
@@ -235,6 +237,7 @@ Global
 		{F6CACA89-E8E4-45D9-B942-97FBD4ADD106}.Release|x86.ActiveCfg = Release|x86
 		{F6CACA89-E8E4-45D9-B942-97FBD4ADD106}.Release|x86.Build.0 = Release|x86
 		{6A95088D-E2A3-4CE3-ADFC-0D32DE3F3F76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A95088D-E2A3-4CE3-ADFC-0D32DE3F3F76}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A95088D-E2A3-4CE3-ADFC-0D32DE3F3F76}.Debug|x64.ActiveCfg = Debug|x64
 		{6A95088D-E2A3-4CE3-ADFC-0D32DE3F3F76}.Debug|x86.ActiveCfg = Debug|x86
 		{6A95088D-E2A3-4CE3-ADFC-0D32DE3F3F76}.Debug|x86.Build.0 = Debug|x86

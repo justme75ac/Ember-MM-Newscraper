@@ -27,7 +27,7 @@ namespace XBMCRPC.Methods
                  var jpropparams_arg = JToken.FromObject(params_arg, _client.Serializer);
                  jArgs.Add(new JProperty("params_arg", jpropparams_arg));
              }
-             if (wait != null)
+             if (wait)
              {
                  var jpropwait = JToken.FromObject(wait, _client.Serializer);
                  jArgs.Add(new JProperty("wait", jpropwait));
@@ -51,7 +51,7 @@ namespace XBMCRPC.Methods
                  var jpropparams_arg = JToken.FromObject(params_arg, _client.Serializer);
                  jArgs.Add(new JProperty("params_arg", jpropparams_arg));
              }
-             if (wait != null)
+             if (wait)
              {
                  var jpropwait = JToken.FromObject(wait, _client.Serializer);
                  jArgs.Add(new JProperty("wait", jpropwait));
@@ -75,7 +75,7 @@ namespace XBMCRPC.Methods
                  var jpropparams_arg = JToken.FromObject(params_arg, _client.Serializer);
                  jArgs.Add(new JProperty("params_arg", jpropparams_arg));
              }
-             if (wait != null)
+             if (wait)
              {
                  var jpropwait = JToken.FromObject(wait, _client.Serializer);
                  jArgs.Add(new JProperty("wait", jpropwait));
@@ -94,7 +94,7 @@ namespace XBMCRPC.Methods
                  var jpropaddonid = JToken.FromObject(addonid, _client.Serializer);
                  jArgs.Add(new JProperty("addonid", jpropaddonid));
              }
-             if (wait != null)
+             if (wait)
              {
                  var jpropwait = JToken.FromObject(wait, _client.Serializer);
                  jArgs.Add(new JProperty("wait", jpropwait));
@@ -127,21 +127,18 @@ namespace XBMCRPC.Methods
         public async Task<XBMCRPC.Addons.GetAddonsResponse> GetAddons(bool enabled, XBMCRPC.Addon.Types type=0, XBMCRPC.Addon.Content content=0, XBMCRPC.Addon.Fields properties=null, XBMCRPC.List.Limits limits=null)
         {
             var jArgs = new JObject();
-             if (type != null)
+             if (type != 0)
              {
                  var jproptype = JToken.FromObject(type, _client.Serializer);
                  jArgs.Add(new JProperty("type", jproptype));
              }
-             if (content != null)
+             if (content != 0)
              {
                  var jpropcontent = JToken.FromObject(content, _client.Serializer);
                  jArgs.Add(new JProperty("content", jpropcontent));
              }
-             if (enabled != null)
-             {
-                 var jpropenabled = JToken.FromObject(enabled, _client.Serializer);
-                 jArgs.Add(new JProperty("enabled", jpropenabled));
-             }
+             var jpropenabled = JToken.FromObject(enabled, _client.Serializer);
+             jArgs.Add(new JProperty("enabled", jpropenabled));
              if (properties != null)
              {
                  var jpropproperties = JToken.FromObject(properties, _client.Serializer);
@@ -161,12 +158,12 @@ namespace XBMCRPC.Methods
         public async Task<XBMCRPC.Addons.GetAddonsResponse> GetAddons(XBMCRPC.Addons.GetAddons_enabled2 enabled, XBMCRPC.Addon.Types type=0, XBMCRPC.Addon.Content content=0, XBMCRPC.Addon.Fields properties=null, XBMCRPC.List.Limits limits=null)
         {
             var jArgs = new JObject();
-             if (type != null)
+             if (type != 0)
              {
                  var jproptype = JToken.FromObject(type, _client.Serializer);
                  jArgs.Add(new JProperty("type", jproptype));
              }
-             if (content != null)
+             if (content != 0)
              {
                  var jpropcontent = JToken.FromObject(content, _client.Serializer);
                  jArgs.Add(new JProperty("content", jpropcontent));
@@ -195,12 +192,12 @@ namespace XBMCRPC.Methods
         public async Task<XBMCRPC.Addons.GetAddonsResponse> GetAddons(XBMCRPC.Addon.Types type=0, XBMCRPC.Addon.Content content=0, XBMCRPC.Addon.Fields properties=null, XBMCRPC.List.Limits limits=null)
         {
             var jArgs = new JObject();
-             if (type != null)
+             if (type != 0)
              {
                  var jproptype = JToken.FromObject(type, _client.Serializer);
                  jArgs.Add(new JProperty("type", jproptype));
              }
-             if (content != null)
+             if (content != 0)
              {
                  var jpropcontent = JToken.FromObject(content, _client.Serializer);
                  jArgs.Add(new JProperty("content", jpropcontent));
@@ -229,11 +226,8 @@ namespace XBMCRPC.Methods
                  var jpropaddonid = JToken.FromObject(addonid, _client.Serializer);
                  jArgs.Add(new JProperty("addonid", jpropaddonid));
              }
-             if (enabled != null)
-             {
-                 var jpropenabled = JToken.FromObject(enabled, _client.Serializer);
-                 jArgs.Add(new JProperty("enabled", jpropenabled));
-             }
+             var jpropenabled = JToken.FromObject(enabled, _client.Serializer);
+             jArgs.Add(new JProperty("enabled", jpropenabled));
             return await _client.GetData<string>("Addons.SetAddonEnabled", jArgs);
         }
 
@@ -248,11 +242,8 @@ namespace XBMCRPC.Methods
                  var jpropaddonid = JToken.FromObject(addonid, _client.Serializer);
                  jArgs.Add(new JProperty("addonid", jpropaddonid));
              }
-             if (enabled != null)
-             {
-                 var jpropenabled = JToken.FromObject(enabled, _client.Serializer);
-                 jArgs.Add(new JProperty("enabled", jpropenabled));
-             }
+             var jpropenabled = JToken.FromObject(enabled, _client.Serializer);
+             jArgs.Add(new JProperty("enabled", jpropenabled));
             return await _client.GetData<string>("Addons.SetAddonEnabled", jArgs);
         }
 

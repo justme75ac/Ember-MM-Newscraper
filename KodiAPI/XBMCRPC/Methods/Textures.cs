@@ -88,7 +88,7 @@ namespace XBMCRPC.Methods
         public async Task<string> RemoveTexture(int textureid=0)
         {
             var jArgs = new JObject();
-             if (textureid != null)
+             if (textureid != 0)
              {
                  var jproptextureid = JToken.FromObject(textureid, _client.Serializer);
                  jArgs.Add(new JProperty("textureid", jproptextureid));

@@ -44,7 +44,7 @@ namespace XBMCRPC.Methods
         public async Task<string> ExecuteAction(XBMCRPC.Input.Action action=0)
         {
             var jArgs = new JObject();
-             if (action != null)
+             if (action != 0)
              {
                  var jpropaction = JToken.FromObject(action, _client.Serializer);
                  jArgs.Add(new JProperty("action", jpropaction));

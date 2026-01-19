@@ -22,7 +22,7 @@ namespace XBMCRPC.Methods
                  var jpropdirectory = JToken.FromObject(directory, _client.Serializer);
                  jArgs.Add(new JProperty("directory", jpropdirectory));
              }
-             if (media != null)
+             if (media != 0)
              {
                  var jpropmedia = JToken.FromObject(media, _client.Serializer);
                  jArgs.Add(new JProperty("media", jpropmedia));
@@ -56,7 +56,7 @@ namespace XBMCRPC.Methods
                  var jpropfile = JToken.FromObject(file, _client.Serializer);
                  jArgs.Add(new JProperty("file", jpropfile));
              }
-             if (media != null)
+             if (media != 0)
              {
                  var jpropmedia = JToken.FromObject(media, _client.Serializer);
                  jArgs.Add(new JProperty("media", jpropmedia));
@@ -75,7 +75,7 @@ namespace XBMCRPC.Methods
         public async Task<XBMCRPC.Files.GetSourcesResponse> GetSources(XBMCRPC.Files.Media media=0, XBMCRPC.List.Limits limits=null, XBMCRPC.List.Sort sort=null)
         {
             var jArgs = new JObject();
-             if (media != null)
+             if (media != 0)
              {
                  var jpropmedia = JToken.FromObject(media, _client.Serializer);
                  jArgs.Add(new JProperty("media", jpropmedia));

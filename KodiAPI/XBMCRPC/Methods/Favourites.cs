@@ -22,7 +22,7 @@ namespace XBMCRPC.Methods
                  var jproptitle = JToken.FromObject(title, _client.Serializer);
                  jArgs.Add(new JProperty("title", jproptitle));
              }
-             if (type != null)
+             if (type != 0)
              {
                  var jproptype = JToken.FromObject(type, _client.Serializer);
                  jArgs.Add(new JProperty("type", jproptype));
@@ -56,7 +56,7 @@ namespace XBMCRPC.Methods
         public async Task<XBMCRPC.Favourites.GetFavouritesResponse> GetFavourites(XBMCRPC.Favourite.Type type=0, XBMCRPC.Favourite.Fields.Favourite properties=null)
         {
             var jArgs = new JObject();
-             if (type != null)
+             if (type != 0)
              {
                  var jproptype = JToken.FromObject(type, _client.Serializer);
                  jArgs.Add(new JProperty("type", jproptype));

@@ -1,4 +1,4 @@
-﻿' ################################################################################
+' ################################################################################
 ' #                             EMBER MEDIA MANAGER                              #
 ' ################################################################################
 ' ################################################################################
@@ -159,26 +159,24 @@ Public Class Addon
     End Sub
 
     Public Sub SaveSettings()
-        Using settings = New AdvancedSettings()
-            settings.SetBooleanSetting("TeraCopy", _MySettings.TeraCopy)
-            settings.SetStringSetting("TeraCopyPath", _MySettings.TeraCopyPath)
+        Master.eAdvancedSettings.SetBooleanSetting("TeraCopy", _MySettings.TeraCopy)
+        Master.eAdvancedSettings.SetStringSetting("TeraCopyPath", _MySettings.TeraCopyPath)
 
-            Dim eMovies As New List(Of TableItem)
-            For Each e As SettingItem In eSettings.ModuleSettings.Where(Function(f) f.Type = Enums.ContentType.Movie)
-                eMovies.Add(New TableItem With {.Name = e.Name, .Value = e.FolderPath})
-            Next
-            If eMovies IsNot Nothing Then
-                settings.SetComplexSetting("MoviePaths", eMovies)
-            End If
+        Dim eMovies As New List(Of TableItem)
+        For Each e As SettingItem In eSettings.ModuleSettings.Where(Function(f) f.Type = Enums.ContentType.Movie)
+            eMovies.Add(New TableItem With {.Name = e.Name, .Value = e.FolderPath})
+        Next
+        If eMovies IsNot Nothing Then
+            Master.eAdvancedSettings.SetComplexSetting("MoviePaths", eMovies)
+        End If
 
-            Dim eShows As New List(Of TableItem)
-            For Each e As SettingItem In eSettings.ModuleSettings.Where(Function(f) f.Type = Enums.ContentType.TVShow)
-                eShows.Add(New TableItem With {.Name = e.Name, .Value = e.FolderPath})
-            Next
-            If eShows IsNot Nothing Then
-                settings.SetComplexSetting("ShowPaths", eShows)
-            End If
-        End Using
+        Dim eShows As New List(Of TableItem)
+        For Each e As SettingItem In eSettings.ModuleSettings.Where(Function(f) f.Type = Enums.ContentType.TVShow)
+            eShows.Add(New TableItem With {.Name = e.Name, .Value = e.FolderPath})
+        Next
+        If eShows IsNot Nothing Then
+            Master.eAdvancedSettings.SetComplexSetting("ShowPaths", eShows)
+        End If
     End Sub
 
     Private Sub bwCopyOrMove_DoWork(ByVal sender As Object, ByVal e As System.ComponentModel.DoWorkEventArgs) Handles bwCopyOrMove.DoWork
@@ -393,7 +391,7 @@ Public Class Addon
                                     End If
                                 Next
                             Next
-                            If Not _MySettings.TeraCopy AndAlso doMove Then Addons.Instance.RuntimeObjects.InvokeLoadMedia(New Structures.ScanOrClean With {.Movies = True})
+                            If Not _MySettings.TeraCopy AndAlso doMove Then Addons.Instance.RuntimeObjects.InvokeLoadMedia(New Scanner.ScanOrCleanOptions With {.Movies = True})
                         ElseIf ContentType = Enums.ContentType.TVShow Then
                             Dim FileDelete As New FileUtils.Delete
                             For Each tShowID As Long In MediaToWork
@@ -413,7 +411,7 @@ Public Class Addon
                                     End If
                                 End If
                             Next
-                            If Not _MySettings.TeraCopy AndAlso doMove Then Addons.Instance.RuntimeObjects.InvokeLoadMedia(New Structures.ScanOrClean With {.TV = True})
+                            If Not _MySettings.TeraCopy AndAlso doMove Then Addons.Instance.RuntimeObjects.InvokeLoadMedia(New Scanner.ScanOrCleanOptions With {.TV = True})
                         End If
                         If _MySettings.TeraCopy Then mTeraCopy.RunTeraCopy()
                     End If
@@ -461,7 +459,7 @@ Public Class Addon
     End Sub
 
     Sub SaveSettings(ByVal doDispose As Boolean) Implements Interfaces.IAddon_Generic.SaveSettings
-        Enabled = _setup.chkEnabled.Checked
+        ScraperEnabled = _setup.chkEnabled.Checked
         _MySettings.TeraCopy = _setup.chkTeraCopyEnable.Checked
         _MySettings.TeraCopyPath = _setup.txtTeraCopyPath.Text
         eSettings.ModuleSettings.Clear()

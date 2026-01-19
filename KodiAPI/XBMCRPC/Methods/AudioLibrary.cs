@@ -677,7 +677,7 @@ namespace XBMCRPC.Methods
         public async Task<XBMCRPC.AudioLibrary.GetRecentlyAddedSongsResponse> GetRecentlyAddedSongs(int albumlimit=0, XBMCRPC.Audio.Fields.Song properties=null, XBMCRPC.List.Limits limits=null, XBMCRPC.List.Sort sort=null)
         {
             var jArgs = new JObject();
-             if (albumlimit != null)
+             if (albumlimit != 0)
              {
                  var jpropalbumlimit = JToken.FromObject(albumlimit, _client.Serializer);
                  jArgs.Add(new JProperty("albumlimit", jpropalbumlimit));
@@ -1072,7 +1072,7 @@ namespace XBMCRPC.Methods
         public async Task<string> SetAlbumDetails(int albumid=0, string title=null, global::System.Collections.Generic.List<string> artist=null, string description=null, global::System.Collections.Generic.List<string> genre=null, global::System.Collections.Generic.List<string> theme=null, global::System.Collections.Generic.List<string> mood=null, global::System.Collections.Generic.List<string> style=null, string type=null, string albumlabel=null, int? rating=null, int? year=null)
         {
             var jArgs = new JObject();
-             if (albumid != null)
+             if (albumid != 0)
              {
                  var jpropalbumid = JToken.FromObject(albumid, _client.Serializer);
                  jArgs.Add(new JProperty("albumid", jpropalbumid));

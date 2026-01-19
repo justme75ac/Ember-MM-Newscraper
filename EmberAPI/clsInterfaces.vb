@@ -103,6 +103,7 @@ Public Class Interfaces
         
         Sub Init(ByVal sAssemblyName As String)
         Function InjectSettingsPanel() As Containers.SettingsPanel
+        Function RunGeneric(ByVal eventType As Enums.AddonEventType, ByRef parameters As List(Of Object), ByRef singleObject As Object, ByRef dbElement As Database.DBElement) As AddonResult_Generic
         Sub SaveSettings(ByVal DoDispose As Boolean)
         Sub ScraperOrderChanged()
     End Interface

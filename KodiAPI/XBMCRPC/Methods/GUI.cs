@@ -17,7 +17,7 @@ namespace XBMCRPC.Methods
         public async Task<string> ActivateWindow(XBMCRPC.GUI.Window window=0, global::System.Collections.Generic.List<string> parameters=null)
         {
             var jArgs = new JObject();
-             if (window != null)
+             if (window != 0)
              {
                  var jpropwindow = JToken.FromObject(window, _client.Serializer);
                  jArgs.Add(new JProperty("window", jpropwindow));
@@ -125,7 +125,7 @@ namespace XBMCRPC.Methods
                  var jpropimage = JToken.FromObject(image, _client.Serializer);
                  jArgs.Add(new JProperty("image", jpropimage));
              }
-             if (displaytime != null)
+             if (displaytime != 0)
              {
                  var jpropdisplaytime = JToken.FromObject(displaytime, _client.Serializer);
                  jArgs.Add(new JProperty("displaytime", jpropdisplaytime));
@@ -154,7 +154,7 @@ namespace XBMCRPC.Methods
                  var jpropimage = JToken.FromObject(image, _client.Serializer);
                  jArgs.Add(new JProperty("image", jpropimage));
              }
-             if (displaytime != null)
+             if (displaytime != 0)
              {
                  var jpropdisplaytime = JToken.FromObject(displaytime, _client.Serializer);
                  jArgs.Add(new JProperty("displaytime", jpropdisplaytime));
@@ -178,7 +178,7 @@ namespace XBMCRPC.Methods
                  var jpropmessage = JToken.FromObject(message, _client.Serializer);
                  jArgs.Add(new JProperty("message", jpropmessage));
              }
-             if (displaytime != null)
+             if (displaytime != 0)
              {
                  var jpropdisplaytime = JToken.FromObject(displaytime, _client.Serializer);
                  jArgs.Add(new JProperty("displaytime", jpropdisplaytime));

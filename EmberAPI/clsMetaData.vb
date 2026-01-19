@@ -1,4 +1,4 @@
-﻿' ################################################################################
+' ################################################################################
 ' #                             EMBER MEDIA MANAGER                              #
 ' ################################################################################
 ' ################################################################################
@@ -160,9 +160,9 @@ Public Class MetaData
             strPrefLanguage = preferredLanguage.ToLower
         End If
 
-        If bGetPrefLanguage AndAlso fileInfo.StreamDetails.Audio.Where(Function(f) f.LongLanguage.ToLower = strPrefLanguage).Count > 0 Then
+        If bGetPrefLanguage AndAlso fileInfo.StreamDetails.Audio.Where(Function(f) f.LongLanguageSpecified AndAlso f.LongLanguage.ToLower = strPrefLanguage).Count > 0 Then
             For Each Stream As MediaContainers.Audio In fileInfo.StreamDetails.Audio
-                If Stream.LongLanguage.ToLower = strPrefLanguage Then
+                If Stream.LongLanguageSpecified AndAlso Stream.LongLanguage.ToLower = strPrefLanguage Then
                     nFilteredAudio.StreamDetails.Audio.Add(Stream)
                 End If
             Next
@@ -182,7 +182,7 @@ Public Class MetaData
                     nBestAudio.LongLanguage = miAudio.LongLanguage
                 End If
             End If
-            If bGetPrefLanguage AndAlso miAudio.LongLanguage.ToLower = strPrefLanguage Then nBestAudio.HasPreferred = True
+            If bGetPrefLanguage AndAlso miAudio.LongLanguageSpecified AndAlso miAudio.LongLanguage.ToLower = strPrefLanguage Then nBestAudio.HasPreferred = True
         Next
 
         Return nBestAudio
@@ -291,7 +291,7 @@ Public Class MetaData
                 Exit Sub
         End Select
 
-        If Not dbElement.FileItem.bIsArchive AndAlso Not dbElement.FileItem.bIsDiscStub Then
+        If dbElement.FileItem IsNot Nothing AndAlso Not dbElement.FileItem.bIsArchive AndAlso Not dbElement.FileItem.bIsDiscStub Then
             nFileInfo = GetFileInfo(dbElement.FileItem, dbElement.ContentType)
 
             If nFileInfo.StreamDetailsSpecified Then
@@ -320,10 +320,10 @@ Public Class MetaData
 
             If nFileInfo.StreamDetailsSpecified Then
                 ' overwrite only if it get something from Mediainfo 
-                If nSettings.LockAudioLanguage Then
+                If nSettings.LockAudioLanguage AndAlso currentFileInfo IsNot Nothing AndAlso currentFileInfo.StreamDetailsSpecified Then
                     'sets old language setting if setting is enabled (lock language)
                     'First make sure that there is no completely new audio source scanned of the movie --> if so (i.e. more streams) then update!
-                    If nFileInfo.StreamDetails.Audio.Count = currentFileInfo.StreamDetails.Audio.Count Then
+                    If currentFileInfo.StreamDetails.AudioSpecified AndAlso nFileInfo.StreamDetails.Audio.Count = currentFileInfo.StreamDetails.Audio.Count Then
                         For i = 0 To nFileInfo.StreamDetails.Audio.Count - 1
                             'only preserve if language tag is filled --> else update!
                             If currentFileInfo.StreamDetails.Audio.Item(i).LongLanguageSpecified Then
@@ -333,10 +333,10 @@ Public Class MetaData
                         Next
                     End If
                 End If
-                If nSettings.LockVideoLanguage Then
+                If nSettings.LockVideoLanguage AndAlso currentFileInfo IsNot Nothing AndAlso currentFileInfo.StreamDetailsSpecified Then
                     'sets old language setting if setting is enabled (lock language)
                     'First make sure that there is no completely new video source scanned of the movie --> if so (i.e. more streams) then update!
-                    If nFileInfo.StreamDetails.Video.Count = currentFileInfo.StreamDetails.Video.Count Then
+                    If currentFileInfo.StreamDetails.VideoSpecified AndAlso nFileInfo.StreamDetails.Video.Count = currentFileInfo.StreamDetails.Video.Count Then
                         For i = 0 To nFileInfo.StreamDetails.Video.Count - 1
                             'only preserve if language tag is filled --> else update!
                             If currentFileInfo.StreamDetails.Video.Item(i).LongLanguageSpecified Then
@@ -347,9 +347,9 @@ Public Class MetaData
                     End If
                 End If
             End If
-            If nFileInfo.StreamDetails.VideoSpecified AndAlso nSettings.DurationForRuntimeEnabled Then
+            If nFileInfo.StreamDetails.VideoSpecified AndAlso nSettings.DurationForRuntimeEnabled AndAlso currentFileInfo IsNot Nothing Then
                 Dim tVid As MediaContainers.Video = GetBestVideo(currentFileInfo)
-                If tVid.DurationSpecified Then
+                If tVid IsNot Nothing AndAlso tVid.DurationSpecified Then
                     dbElement.MainDetails.Runtime = StringUtils.FormatDuration(tVid.Duration.ToString, dbElement.ContentType)
                 End If
             End If

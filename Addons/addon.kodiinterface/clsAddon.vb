@@ -1,4 +1,4 @@
-﻿' ################################################################################
+' ################################################################################
 ' #                             EMBER MEDIA MANAGER                              #
 ' ################################################################################
 ' ################################################################################
@@ -95,6 +95,7 @@ Public Class Addon
     Public Event AddonSettingsChanged() Implements Interfaces.IAddon_Generic.AddonSettingsChanged
     Public Event AddonStateChanged(ByVal name As String, ByVal state As Boolean, ByVal diffOrder As Integer) Implements Interfaces.IAddon_Generic.AddonStateChanged
     Public Event AddonNeedsRestart() Implements Interfaces.IAddon_Generic.AddonNeedsRestart
+    Public Event GenericEvent(ByVal eventType As Enums.AddonEventType, ByRef parameters As List(Of Object))
 
 #End Region 'Events
 
@@ -286,21 +287,21 @@ Public Class Addon
 
                             'connection test
                             If Await Task.Run(Function() _APIKodi.GetConnectionToHost) Then
-                                If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_Movie(mDBElement, True) Then
+                                If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(mDBElement, True) Then
                                     If mDBElement.NfoPathSpecified Then
                                         'run task
                                         Dim Result = Await Task.Run(Function() _APIKodi.GetPlaycount_Movie(mDBElement, GenericSubEventProgressAsync, GenericEventProcess))
                                         If Result IsNot Nothing Then
                                             If Not Result.AlreadyInSync Then
-                                                mDBElement.Movie.LastPlayed = Result.LastPlayed
-                                                mDBElement.Movie.PlayCount = Result.PlayCount
+                                                mDBElement.MainDetails.LastPlayed = Result.LastPlayed
+                                                mDBElement.MainDetails.PlayCount = Result.PlayCount
                                             End If
                                             Notifications.NewNotification(
                                                 Notifications.Type.Information,
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               mHost.Label,
-                                                              mDBElement.Movie.Title,
+                                                              mDBElement.MainDetails.Title,
                                                              Localisation.GetString(4, "Watched-State synced")
                                                               ))
                                         End If
@@ -329,21 +330,21 @@ Public Class Addon
 
                             'connection test
                             If Await Task.Run(Function() _APIKodi.GetConnectionToHost) Then
-                                If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_TVEpisode(mDBElement, True) Then
+                                If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(mDBElement, True) Then
                                     If mDBElement.NfoPathSpecified Then
                                         'run task
                                         Dim Result = Await Task.Run(Function() _APIKodi.GetPlaycount_TVEpisode(mDBElement, GenericSubEventProgressAsync, GenericEventProcess))
                                         If Result IsNot Nothing Then
                                             If Not Result.AlreadyInSync Then
-                                                mDBElement.TVEpisode.LastPlayed = Result.LastPlayed
-                                                mDBElement.TVEpisode.Playcount = Result.PlayCount
+                                                mDBElement.MainDetails.LastPlayed = Result.LastPlayed
+                                                mDBElement.MainDetails.Playcount = Result.PlayCount
                                             End If
                                             Notifications.NewNotification(
                                                 Notifications.Type.Information,
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               mHost.Label,
-                                                              mDBElement.TVEpisode.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(4, "Watched-State synced")
                                                               ))
                                         End If
@@ -373,21 +374,21 @@ Public Class Addon
                             If Await Task.Run(Function() _APIKodi.GetConnectionToHost) Then
                                 If mDBElement.Episodes IsNot Nothing Then
                                     For Each tEpisode In mDBElement.Episodes.Where(Function(f) f.FilenameSpecified)
-                                        If tEpisode.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_TVEpisode(tEpisode, True) Then
+                                        If tEpisode.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(tEpisode, True) Then
                                             If tEpisode.NfoPathSpecified Then
                                                 'run task
                                                 Dim Result = Await Task.Run(Function() _APIKodi.GetPlaycount_TVEpisode(tEpisode, GenericSubEventProgressAsync, GenericEventProcess))
                                                 If Result IsNot Nothing Then
                                                     If Not Result.AlreadyInSync Then
-                                                        tEpisode.TVEpisode.LastPlayed = Result.LastPlayed
-                                                        tEpisode.TVEpisode.Playcount = Result.PlayCount
+                                                        tEpisode.MainDetails.LastPlayed = Result.LastPlayed
+                                                        tEpisode.MainDetails.PlayCount = Result.PlayCount
                                                     End If
                                                     Notifications.NewNotification(
                                                         Notifications.Type.Information,
                                                         Localisation.GetString(1, "Kodi Interface"),
                                                         String.Format("{0} | {1}: {2}",
                                                                       mHost.Label,
-                                                                      tEpisode.TVEpisode.Title,
+                                                                      tEpisode.MainDetails.Title,
                                                                       Localisation.GetString(4, "Watched-State synced")
                                                                       ))
                                                 End If
@@ -424,17 +425,17 @@ Public Class Addon
                                         Localisation.GetString(1, "Kodi Interface"),
                                         String.Format("{0} | {1}: {2}",
                                                       mHost.Label,
-                                                      mDBElement.Movie.Title,
+                                                      mDBElement.MainDetails.Title,
                                                       Localisation.GetString(5, "Removal OK")
                                                       ))
                                 Else
-                                    logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Removal failed:  ", mDBElement.Movie.Title))
+                                    logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Removal failed:  ", mDBElement.MainDetails.Title))
                                     Notifications.NewNotification(
                                         Notifications.Type.Error,
                                         Localisation.GetString(1, "Kodi Interface"),
                                         String.Format("{0} | {1}: {2}",
                                                       mHost.Label,
-                                                      mDBElement.Movie.Title,
+                                                      mDBElement.MainDetails.Title,
                                                       Localisation.GetString(6, "Removal failed")
                                                       ))
                                     getError = True
@@ -455,17 +456,17 @@ Public Class Addon
                                             Localisation.GetString(1, "Kodi Interface"),
                                             String.Format("{0} | {1}: {2}",
                                                           tHost.Label,
-                                                          mDBElement.Movie.Title,
+                                                          mDBElement.MainDetails.Title,
                                                           Localisation.GetString(5, "Removal OK")
                                                           ))
                                     Else
-                                        logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Removal failed:  ", mDBElement.Movie.Title))
+                                        logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Removal failed:  ", mDBElement.MainDetails.Title))
                                         Notifications.NewNotification(
                                                 Notifications.Type.Error,
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               tHost.Label,
-                                                              mDBElement.Movie.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(6, "Removal failed")
                                                               ))
                                         getError = True
@@ -495,17 +496,17 @@ Public Class Addon
                                         Localisation.GetString(1, "Kodi Interface"),
                                         String.Format("{0} | {1}: {2}",
                                                       mHost.Label,
-                                                      mDBElement.TVEpisode.Title,
+                                                      mDBElement.MainDetails.Title,
                                                       Localisation.GetString(5, "Removal OK")
                                                       ))
                                 Else
-                                    logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Removal failed:  ", mDBElement.TVEpisode.Title))
+                                    logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Removal failed:  ", mDBElement.MainDetails.Title))
                                     Notifications.NewNotification(
                                         Notifications.Type.Error,
                                         Localisation.GetString(1, "Kodi Interface"),
                                         String.Format("{0} | {1}: {2}",
                                                       mHost.Label,
-                                                      mDBElement.TVEpisode.Title,
+                                                      mDBElement.MainDetails.Title,
                                                       Localisation.GetString(6, "Removal failed")
                                                       ))
                                     getError = True
@@ -526,17 +527,17 @@ Public Class Addon
                                             Localisation.GetString(1, "Kodi Interface"),
                                             String.Format("{0} | {1}: {2}",
                                                           tHost.Label,
-                                                          mDBElement.TVEpisode.Title,
+                                                          mDBElement.MainDetails.Title,
                                                           Localisation.GetString(5, "Removal OK")
                                                           ))
                                     Else
-                                        logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Removal failed:  ", mDBElement.TVEpisode.Title))
+                                        logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Removal failed:  ", mDBElement.MainDetails.Title))
                                         Notifications.NewNotification(
                                         Notifications.Type.Error,
                                         Localisation.GetString(1, "Kodi Interface"),
                                         String.Format("{0} | {1}: {2}",
                                                       tHost.Label,
-                                                      mDBElement.TVEpisode.Title,
+                                                      mDBElement.MainDetails.Title,
                                                       Localisation.GetString(6, "Removal failed")
                                                       ))
                                         getError = True
@@ -565,17 +566,17 @@ Public Class Addon
                                         Localisation.GetString(1, "Kodi Interface"),
                                         String.Format("{0} | {1}: {2}",
                                                       mHost.Label,
-                                                      mDBElement.TVShow.Title,
+                                                      mDBElement.MainDetails.Title,
                                                       Localisation.GetString(5, "Removal OK")
                                                       ))
                                 Else
-                                    logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Removal failed:  ", mDBElement.TVShow.Title))
+                                    logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Removal failed:  ", mDBElement.MainDetails.Title))
                                     Notifications.NewNotification(
                                         Notifications.Type.Error,
                                         Localisation.GetString(1, "Kodi Interface"),
                                         String.Format("{0} | {1}: {2}",
                                                       mHost.Label,
-                                                      mDBElement.TVShow.Title,
+                                                      mDBElement.MainDetails.Title,
                                                       Localisation.GetString(6, "Removal failed")
                                                       ))
                                     getError = True
@@ -596,17 +597,17 @@ Public Class Addon
                                             Localisation.GetString(1, "Kodi Interface"),
                                             String.Format("{0} | {1}: {2}",
                                                           tHost.Label,
-                                                          mDBElement.TVShow.Title,
+                                                          mDBElement.MainDetails.Title,
                                                           Localisation.GetString(5, "Removal OK")
                                                           ))
                                     Else
-                                        logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Removal failed:  ", mDBElement.TVShow.Title))
+                                        logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Removal failed:  ", mDBElement.MainDetails.Title))
                                         Notifications.NewNotification(
                                                 Notifications.Type.Error,
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               tHost.Label,
-                                                              mDBElement.TVShow.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(6, "Removal failed")
                                                               ))
                                         getError = True
@@ -622,7 +623,7 @@ Public Class Addon
 
                 'Sync Movie
                 Case Enums.AddonEventType.Sync_Movie
-                    If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_Movie(mDBElement, True) Then
+                    If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(mDBElement, True) Then
                         If mDBElement.NfoPathSpecified Then
                             If mHost IsNot Nothing Then
                                 Dim _APIKodi As New Kodi.ApiKodi(mHost)
@@ -636,17 +637,17 @@ Public Class Addon
                                             Localisation.GetString(1, "Kodi Interface"),
                                             String.Format("{0} | {1}: {2}",
                                                           mHost.Label,
-                                                          mDBElement.Movie.Title,
+                                                          mDBElement.MainDetails.Title,
                                                           Localisation.GetString(7, "Sync OK")
                                                           ))
                                     Else
-                                        logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.Movie.Title))
+                                        logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.MainDetails.Title))
                                         Notifications.NewNotification(
                                                 Notifications.Type.Error,
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               mHost.Label,
-                                                              mDBElement.Movie.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(8, "Sync failed")
                                                               ))
                                         getError = True
@@ -667,17 +668,17 @@ Public Class Addon
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               tHost.Label,
-                                                              mDBElement.Movie.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(7, "Sync OK")
                                                               ))
                                         Else
-                                            logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.Movie.Title))
+                                            logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.MainDetails.Title))
                                             Notifications.NewNotification(
                                                 Notifications.Type.Error,
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               tHost.Label,
-                                                              mDBElement.Movie.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(8, "Sync failed")
                                                               ))
                                             getError = True
@@ -711,17 +712,17 @@ Public Class Addon
                                         Localisation.GetString(1, "Kodi Interface"),
                                         String.Format("{0} | {1}: {2}",
                                                       mHost.Label,
-                                                      mDBElement.MovieSet.Title,
+                                                      mDBElement.MainDetails.Title,
                                                       Localisation.GetString(7, "Sync OK")
                                                       ))
                                 Else
-                                    logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.MovieSet.Title))
+                                    logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.MainDetails.Title))
                                     Notifications.NewNotification(
                                                 Notifications.Type.Error,
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               mHost.Label,
-                                                              mDBElement.MovieSet.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(8, "Sync failed")
                                                               ))
                                     getError = True
@@ -742,17 +743,17 @@ Public Class Addon
                                             Localisation.GetString(1, "Kodi Interface"),
                                             String.Format("{0} | {1}: {2}",
                                                           tHost.Label,
-                                                          mDBElement.MovieSet.Title,
+                                                          mDBElement.MainDetails.Title,
                                                           Localisation.GetString(7, "Sync OK")
                                                           ))
                                     Else
-                                        logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.MovieSet.Title))
+                                        logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.MainDetails.Title))
                                         Notifications.NewNotification(
                                                 Notifications.Type.Error,
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               tHost.Label,
-                                                              mDBElement.MovieSet.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(8, "Sync failed")
                                                               ))
                                         getError = True
@@ -769,7 +770,7 @@ Public Class Addon
 
                     'Sync TVEpisode
                 Case Enums.AddonEventType.Sync_TVEpisode
-                    If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_TVEpisode(mDBElement, True) Then
+                    If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(mDBElement, True) Then
                         If mDBElement.NfoPathSpecified Then
                             If mHost IsNot Nothing Then
                                 Dim _APIKodi As New Kodi.ApiKodi(mHost)
@@ -783,17 +784,17 @@ Public Class Addon
                                             Localisation.GetString(1, "Kodi Interface"),
                                             String.Format("{0} | {1}: {2}",
                                                           mHost.Label,
-                                                          mDBElement.TVEpisode.Title,
+                                                          mDBElement.MainDetails.Title,
                                                           Localisation.GetString(7, "Sync OK")
                                                           ))
                                     Else
-                                        logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.TVEpisode.Title))
+                                        logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.MainDetails.Title))
                                         Notifications.NewNotification(
                                                 Notifications.Type.Error,
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               mHost.Label,
-                                                              mDBElement.TVEpisode.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(8, "Sync failed")
                                                               ))
                                         getError = True
@@ -814,17 +815,17 @@ Public Class Addon
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               tHost.Label,
-                                                              mDBElement.TVEpisode.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(7, "Sync OK")
                                                               ))
                                         Else
-                                            logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.TVEpisode.Title))
+                                            logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.MainDetails.Title))
                                             Notifications.NewNotification(
                                                 Notifications.Type.Error,
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               tHost.Label,
-                                                              mDBElement.TVEpisode.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(8, "Sync Failed")
                                                               ))
                                             getError = True
@@ -845,7 +846,7 @@ Public Class Addon
 
                     'Sync TVSeason
                 Case Enums.AddonEventType.Sync_TVSeason
-                    If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_TVShow(mDBElement, True) Then
+                    If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(mDBElement, True) Then
                         If mDBElement.IDSpecified Then
                             If mHost IsNot Nothing Then
                                 Dim _APIKodi As New Kodi.ApiKodi(mHost)
@@ -859,17 +860,17 @@ Public Class Addon
                                             Localisation.GetString(1, "Kodi Interface"),
                                             String.Format("{0} | {1}: {2}",
                                                           mHost.Label,
-                                                          mDBElement.TVSeason.Title,
+                                                          mDBElement.MainDetails.Title,
                                                           Localisation.GetString(7, "Sync OK")
                                                           ))
                                     Else
-                                        logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.TVSeason.Title))
+                                        logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.MainDetails.Title))
                                         Notifications.NewNotification(
                                                 Notifications.Type.Error,
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               mHost.Label,
-                                                              mDBElement.TVSeason.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(8, "Sync failed")
                                                               ))
                                         getError = True
@@ -890,17 +891,17 @@ Public Class Addon
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               tHost.Label,
-                                                              mDBElement.TVSeason.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(7, "Sync OK")
                                                               ))
                                         Else
-                                            logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.TVSeason.Title))
+                                            logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.MainDetails.Title))
                                             Notifications.NewNotification(
                                                 Notifications.Type.Error,
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               tHost.Label,
-                                                              mDBElement.TVSeason.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(8, "Sync failed")
                                                               ))
                                             getError = True
@@ -921,7 +922,7 @@ Public Class Addon
 
                     'Sync TVShow
                 Case Enums.AddonEventType.Sync_TVShow
-                    If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_TVShow(mDBElement, True) Then
+                    If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(mDBElement, True) Then
                         If mDBElement.NfoPathSpecified Then
                             If mHost IsNot Nothing Then
                                 Dim _APIKodi As New Kodi.ApiKodi(mHost)
@@ -935,17 +936,17 @@ Public Class Addon
                                             Localisation.GetString(1, "Kodi Interface"),
                                             String.Format("{0} | {1}: {2}",
                                                           mHost.Label,
-                                                          mDBElement.TVShow.Title,
+                                                          mDBElement.MainDetails.Title,
                                                           Localisation.GetString(7, "Sync OK")
                                                           ))
                                     Else
-                                        logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.TVShow.Title))
+                                        logger.Warn(String.Concat("[KodiInterface] [", mHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.MainDetails.Title))
                                         Notifications.NewNotification(
                                                 Notifications.Type.Error,
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               mHost.Label,
-                                                              mDBElement.TVShow.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(8, "Sync failed")
                                                               ))
                                         getError = True
@@ -966,17 +967,17 @@ Public Class Addon
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               tHost.Label,
-                                                              mDBElement.TVShow.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(7, "Sync OK")
                                                               ))
                                         Else
-                                            logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.TVShow.Title))
+                                            logger.Warn(String.Concat("[KodiInterface] [", tHost.Label, "] [GenericRunCallBack] | Sync Failed:  ", mDBElement.MainDetails.Title))
                                             Notifications.NewNotification(
                                                 Notifications.Type.Error,
                                                 Localisation.GetString(1, "Kodi Interface"),
                                                 String.Format("{0} | {1}: {2}",
                                                               tHost.Label,
-                                                              mDBElement.TVShow.Title,
+                                                              mDBElement.MainDetails.Title,
                                                               Localisation.GetString(8, "Sync failed")
                                                               ))
                                             getError = True
@@ -1010,14 +1011,14 @@ Public Class Addon
 
                                         'Get Movie Playcount
                                         Case Enums.ContentType.Movie
-                                            If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_Movie(mDBElement, True) Then
+                                            If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(mDBElement, True) Then
                                                 If mDBElement.NfoPathSpecified Then
                                                     'run task
                                                     Dim Result = Await Task.Run(Function() _APIKodi.GetPlaycount_Movie(mDBElement, GenericSubEventProgressAsync, GenericEventProcess))
                                                     If Result IsNot Nothing Then
                                                         If Not Result.AlreadyInSync Then
-                                                            mDBElement.Movie.LastPlayed = Result.LastPlayed
-                                                            mDBElement.Movie.PlayCount = Result.PlayCount
+                                                            mDBElement.MainDetails.LastPlayed = Result.LastPlayed
+                                                            mDBElement.MainDetails.PlayCount = Result.PlayCount
                                                             Master.DB.Save_Movie(mDBElement, False, True, False, True, False)
                                                             RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_Movie, New List(Of Object)(New Object() {mDBElement.ID}))
                                                         End If
@@ -1026,7 +1027,7 @@ Public Class Addon
                                                             Localisation.GetString(1, "Kodi Interface"),
                                                             String.Format("{0} | {1}: {2}",
                                                                           mHost.Label,
-                                                                          mDBElement.Movie.Title,
+                                                                          mDBElement.MainDetails.Title,
                                                                           Localisation.GetString(7, "Sync OK")
                                                                           ))
                                                     End If
@@ -1041,14 +1042,14 @@ Public Class Addon
 
                                         'Get TVEpisode Playcount
                                         Case Enums.ContentType.TVEpisode
-                                            If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_TVEpisode(mDBElement, True) Then
+                                            If mDBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(mDBElement, True) Then
                                                 If mDBElement.NfoPathSpecified Then
                                                     'run task
                                                     Dim Result = Await Task.Run(Function() _APIKodi.GetPlaycount_TVEpisode(mDBElement, GenericSubEventProgressAsync, GenericEventProcess))
                                                     If Result IsNot Nothing Then
                                                         If Not Result.AlreadyInSync Then
-                                                            mDBElement.TVEpisode.LastPlayed = Result.LastPlayed
-                                                            mDBElement.TVEpisode.Playcount = Result.PlayCount
+                                                            mDBElement.MainDetails.LastPlayed = Result.LastPlayed
+                                                            mDBElement.MainDetails.Playcount = Result.PlayCount
                                                             Master.DB.Save_TVEpisode(mDBElement, False, True, False, False, True)
                                                             RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_TVEpisode, New List(Of Object)(New Object() {mDBElement.ID}))
                                                         End If
@@ -1057,7 +1058,7 @@ Public Class Addon
                                                             Localisation.GetString(1, "Kodi Interface"),
                                                             String.Format("{0} | {1}: {2}",
                                                                           mHost.Label,
-                                                                          mDBElement.TVEpisode.Title,
+                                                                          mDBElement.MainDetails.Title,
                                                                           Localisation.GetString(7, "Sync OK")
                                                                           ))
                                                     End If
@@ -1074,14 +1075,14 @@ Public Class Addon
                                         Case Enums.ContentType.TVSeason, Enums.ContentType.TVShow
                                             If mDBElement.Episodes IsNot Nothing Then
                                                 For Each tEpisode In mDBElement.Episodes
-                                                    If tEpisode.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_TVEpisode(tEpisode, True) Then
+                                                    If tEpisode.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(tEpisode, True) Then
                                                         If tEpisode.NfoPathSpecified Then
                                                             'run task
                                                             Dim Result = Await Task.Run(Function() _APIKodi.GetPlaycount_TVEpisode(tEpisode, GenericSubEventProgressAsync, GenericEventProcess))
                                                             If Result IsNot Nothing Then
                                                                 If Not Result.AlreadyInSync Then
-                                                                    tEpisode.TVEpisode.LastPlayed = Result.LastPlayed
-                                                                    tEpisode.TVEpisode.Playcount = Result.PlayCount
+                                                                    tEpisode.MainDetails.LastPlayed = Result.LastPlayed
+                                                                    tEpisode.MainDetails.PlayCount = Result.PlayCount
                                                                     Master.DB.Save_TVEpisode(tEpisode, False, True, False, False, True)
                                                                     RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_TVEpisode, New List(Of Object)(New Object() {tEpisode.ID}))
                                                                 End If
@@ -1090,7 +1091,7 @@ Public Class Addon
                                                                     Localisation.GetString(1, "Kodi Interface"),
                                                                     String.Format("{0} | {1}: {2}",
                                                                                   mHost.Label,
-                                                                                  tEpisode.TVEpisode.Title,
+                                                                                  tEpisode.MainDetails.Title,
                                                                                   Localisation.GetString(7, "Sync OK")
                                                                                   ))
                                                             End If
@@ -1135,8 +1136,8 @@ Public Class Addon
                                                                     If Not DBNull.Value.Equals(SQLreader("PlayCount")) Then intPlaycount = Convert.ToInt32(SQLreader("PlayCount"))
                                                                     If Not intPlaycount = nMovieToSync.playcount OrElse Not intLastPlayed = nMovieToSync.lastplayed Then
                                                                         Dim nDBElement = Master.DB.Load_Movie(Convert.ToInt64(SQLreader("idMovie")))
-                                                                        nDBElement.Movie.LastPlayed = nMovieToSync.lastplayed
-                                                                        nDBElement.Movie.PlayCount = nMovieToSync.playcount
+                                                                        nDBElement.MainDetails.LastPlayed = nMovieToSync.lastplayed
+                                                                        nDBElement.MainDetails.PlayCount = nMovieToSync.playcount
                                                                         Master.DB.Save_Movie(nDBElement, True, True, False, True, False)
                                                                         RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_Movie, New List(Of Object)(New Object() {nDBElement.ID}))
                                                                         logger.Trace(String.Format("[APIKodi] [{0}] GetPlaycount_AllMovies: ""{1}"" | Synced to Ember", mHost.Label, SQLreader("Title").ToString))
@@ -1188,7 +1189,7 @@ Public Class Addon
                                                                         Dim nDBElement = Master.DB.Load_TVEpisode(Convert.ToInt64(SQLreader("idEpisode")), True)
                                                                         If Not queShowID.Contains(nDBElement.ShowID) Then queShowID.Enqueue(nDBElement.ShowID)
                                                                         nDBElement.TVEpisode.LastPlayed = nEpisodeToSync.lastplayed
-                                                                        nDBElement.TVEpisode.Playcount = nEpisodeToSync.playcount
+                                                                        nDBElement.MainDetails.PlayCount = nEpisodeToSync.playcount
                                                                         Master.DB.Save_TVEpisode(nDBElement, True, True, False, False, True, False)
                                                                         RaiseEvent GenericEvent(Enums.AddonEventType.AfterEdit_TVEpisode, New List(Of Object)(New Object() {nDBElement.ID}))
                                                                         logger.Trace(String.Format("[APIKodi] [{0}] GetPlaycount_AllTVEpisodes: ""{1}"" | Synced to Ember", mHost.Label, SQLreader("Title").ToString))
@@ -1267,7 +1268,7 @@ Public Class Addon
     ''' - load XML configuration of hosts
     ''' 2015/06/26 Cocotus - First implementation, prepared by DanCooper
     ''' </remarks>
-    Sub Init(ByVal sAssemblyName As String, ByVal sExecutable As String) Implements Interfaces.IAddon_Generic.Init
+    Sub Init(ByVal sAssemblyName As String) Implements Interfaces.IAddon_Generic.Init
         _AssemblyName = sAssemblyName
         LoadSettings()
     End Sub
@@ -1408,39 +1409,6 @@ Public Class Addon
                         Case Enums.ContentType.TVShow
                             AddHandler mnuHostRemoveItem.Click, AddressOf Remove_TVShow
                     End Select
-                    mnuHost.DropDownItems.Add(mnuHostRemoveItem)
-                End If
-                tMenu.DropDownItems.Add(mnuHost)
-            Next
-            If tContentType = Enums.ContentType.Movie OrElse tContentType = Enums.ContentType.TVEpisode OrElse tContentType = Enums.ContentType.TVSeason OrElse tContentType = Enums.ContentType.TVShow Then
-                If _SpecialSettings.GetWatchedState AndAlso Not String.IsNullOrEmpty(_SpecialSettings.GetWatchedStateHost) Then
-                    Dim mHost As Host = _SpecialSettings.Hosts.FirstOrDefault(Function(f) f.Label = _SpecialSettings.GetWatchedStateHost)
-                    If mHost IsNot Nothing Then
-                        Dim mnuHostGetPlaycount As New ToolStripMenuItem
-                        mnuHostGetPlaycount.Image = New Bitmap(My.Resources.menuWatchedState)
-                        mnuHostGetPlaycount.Tag = mHost
-                        mnuHostGetPlaycount.Text = String.Format("{0} ({1})", Localisation.GetString(11, "Get Watched-State"), _SpecialSettings.GetWatchedStateHost)
-                        Select Case tContentType
-                            Case Enums.ContentType.Movie
-                                AddHandler mnuHostGetPlaycount.Click, AddressOf GetPlaycount_Movie
-                            Case Enums.ContentType.TVEpisode
-                                AddHandler mnuHostGetPlaycount.Click, AddressOf GetPlaycount_TVEpisode
-                            Case Enums.ContentType.TVSeason
-                                AddHandler mnuHostGetPlaycount.Click, AddressOf GetPlaycount_TVSeason
-                            Case Enums.ContentType.TVShow
-                                AddHandler mnuHostGetPlaycount.Click, AddressOf GetPlaycount_TVShow
-                        End Select
-                        tMenu.DropDownItems.Add(mnuHostGetPlaycount)
-                    End If
-                End If
-            End If
-        Else
-            Dim mnuDummy As New ToolStripMenuItem
-            mnuDummy.Enabled = False
-            mnuDummy.Text = Localisation.GetString(12, "No Host configured")
-            tMenu.DropDownItems.Add(mnuDummy)
-            AddHandler mnuHostRemoveItem.Click, AddressOf Remove_TVShow
-            End Select
                     mnuHost.DropDownItems.Add(mnuHostRemoveItem)
                 End If
                 tMenu.DropDownItems.Add(mnuHost)
@@ -1740,7 +1708,7 @@ Public Class Addon
     End Function
 
     Sub SaveSettings(ByVal DoDispose As Boolean) Implements Interfaces.IAddon_Generic.SaveSettings
-        Enabled = _setup.chkEnabled.Checked
+        ScraperEnabled = _setup.chkEnabled.Checked
         _SpecialSettings.SendNotifications = _setup.chkNotification.Checked
         _SpecialSettings.GetWatchedState = _setup.chkGetWatchedState.Checked AndAlso _setup.cbGetWatchedStateHost.SelectedItem IsNot Nothing
         _SpecialSettings.GetWatchedStateBeforeEdit_Movie = _setup.chkGetWatchedStateBeforeEdit_Movie.Checked
@@ -1753,12 +1721,16 @@ Public Class Addon
 
         SaveSettings()
 
-        If Enabled Then PopulateMenus()
+        If ScraperEnabled Then PopulateMenus()
         If DoDispose Then
             RemoveHandler _setup.ModuleSetupChanged, AddressOf Handle_ModuleSetupChanged
             RemoveHandler _setup.ModuleSettingsChanged, AddressOf Handle_ModuleSettingsChanged
             _setup.Dispose()
         End If
+    End Sub
+
+    Sub ScraperOrderChanged() Implements Interfaces.IAddon_Generic.ScraperOrderChanged
+        ' No action needed for Kodi Interface addon
     End Sub
 
     Sub SaveSettings()
@@ -1827,7 +1799,7 @@ Public Class Addon
             For Each sRow As DataGridViewRow In Addons.Instance.RuntimeObjects.MediaListMovies.SelectedRows
                 Dim ID As Long = Convert.ToInt64(sRow.Cells("idMovie").Value)
                 Dim DBElement As Database.DBElement = Master.DB.Load_Movie(ID)
-                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_Movie(DBElement, True) Then
+                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(DBElement, True) Then
                     If DBElement.NfoPathSpecified Then
                         'add job to tasklist and get everything done
                         AddTask(New KodiTask With {.mDBElement = DBElement, .mHost = mHost, .mInternalType = InternalType.GetPlaycount, .mType = Enums.AddonEventType.Task})
@@ -1837,7 +1809,7 @@ Public Class Addon
                             Localisation.GetString(1, "Kodi Interface"),
                             String.Format("{0} | {1}: {2}",
                                           mHost.Label,
-                                          DBElement.Movie.Title,
+                                          DBElement.MainDetails.Title,
                                           Localisation.GetString(15, "Unscraped content cannot be synced")
                                           ))
                     End If
@@ -1862,7 +1834,7 @@ Public Class Addon
             For Each sRow As DataGridViewRow In Addons.Instance.RuntimeObjects.MediaListTVEpisodes.SelectedRows
                 Dim ID As Long = Convert.ToInt64(sRow.Cells("idEpisode").Value)
                 Dim DBElement As Database.DBElement = Master.DB.Load_TVEpisode(ID, True)
-                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_TVEpisode(DBElement, True) Then
+                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(DBElement, True) Then
                     If DBElement.NfoPathSpecified Then
                         'add job to tasklist and get everything done
                         AddTask(New KodiTask With {.mDBElement = DBElement, .mHost = mHost, .mInternalType = InternalType.GetPlaycount, .mType = Enums.AddonEventType.Task})
@@ -1872,7 +1844,7 @@ Public Class Addon
                             Localisation.GetString(1, "Kodi Interface"),
                             String.Format("{0} | {1}: {2}",
                                           mHost.Label,
-                                          DBElement.TVEpisode.Title,
+                                          DBElement.MainDetails.Title,
                                           Localisation.GetString(15, "Unscraped content cannot be synced")
                                           ))
                     End If
@@ -1899,7 +1871,7 @@ Public Class Addon
             For Each sRow As DataGridViewRow In Addons.Instance.RuntimeObjects.MediaListTVSeasons.SelectedRows
                 Dim ID As Long = Convert.ToInt64(sRow.Cells("idSeason").Value)
                 Dim DBElement As Database.DBElement = Master.DB.Load_TVSeason(ID, True, True)
-                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_TVShow(DBElement, True) Then
+                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(DBElement, True) Then
                     'add job to tasklist and get everything done
                     AddTask(New KodiTask With {.mDBElement = DBElement, .mHost = mHost, .mInternalType = InternalType.GetPlaycount, .mType = Enums.AddonEventType.Task})
                 End If
@@ -1923,7 +1895,7 @@ Public Class Addon
             For Each sRow As DataGridViewRow In Addons.Instance.RuntimeObjects.MediaListTVShows.SelectedRows
                 Dim ID As Long = Convert.ToInt64(sRow.Cells("idShow").Value)
                 Dim DBElement As Database.DBElement = Master.DB.Load_TVShow(ID, True, True)
-                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_TVShow(DBElement, True) Then
+                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(DBElement, True) Then
                     If DBElement.NfoPathSpecified Then
                         'add job to tasklist and get everything done
                         AddTask(New KodiTask With {.mDBElement = DBElement, .mHost = mHost, .mInternalType = InternalType.GetPlaycount, .mType = Enums.AddonEventType.Task})
@@ -1933,7 +1905,7 @@ Public Class Addon
                             Localisation.GetString(1, "Kodi Interface"),
                             String.Format("{0} | {1}: {2}",
                                           mHost.Label,
-                                          DBElement.TVShow.Title,
+                                          DBElement.MainDetails.Title,
                                           Localisation.GetString(15, "Unscraped content cannot be synced")
                                           ))
                     End If
@@ -2026,7 +1998,7 @@ Public Class Addon
             For Each sRow As DataGridViewRow In Addons.Instance.RuntimeObjects.MediaListTVSeasons.SelectedRows
                 Dim ID As Long = Convert.ToInt64(sRow.Cells("idSeason").Value)
                 Dim DBElement As Database.DBElement = Master.DB.Load_TVSeason(ID, True, True)
-                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_TVShow(DBElement, True) Then
+                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(DBElement, True) Then
                     'add job to tasklist and get everything done
                     AddTask(New KodiTask With {.mDBElement = DBElement, .mHost = mHost, .mType = Enums.AddonEventType.Sync_TVSeason})
                 End If
@@ -2052,7 +2024,7 @@ Public Class Addon
             For Each sRow As DataGridViewRow In Addons.Instance.RuntimeObjects.MediaListTVShows.SelectedRows
                 Dim ID As Long = Convert.ToInt64(sRow.Cells("idShow").Value)
                 Dim DBElement As Database.DBElement = Master.DB.Load_TVShow(ID, True, True)
-                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_TVShow(DBElement, True) Then
+                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(DBElement, True) Then
                     If DBElement.NfoPathSpecified Then
                         'add job to tasklist and get everything done
                         AddTask(New KodiTask With {.mDBElement = DBElement, .mHost = mHost, .mType = Enums.AddonEventType.Sync_TVShow})
@@ -2062,7 +2034,7 @@ Public Class Addon
                             Localisation.GetString(1, "Kodi Interface"),
                             String.Format("{0} | {1}: {2}",
                                           mHost.Label,
-                                          DBElement.TVShow.Title,
+                                          DBElement.MainDetails.Title,
                                           Localisation.GetString(15, "Unscraped content cannot be synced")
                                           ))
                     End If
@@ -2089,7 +2061,7 @@ Public Class Addon
             For Each sRow As DataGridViewRow In Addons.Instance.RuntimeObjects.MediaListMovies.SelectedRows
                 Dim ID As Long = Convert.ToInt64(sRow.Cells("idMovie").Value)
                 Dim DBElement As Database.DBElement = Master.DB.Load_Movie(ID)
-                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_Movie(DBElement, True) Then
+                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(DBElement, True) Then
                     If DBElement.NfoPathSpecified Then
                         'add job to tasklist and get everything done
                         AddTask(New KodiTask With {.mDBElement = DBElement, .mHost = mHost, .mType = Enums.AddonEventType.Sync_Movie})
@@ -2099,7 +2071,7 @@ Public Class Addon
                             Localisation.GetString(1, "Kodi Interface"),
                             String.Format("{0} | {1}: {2}",
                                           mHost.Label,
-                                          DBElement.Movie.Title,
+                                          DBElement.MainDetails.Title,
                                           Localisation.GetString(15, "Unscraped content cannot be synced")
                                           ))
                     End If
@@ -2126,7 +2098,7 @@ Public Class Addon
             For Each sRow As DataGridViewRow In Addons.Instance.RuntimeObjects.MediaListMovieSets.SelectedRows
                 Dim ID As Long = Convert.ToInt64(sRow.Cells("idSet").Value)
                 Dim DBElement As Database.DBElement = Master.DB.Load_Movieset(ID)
-                If DBElement.MovieSet.TitleSpecified Then
+                If DBElement.MainDetails.TitleSpecified Then
                     'add job to tasklist and get everything done
                     AddTask(New KodiTask With {.mDBElement = DBElement, .mHost = mHost, .mType = Enums.AddonEventType.Sync_MovieSet})
                 Else
@@ -2135,7 +2107,7 @@ Public Class Addon
                         Localisation.GetString(1, "Kodi Interface"),
                         String.Format("{0} | {1}: {2}",
                                       mHost.Label,
-                                      DBElement.MovieSet.Title,
+                                      DBElement.MainDetails.Title,
                                       Localisation.GetString(15, "Unscraped content cannot be synced")
                                       ))
                 End If
@@ -2161,7 +2133,7 @@ Public Class Addon
             For Each sRow As DataGridViewRow In Addons.Instance.RuntimeObjects.MediaListTVEpisodes.SelectedRows
                 Dim ID As Long = Convert.ToInt64(sRow.Cells("idEpisode").Value)
                 Dim DBElement As Database.DBElement = Master.DB.Load_TVEpisode(ID, True)
-                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_TVEpisode(DBElement, True) Then
+                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(DBElement, True) Then
                     If DBElement.NfoPathSpecified Then
                         'add job to tasklist and get everything done
                         AddTask(New KodiTask With {.mDBElement = DBElement, .mHost = mHost, .mType = Enums.AddonEventType.Sync_TVEpisode})
@@ -2171,7 +2143,7 @@ Public Class Addon
                             Localisation.GetString(1, "Kodi Interface"),
                             String.Format("{0} | {1}: {2}",
                                           mHost.Label,
-                                          DBElement.TVEpisode.Title,
+                                          DBElement.MainDetails.Title,
                                           Localisation.GetString(15, "Unscraped content cannot be synced")
                                           ))
                     End If
@@ -2198,7 +2170,7 @@ Public Class Addon
             For Each sRow As DataGridViewRow In Addons.Instance.RuntimeObjects.MediaListTVSeasons.SelectedRows
                 Dim ID As Long = Convert.ToInt64(sRow.Cells("idSeason").Value)
                 Dim DBElement As Database.DBElement = Master.DB.Load_TVSeason(ID, True, False)
-                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_TVShow(DBElement, True) Then
+                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(DBElement, True) Then
                     'add job to tasklist and get everything done
                     AddTask(New KodiTask With {.mDBElement = DBElement, .mHost = mHost, .mType = Enums.AddonEventType.Sync_TVSeason})
                 End If
@@ -2224,7 +2196,7 @@ Public Class Addon
             For Each sRow As DataGridViewRow In Addons.Instance.RuntimeObjects.MediaListTVShows.SelectedRows
                 Dim ID As Long = Convert.ToInt64(sRow.Cells("idShow").Value)
                 Dim DBElement As Database.DBElement = Master.DB.Load_TVShow(ID, False, False)
-                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus_TVShow(DBElement, True) Then
+                If DBElement.IsOnline OrElse FileUtils.Common.CheckOnlineStatus(DBElement, True) Then
                     If DBElement.NfoPathSpecified Then
                         'add job to tasklist and get everything done
                         AddTask(New KodiTask With {.mDBElement = DBElement, .mHost = mHost, .mType = Enums.AddonEventType.Sync_TVShow})
@@ -2234,7 +2206,7 @@ Public Class Addon
                             Localisation.GetString(1, "Kodi Interface"),
                             String.Format("{0} | {1}: {2}",
                                           mHost.Label,
-                                          DBElement.TVShow.Title,
+                                          DBElement.MainDetails.Title,
                                           Localisation.GetString(15, "Unscraped content cannot be synced")
                                           ))
                     End If

@@ -407,10 +407,6 @@
     <None Include="TECHNICAL-DECISIONS.md" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="DB\MyVideosDBSQL_v48_Patch.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </Content>
     <Content Include="Defaults\core.languages.scrapers.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>

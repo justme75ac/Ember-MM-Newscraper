@@ -1,4 +1,4 @@
-﻿' ################################################################################
+' ################################################################################
 ' #                             EMBER MEDIA MANAGER                              #
 ' ################################################################################
 ' ################################################################################
@@ -19,6 +19,7 @@
 ' ################################################################################
 
 Imports NLog
+Imports System.Data
 Imports System.Data.SQLite
 Imports System.IO
 Imports System.Text.RegularExpressions
@@ -1324,7 +1325,7 @@ Public Class Database
     Public Function Connect_MyVideos() As Boolean
 
         'set database version
-        Dim MyVideosDBVersion As Integer = 48
+        Dim MyVideosDBVersion As Integer = 47
 
         'set database filename
         Dim MyVideosDB As String = String.Format("MyVideos{0}.emm", MyVideosDBVersion)
@@ -1357,7 +1358,14 @@ Public Class Database
             _myvideosDBConn.Open()
         Catch ex As Exception
             logger.Error(ex, New StackFrame().GetMethod().Name & Convert.ToChar(Windows.Forms.Keys.Tab) & "Unable to open media database connection.")
+            Return False
         End Try
+
+        ' Prüfe, ob die Verbindung erfolgreich geöffnet wurde
+        If _myvideosDBConn Is Nothing OrElse _myvideosDBConn.State <> ConnectionState.Open Then
+            logger.Error(New StackFrame().GetMethod().Name & Convert.ToChar(Windows.Forms.Keys.Tab) & "Database connection is not open.")
+            Return False
+        End If
 
         Try
             If isNew Then
@@ -1374,7 +1382,14 @@ Public Class Database
         Catch ex As Exception
             logger.Error(ex, New StackFrame().GetMethod().Name & Convert.ToChar(Windows.Forms.Keys.Tab) & "Error creating database")
             Close_MyVideos()
-            File.Delete(MyVideosDBFile)
+            If File.Exists(MyVideosDBFile) Then
+                Try
+                    File.Delete(MyVideosDBFile)
+                Catch deleteEx As Exception
+                    logger.Error(deleteEx, New StackFrame().GetMethod().Name & Convert.ToChar(Windows.Forms.Keys.Tab) & "Error deleting corrupted database file")
+                End Try
+            End If
+            Return False
         End Try
         Return isNew
     End Function
@@ -1808,6 +1823,10 @@ Public Class Database
 
     Public Function GetAll_Certifications() As String()
         Dim nList As New List(Of String)
+        If _myvideosDBConn Is Nothing Then
+            logger.Warn(New StackFrame().GetMethod().Name & Convert.ToChar(Windows.Forms.Keys.Tab) & "Database connection is not initialized. Cannot retrieve certifications.")
+            Return nList.ToArray
+        End If
         Using SQLcommand As SQLiteCommand = _myvideosDBConn.CreateCommand()
             SQLcommand.CommandText = "SELECT Certification FROM movie WHERE Certification <> '';"
             Using SQLreader As SQLiteDataReader = SQLcommand.ExecuteReader()
@@ -2262,7 +2281,7 @@ Public Class Database
                         .ID = Convert.ToInt64(SQLreader("idSource")),
                         .IsSingle = Convert.ToBoolean(SQLreader("bSingle")),
                         .Language = SQLreader("strLanguage").ToString,
-                        .LastScan = SQLreader("strLastScan").ToString,
+                        .LastScan = "1900/01/01",
                         .Name = SQLreader("strName").ToString,
                         .Path = SQLreader("strPath").ToString,
                         .ScanRecursive = Convert.ToBoolean(SQLreader("bRecursive")),
@@ -2290,7 +2309,7 @@ Public Class Database
                         .ID = Convert.ToInt64(SQLreader("idSource")),
                         .IsSingle = Convert.ToBoolean(SQLreader("bSingle")),
                         .Language = SQLreader("strLanguage").ToString,
-                        .LastScan = SQLreader("strLastScan").ToString,
+                        .LastScan = "1900/01/01",
                         .Name = SQLreader("strName").ToString,
                         .EpisodeOrdering = DirectCast(Convert.ToInt32(SQLreader("iOrdering")), Enums.EpisodeOrdering),
                         .Path = SQLreader("strPath").ToString
@@ -2821,7 +2840,7 @@ Public Class Database
                     _source.Exclude = Convert.ToBoolean(SQLreader("bExclude"))
                     _source.GetYear = Convert.ToBoolean(SQLreader("bGetYear"))
                     _source.Language = SQLreader("strLanguage").ToString
-                    _source.LastScan = SQLreader("strLastScan").ToString
+                    _source.LastScan = "1900/01/01"
                 End If
             End Using
         End Using
@@ -2844,7 +2863,7 @@ Public Class Database
                     _source.EpisodeOrdering = DirectCast(Convert.ToInt32(SQLreader("iOrdering")), Enums.EpisodeOrdering)
                     _source.Exclude = Convert.ToBoolean(SQLreader("bExclude"))
                     _source.EpisodeSorting = DirectCast(Convert.ToInt32(SQLreader("iEpisodeSorting")), Enums.EpisodeSorting)
-                    _source.LastScan = SQLreader("strLastScan").ToString
+                    _source.LastScan = "1900/01/01"
                     _source.IsSingle = Convert.ToBoolean(SQLreader("bSingle"))
                 End If
             End Using
@@ -4205,14 +4224,14 @@ Public Class Database
                     sqlCommand.CommandText = String.Concat(sqlCommand.CommandText, "idSource,")
                 End If
                 sqlCommand.CommandText = String.Concat(sqlCommand.CommandText,
-                                                       "path,",
-                                                       "name,",
-                                                       "scanRecursive,",
-                                                       "useFoldername,",
-                                                       "isSingle,",
-                                                       "exclude,",
-                                                       "getYear,",
-                                                       "language",
+                                                       "strPath,",
+                                                       "strName,",
+                                                       "bRecursive,",
+                                                       "bFoldername,",
+                                                       "bSingle,",
+                                                       "bExclude,",
+                                                       "bGetYear,",
+                                                       "strLanguage",
                                                        ") VALUES (?,?,?,?,?,?,?,?")
                 If dbSource.IDSpecified Then
                     sqlCommand.CommandText = String.Concat(sqlCommand.CommandText, ",?")
@@ -4221,14 +4240,14 @@ Public Class Database
                 End If
                 sqlCommand.CommandText = String.Concat(sqlCommand.CommandText, "); Select LAST_INSERT_ROWID() FROM moviesource;")
 
-                Dim par_path As SQLiteParameter = sqlCommand.Parameters.Add("par_path", DbType.String, 0, "path")
-                Dim par_name As SQLiteParameter = sqlCommand.Parameters.Add("par_name", DbType.String, 0, "name")
-                Dim par_scanRecursive As SQLiteParameter = sqlCommand.Parameters.Add("par_scanRecursive", DbType.Boolean, 0, "scanRecursive")
-                Dim par_useFoldername As SQLiteParameter = sqlCommand.Parameters.Add("par_useFoldername", DbType.Boolean, 0, "useFoldername")
-                Dim par_isSingle As SQLiteParameter = sqlCommand.Parameters.Add("par_isSingle", DbType.Boolean, 0, "isSingle")
-                Dim par_exclude As SQLiteParameter = sqlCommand.Parameters.Add("par_exclude", DbType.Boolean, 0, "exclude")
-                Dim par_getYear As SQLiteParameter = sqlCommand.Parameters.Add("par_getYear", DbType.Boolean, 0, "getYear")
-                Dim par_language As SQLiteParameter = sqlCommand.Parameters.Add("par_language", DbType.String, 0, "language")
+                Dim par_path As SQLiteParameter = sqlCommand.Parameters.Add("par_path", DbType.String, 0, "strPath")
+                Dim par_name As SQLiteParameter = sqlCommand.Parameters.Add("par_name", DbType.String, 0, "strName")
+                Dim par_scanRecursive As SQLiteParameter = sqlCommand.Parameters.Add("par_scanRecursive", DbType.Boolean, 0, "bRecursive")
+                Dim par_useFoldername As SQLiteParameter = sqlCommand.Parameters.Add("par_useFoldername", DbType.Boolean, 0, "bFoldername")
+                Dim par_isSingle As SQLiteParameter = sqlCommand.Parameters.Add("par_isSingle", DbType.Boolean, 0, "bSingle")
+                Dim par_exclude As SQLiteParameter = sqlCommand.Parameters.Add("par_exclude", DbType.Boolean, 0, "bExclude")
+                Dim par_getYear As SQLiteParameter = sqlCommand.Parameters.Add("par_getYear", DbType.Boolean, 0, "bGetYear")
+                Dim par_language As SQLiteParameter = sqlCommand.Parameters.Add("par_language", DbType.String, 0, "strLanguage")
                 par_path.Value = dbSource.Path
                 par_name.Value = dbSource.Name
                 par_scanRecursive.Value = dbSource.ScanRecursive
@@ -4267,13 +4286,13 @@ Public Class Database
                     sqlCommand.CommandText = String.Concat(sqlCommand.CommandText, "idSource,")
                 End If
                 sqlCommand.CommandText = String.Concat(sqlCommand.CommandText,
-                                                       "path,",
-                                                       "name,",
-                                                       "language,",
-                                                       "episodeOrdering,",
-                                                       "exclude,",
-                                                       "episodeSorting,",
-                                                       "isSingle",
+                                                       "strPath,",
+                                                       "strName,",
+                                                       "strLanguage,",
+                                                       "iOrdering,",
+                                                       "bExclude,",
+                                                       "iEpisodeSorting,",
+                                                       "bSingle",
                                                        ") VALUES (?,?,?,?,?,?,?")
                 If dbSource.IDSpecified Then
                     sqlCommand.CommandText = String.Concat(sqlCommand.CommandText, ",?")
@@ -4282,13 +4301,13 @@ Public Class Database
                 End If
                 sqlCommand.CommandText = String.Concat(sqlCommand.CommandText, "); Select LAST_INSERT_ROWID() FROM tvshowsource;")
 
-                Dim par_path As SQLiteParameter = sqlCommand.Parameters.Add("par_path", DbType.String, 0, "path")
-                Dim par_name As SQLiteParameter = sqlCommand.Parameters.Add("par_name", DbType.String, 0, "name")
-                Dim par_language As SQLiteParameter = sqlCommand.Parameters.Add("par_language", DbType.String, 0, "language")
-                Dim par_episodeOrdering As SQLiteParameter = sqlCommand.Parameters.Add("par_episodeOrdering", DbType.Int32, 0, "episodeOrdering")
-                Dim par_exclude As SQLiteParameter = sqlCommand.Parameters.Add("par_exclude", DbType.Boolean, 0, "exclude")
-                Dim par_episodeSorting As SQLiteParameter = sqlCommand.Parameters.Add("par_episodeSorting", DbType.Int32, 0, "episodeSorting")
-                Dim par_isSingle As SQLiteParameter = sqlCommand.Parameters.Add("par_isSingle", DbType.Boolean, 0, "isSingle")
+                Dim par_path As SQLiteParameter = sqlCommand.Parameters.Add("par_path", DbType.String, 0, "strPath")
+                Dim par_name As SQLiteParameter = sqlCommand.Parameters.Add("par_name", DbType.String, 0, "strName")
+                Dim par_language As SQLiteParameter = sqlCommand.Parameters.Add("par_language", DbType.String, 0, "strLanguage")
+                Dim par_episodeOrdering As SQLiteParameter = sqlCommand.Parameters.Add("par_episodeOrdering", DbType.Int32, 0, "iOrdering")
+                Dim par_exclude As SQLiteParameter = sqlCommand.Parameters.Add("par_exclude", DbType.Boolean, 0, "bExclude")
+                Dim par_episodeSorting As SQLiteParameter = sqlCommand.Parameters.Add("par_episodeSorting", DbType.Int32, 0, "iEpisodeSorting")
+                Dim par_isSingle As SQLiteParameter = sqlCommand.Parameters.Add("par_isSingle", DbType.Boolean, 0, "bSingle")
                 par_path.Value = dbSource.Path
                 par_name.Value = dbSource.Name
                 par_exclude.Value = dbSource.Exclude
@@ -5595,14 +5614,6 @@ Public Class Database
                 sqlTransaction.Commit()
             End Using
 
-            Using sqlTransaction As SQLiteTransaction = _myvideosDBConn.BeginTransaction()
-                Select Case Args.currVersion
-                    Case Is < 48
-                        Patch48_wipe_seasontitles(True)
-                End Select
-
-                sqlTransaction.Commit()
-            End Using
 
             _myvideosDBConn.Close()
             File.Move(tempName, Args.newDBPath)
@@ -6576,7 +6587,7 @@ Public Class Database
                 Case ColumnName.idMovie
                     Return GetMainIdName(TableName.movie)
                 Case ColumnName.idPerson
-                    Return GetMainIdName(TableName.person)
+                    Return "idActor"
                 Case ColumnName.idSeason
                     Return GetMainIdName(TableName.season)
                 Case ColumnName.idSet
@@ -6766,7 +6777,7 @@ Public Class Database
         Public Shared Function GetMainIdName(ByVal item As TableName) As String
             Select Case item
                 Case TableName.actor_link, TableName.creator_link, TableName.director_link, TableName.gueststar_link, TableName.person, TableName.writer_link
-                    Return "idPerson"
+                    Return "idActor"
                 Case TableName.art
                     Return "idArt"
                 Case TableName.certification
@@ -6777,6 +6788,10 @@ Public Class Database
                     Return "idEpisode"
                 Case TableName.file
                     Return "idFile"
+                Case TableName.moviesource
+                    Return "idSource"
+                Case TableName.tvshowsource
+                    Return "idSource"
                 Case TableName.genre
                     Return "idGenre"
                 Case TableName.movie
@@ -6862,7 +6877,7 @@ Public Class Database
                 Case TableName.excludedpath
                     Return "excludedpath"
                 Case TableName.file
-                    Return "file"
+                    Return "files"
                 Case TableName.genre
                     Return "genre"
                 Case TableName.genre_link
@@ -7199,6 +7214,54 @@ Public Class Database
         Public ReadOnly Property VideoSourceSpecified As Boolean
             Get
                 Return Not String.IsNullOrEmpty(VideoSource)
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns MainDetails as EpisodeDetails for TVEpisode content type
+        ''' </summary>
+        Public ReadOnly Property TVEpisode As MediaContainers.MainDetails
+            Get
+                If ContentType = Enums.ContentType.TVEpisode Then
+                    Return MainDetails
+                End If
+                Return Nothing
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns MainDetails as Movieset for MovieSet content type
+        ''' </summary>
+        Public ReadOnly Property MovieSet As MediaContainers.MainDetails
+            Get
+                If ContentType = Enums.ContentType.Movieset Then
+                    Return MainDetails
+                End If
+                Return Nothing
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns MainDetails as SeasonDetails for TVSeason content type
+        ''' </summary>
+        Public ReadOnly Property TVSeason As MediaContainers.MainDetails
+            Get
+                If ContentType = Enums.ContentType.TVSeason Then
+                    Return MainDetails
+                End If
+                Return Nothing
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns MainDetails as TVShow for TVShow content type
+        ''' </summary>
+        Public ReadOnly Property TVShow As MediaContainers.MainDetails
+            Get
+                If ContentType = Enums.ContentType.TVShow Then
+                    Return MainDetails
+                End If
+                Return Nothing
             End Get
         End Property
 

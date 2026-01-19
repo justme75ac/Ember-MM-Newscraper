@@ -40,11 +40,8 @@ namespace XBMCRPC.Methods
         public async Task<bool> SetMute(bool mute)
         {
             var jArgs = new JObject();
-             if (mute != null)
-             {
-                 var jpropmute = JToken.FromObject(mute, _client.Serializer);
-                 jArgs.Add(new JProperty("mute", jpropmute));
-             }
+             var jpropmute = JToken.FromObject(mute, _client.Serializer);
+             jArgs.Add(new JProperty("mute", jpropmute));
             return await _client.GetData<bool>("Application.SetMute", jArgs);
         }
 
@@ -77,11 +74,8 @@ namespace XBMCRPC.Methods
         public async Task<int> SetVolume(int volume)
         {
             var jArgs = new JObject();
-             if (volume != null)
-             {
-                 var jpropvolume = JToken.FromObject(volume, _client.Serializer);
-                 jArgs.Add(new JProperty("volume", jpropvolume));
-             }
+             var jpropvolume = JToken.FromObject(volume, _client.Serializer);
+             jArgs.Add(new JProperty("volume", jpropvolume));
             return await _client.GetData<int>("Application.SetVolume", jArgs);
         }
 

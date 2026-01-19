@@ -120,7 +120,7 @@ namespace XBMCRPC
 
             var stream = _clientSocket.GetInputStream();
 
-            ListenForNotifications(stream);
+            _ = ListenForNotifications(stream);
         }
 
         private async Task ListenForNotifications(Stream stream)
