@@ -344,6 +344,7 @@ CREATE TABLE movie (
         ThemePath       text,
         TMDB            text,
         TMDBColID       text,
+        TPDB             text,
         DateModified    integer,
         MarkCustom1     bool NOT NULL DEFAULT 0,
         MarkCustom2     bool NOT NULL DEFAULT 0,

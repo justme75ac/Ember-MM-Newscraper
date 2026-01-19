@@ -3567,6 +3567,7 @@ Public Class Database
                 "ThemePath",
                 "TMDB",
                 "TMDBColID",
+                "TPDB",
                 "DateModified",
                 "MarkCustom1",
                 "MarkCustom2",
@@ -3628,6 +3629,7 @@ Public Class Database
             Dim par_ThemePath As SQLiteParameter = sqlCommand.Parameters.Add("par_ThemePath", DbType.String, 0, "ThemePath")
             Dim par_TMDB As SQLiteParameter = sqlCommand.Parameters.Add("par_TMDB", DbType.String, 0, "TMDB")
             Dim par_TMDBColID As SQLiteParameter = sqlCommand.Parameters.Add("par_TMDBColID", DbType.String, 0, "TMDBColID")
+            Dim par_TPDB As SQLiteParameter = sqlCommand.Parameters.Add("par_TPDB", DbType.String, 0, "TPDB")
             Dim par_DateModified As SQLiteParameter = sqlCommand.Parameters.Add("par_DateModified", DbType.Int64, 0, "DateModified")
             Dim par_MarkCustom1 As SQLiteParameter = sqlCommand.Parameters.Add("par_MarkCustom1", DbType.Boolean, 0, "MarkCustom1")
             Dim par_MarkCustom2 As SQLiteParameter = sqlCommand.Parameters.Add("par_MarkCustom2", DbType.Boolean, 0, "MarkCustom2")
@@ -3790,6 +3792,7 @@ Public Class Database
                 par_SortTitle.Value = .SortTitle
                 par_TMDB.Value = If(.UniqueIDs.TMDbIdSpecified, .UniqueIDs.TMDbId.ToString, String.Empty)
                 par_TMDBColID.Value = If(.UniqueIDs.TMDbCollectionIdSpecified, .UniqueIDs.TMDbCollectionId.ToString, String.Empty)
+                par_TPDB.Value = If(.UniqueIDs.TPDbIdSpecified, .UniqueIDs.TPDbId, String.Empty)
                 par_Tagline.Value = .Tagline
                 par_Title.Value = .Title
                 If .Top250Specified Then 'need to be NOTHING instead of "0"

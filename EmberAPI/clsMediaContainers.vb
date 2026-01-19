@@ -5060,6 +5060,29 @@ Namespace MediaContainers
             End Get
         End Property
 
+        <XmlIgnore>
+        Public Property TPDbId() As String
+            Get
+                Dim nID = Items.FirstOrDefault(Function(f) f.Type = "tpdb")
+                If nID IsNot Nothing AndAlso nID.ValueSpecified Then Return nID.Value
+                Return String.Empty
+            End Get
+            Set(value As String)
+                If Not String.IsNullOrEmpty(value) Then
+                    Add("tpdb", value)
+                Else
+                    RemoveAll("tpdb")
+                End If
+            End Set
+        End Property
+
+        <XmlIgnore>
+        Public ReadOnly Property TPDbIdSpecified() As Boolean
+            Get
+                Return Not String.IsNullOrEmpty(TPDbId)
+            End Get
+        End Property
+
 #End Region 'Properties
 
 #Region "Methods"
